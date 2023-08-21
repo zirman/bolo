@@ -17,7 +17,6 @@ import io.ktor.websocket.readBytes
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -29,7 +28,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import util.awaitPair
 
-@ExperimentalCoroutinesApi
 @FlowPreview
 @ExperimentalSerializationApi
 @ExperimentalUnsignedTypes

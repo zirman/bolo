@@ -4,25 +4,25 @@ import bmap.Terrain
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class FrameServer {
+sealed interface FrameServer {
     @Serializable
     data class TerrainBuild(
         val terrain: Terrain,
         val x: Int,
         val y: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
-    object TerrainBuildSuccess : FrameServer()
+    data object TerrainBuildSuccess : FrameServer
 
     @Serializable
-    object TerrainBuildFailed : FrameServer()
+    data object TerrainBuildFailed : FrameServer
 
     @Serializable
     data class TerrainDamage(
         val x: Int,
         val y: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class BaseTake(
@@ -31,37 +31,37 @@ sealed class FrameServer {
         var armor: Int,
         var shells: Int,
         var mines: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class BaseDamage(
         val index: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class PillDamage(
         val index: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class PillRepair(
         val index: Int,
         val armor: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class PillRepairSuccess(
         val material: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
-    object PillRepairFailed : FrameServer()
+    data object PillRepairFailed : FrameServer
 
     @Serializable
     data class PillTake(
         val index: Int,
         val owner: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
     data class PillPlacement(
@@ -69,13 +69,13 @@ sealed class FrameServer {
         val armor: Int,
         val x: Int,
         val y: Int,
-    ) : FrameServer()
+    ) : FrameServer
 
     @Serializable
-    object PillPlacementSuccess : FrameServer()
+    data object PillPlacementSuccess : FrameServer
 
     @Serializable
-    object PillPlacementFailed : FrameServer()
+    data object PillPlacementFailed : FrameServer
 
     @Serializable
     data class PillDrop(
@@ -83,5 +83,5 @@ sealed class FrameServer {
         val owner: Int,
         val x: Int,
         val y: Int,
-    ) : FrameServer()
+    ) : FrameServer
 }

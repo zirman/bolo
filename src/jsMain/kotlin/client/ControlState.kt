@@ -2,29 +2,29 @@ package client
 
 import kotlinx.browser.window
 
-sealed class DirectionVertical {
-    object Up : DirectionVertical()
-    object Center : DirectionVertical()
-    object Down : DirectionVertical()
+sealed interface DirectionVertical {
+    data object Up : DirectionVertical
+    data object Center : DirectionVertical
+    data object Down : DirectionVertical
 }
 
-sealed class DirectionHorizontal {
-    object Left : DirectionHorizontal()
-    object Center : DirectionHorizontal()
-    object Right : DirectionHorizontal()
+sealed interface DirectionHorizontal {
+    data object Left : DirectionHorizontal
+    data object Center : DirectionHorizontal
+    data object Right : DirectionHorizontal
 }
 
-sealed class Mouse {
-    data class Drag(val x: Int, val y: Int) : Mouse()
-    data class Up(val x: Int, val y: Int) : Mouse()
+sealed interface Mouse {
+    data class Drag(val x: Int, val y: Int) : Mouse
+    data class Up(val x: Int, val y: Int) : Mouse
 }
 
-sealed class BuilderMode {
-    object Tree : BuilderMode()
-    object Road : BuilderMode()
-    object Wall : BuilderMode()
-    object Pill : BuilderMode()
-    object Mine : BuilderMode()
+sealed interface BuilderMode {
+    data object Tree : BuilderMode
+    data object Road : BuilderMode
+    data object Wall : BuilderMode
+    data object Pill : BuilderMode
+    data object Mine : BuilderMode
 }
 
 data class ControlState(

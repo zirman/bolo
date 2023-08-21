@@ -4,26 +4,26 @@ import bmap.Terrain
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class FrameClient {
+sealed interface FrameClient {
     @Serializable
     data class TerrainBuild(
         val terrain: Terrain,
         val x: Int,
         val y: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class TerrainDamage(
         val code: Int,
         val x: Int,
         val y: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class BaseDamage(
         val index: Int,
         val code: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class PillDamage(
@@ -31,7 +31,7 @@ sealed class FrameClient {
         val code: Int,
         val x: Int,
         val y: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class PillRepair(
@@ -40,7 +40,7 @@ sealed class FrameClient {
         val x: Int,
         val y: Int,
         val material: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class PillPlacement(
@@ -48,11 +48,11 @@ sealed class FrameClient {
         val x: Int,
         val y: Int,
         val material: Int,
-    ) : FrameClient()
+    ) : FrameClient
 
     @Serializable
     data class Position(
         val x: Int,
         val y: Int,
-    ) : FrameClient()
+    ) : FrameClient
 }

@@ -13,7 +13,6 @@ import frame.FrameServer
 import io.ktor.websocket.Frame
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitAnimationFrame
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
@@ -45,23 +44,22 @@ data class Tick(
     val delta: Float,
 )
 
-sealed class BuildOp {
+sealed interface BuildOp {
     data class Terrain(
         val terrain: bmap.Terrain,
         val x: Int,
         val y: Int,
         val result: (Boolean) -> Unit
-    ) : BuildOp()
+    ) : BuildOp
 
-    object PillPlacement : BuildOp()
+    data object PillPlacement : BuildOp
 
     data class PillRepair(
         val index: Int,
         val material: Int,
-    ) : BuildOp()
+    ) : BuildOp
 }
 
-@ExperimentalCoroutinesApi
 @ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 interface GamePublic {
@@ -83,7 +81,6 @@ interface GamePublic {
 }
 
 @ExperimentalSerializationApi
-@ExperimentalCoroutinesApi
 @ExperimentalUnsignedTypes
 class Game(
     override val sendChannel: SendChannel<Frame>,
@@ -185,7 +182,6 @@ class Game(
 //            .let { sendChannel.send(it) }
 //    }
 
-    @ExperimentalCoroutinesApi
     private fun render() {
         gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
         gl.disable(DEPTH_TEST)

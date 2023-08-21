@@ -3,7 +3,6 @@ package client
 import bmap.Entity
 import bmap.Terrain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.ExperimentalSerializationApi
 import math.V2
 import math.add
@@ -15,7 +14,6 @@ import util.isWater
 import kotlin.math.max
 import kotlin.math.min
 
-@ExperimentalCoroutinesApi
 @ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 class Shell(
@@ -27,21 +25,21 @@ class Shell(
     private val sightRange: Float,
 ) : GamePublic by game, GeneratorLoop<Tick>(scope) {
     companion object {
-        private const val shellVel: Float = 7f
-        private const val lead = 1f / 2f
+        private const val SHELL_VEL: Float = 7f
+        private const val LEAD = 1f / 2f
     }
 
     private val direction: V2 = dirToVec(bearing)
 
-    var position: V2 = startPosition.add(direction.scale(lead))
+    var position: V2 = startPosition.add(direction.scale(LEAD))
         private set
 
     override suspend fun launch() {
-        var timer: Float = (sightRange - lead) / shellVel
+        var timer: Float = (sightRange - LEAD) / SHELL_VEL
 
         doWhile { tick ->
             val delta = min(max(0f, timer), tick.delta)
-            position = position.add(direction.scale((shellVel * delta)))
+            position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
 
             val x: Int = position.x.toInt()

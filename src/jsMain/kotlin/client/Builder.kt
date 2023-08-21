@@ -3,7 +3,6 @@ package client
 import bmap.Entity
 import bmap.Terrain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.ExperimentalSerializationApi
 import math.V2
 import math.add
@@ -15,19 +14,18 @@ import math.x
 import math.y
 import kotlin.math.sqrt
 
-sealed class BuilderMission {
-    object HarvestTree : BuilderMission()
-    object BuildWall : BuilderMission()
-    object BuildRoad : BuilderMission()
-    object BuildBoat : BuilderMission()
-    object PlaceMine : BuilderMission()
-    data class PlacePill(val index: Int, val material: Int) : BuilderMission()
-    data class RepairPill(val index: Int, val material: Int) : BuilderMission()
+sealed interface BuilderMission {
+    data object HarvestTree : BuilderMission
+    data object BuildWall : BuilderMission
+    data object BuildRoad : BuilderMission
+    data object BuildBoat : BuilderMission
+    data object PlaceMine : BuilderMission
+    data class PlacePill(val index: Int, val material: Int) : BuilderMission
+    data class RepairPill(val index: Int, val material: Int) : BuilderMission
 }
 
 @ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
-@ExperimentalCoroutinesApi
 class Builder(
     scope: CoroutineScope,
     game: Game,
@@ -37,15 +35,15 @@ class Builder(
     private val buildOp: BuilderMission,
 ) : GamePublic by game, GeneratorLoop<Tick>(scope) {
     companion object {
-        private const val builderRadius = 1f / 8f
-        private const val maxSpeed = 25f / 8f
+        private const val BUILDER_RADIUS = 1f / 8f
+        private const val MAX_SPEED = 25f / 8f
 
         private fun Entity.builderSpeed(owner: Int): Float =
             when (this) {
                 is Entity.Pill ->
-                    if (ref.armor > 0) 0f else maxSpeed
+                    if (ref.armor > 0) 0f else MAX_SPEED
                 is Entity.Base ->
-                    if (ref.owner != 0xff && ref.owner != owner && ref.armor >= 5) 0f else maxSpeed
+                    if (ref.owner != 0xff && ref.owner != owner && ref.armor >= 5) 0f else MAX_SPEED
                 is Entity.Terrain ->
                     when (terrain) {
                         Terrain.Swamp0,
@@ -59,9 +57,9 @@ class Builder(
                         Terrain.Rubble3,
                         Terrain.SwampMined,
                         Terrain.CraterMined,
-                        Terrain.RubbleMined -> maxSpeed / 4f
+                        Terrain.RubbleMined -> MAX_SPEED / 4f
                         Terrain.Tree,
-                        Terrain.ForestMined -> maxSpeed / 2f
+                        Terrain.ForestMined -> MAX_SPEED / 2f
                         Terrain.Grass0,
                         Terrain.Grass1,
                         Terrain.Grass2,
@@ -69,7 +67,7 @@ class Builder(
                         Terrain.GrassMined,
                         Terrain.Road,
                         Terrain.Boat,
-                        Terrain.RoadMined -> maxSpeed
+                        Terrain.RoadMined -> MAX_SPEED
                         Terrain.River,
                         Terrain.Sea,
                         Terrain.Wall,
@@ -238,7 +236,7 @@ class Builder(
     }
 
     private fun V2.collisionDetect(): V2 {
-        val rr: Float = builderRadius * builderRadius
+        val rr: Float = BUILDER_RADIUS * BUILDER_RADIUS
 
         val fx: Int = x.toInt()
         val fy: Int = y.toInt()
@@ -247,44 +245,44 @@ class Builder(
         val ly: Float = y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        val lxc: Boolean = lx < builderRadius && bmap.getEntity(fx - 1, fy).isSolid(owner)
-        val hxc: Boolean = hx < builderRadius && bmap.getEntity(fx + 1, fy).isSolid(owner)
-        val lyc: Boolean = ly < builderRadius && bmap.getEntity(fx, fy - 1).isSolid(owner)
-        val hyc: Boolean = hy < builderRadius && bmap.getEntity(fx, fy + 1).isSolid(owner)
+        val lxc: Boolean = lx < BUILDER_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner)
+        val hxc: Boolean = hx < BUILDER_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner)
+        val lyc: Boolean = ly < BUILDER_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner)
+        val hyc: Boolean = hy < BUILDER_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner)
 
         var sqr: Float = lx * lx + ly * ly
         if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner)) {
-            val sca: Float = builderRadius / sqrt(sqr)
+            val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
         if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner)) {
-            val sca: Float = builderRadius / sqrt(sqr)
+            val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
         if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner)) {
-            val sca: Float = builderRadius / sqrt(sqr)
+            val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
         if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner)) {
-            val sca: Float = builderRadius / sqrt(sqr)
+            val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }
 
         return v2(
             x = when {
-                lxc -> fx + builderRadius
-                hxc -> fx + (1f - builderRadius)
+                lxc -> fx + BUILDER_RADIUS
+                hxc -> fx + (1f - BUILDER_RADIUS)
                 else -> x
             },
             y = when {
-                lyc -> fy + builderRadius
-                hyc -> fy + (1f - builderRadius)
+                lyc -> fy + BUILDER_RADIUS
+                hyc -> fy + (1f - BUILDER_RADIUS)
                 else -> y
             }
         )

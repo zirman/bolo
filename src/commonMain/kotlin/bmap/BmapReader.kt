@@ -170,10 +170,10 @@ fun Entity.isSolid(owner: Int): Boolean =
             }
     }
 
-sealed class Entity {
-    data class Pill(val ref: bmap.Pill) : Entity()
-    data class Base(val ref: bmap.Base) : Entity()
-    data class Terrain(val terrain: bmap.Terrain) : Entity()
+sealed interface Entity {
+    data class Pill(val ref: bmap.Pill) : Entity
+    data class Base(val ref: bmap.Base) : Entity
+    data class Terrain(val terrain: bmap.Terrain) : Entity
 }
 
 data class Pill(

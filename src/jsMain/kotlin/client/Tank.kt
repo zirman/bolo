@@ -8,7 +8,6 @@ import bmap.worldHeight
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import math.clampCycle
 import math.clampRange
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -46,17 +45,16 @@ import kotlin.math.sqrt
 @Suppress("NAME_SHADOWING")
 @ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
-@ExperimentalCoroutinesApi
 class Tank(
     private val scope: CoroutineScope,
     game: Game,
 ) : GamePublic by game, GeneratorLoop<Tick>(scope) {
     companion object {
-        private const val tankRadius: Float = 3f / 8f
-        private const val forcePush: Float = 25f / 16f
-        private const val reloadSec: Float = 1f / 3f
-        private const val maxSpeedBoat: Float = 25f / 8f
-        private const val accPerSec2: Float = maxSpeedBoat * (3f / 4f)
+        private const val TANK_RADIUS: Float = 3f / 8f
+        private const val FORCE_PUSH: Float = 25f / 16f
+        private const val RELOAD_SEC: Float = 1f / 3f
+        private const val MAX_BOAT_SPEED: Float = 25f / 8f
+        private const val ACC_PER_SEC2: Float = MAX_BOAT_SPEED * (3f / 4f)
         // private const val forceKick: Float = 25f / 8f
         // private const val maxSpeedRoad: Float = maxSpeedBoat
     }
@@ -186,11 +184,11 @@ class Tank(
 
                 when {
                     speed > max ->
-                        speed = max(max, speed - (accPerSec2 / tick.ticksPerSec))
+                        speed = max(max, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
                     control.directionVertical == DirectionVertical.Up ->
-                        speed = min(max, speed + (accPerSec2 / tick.ticksPerSec))
+                        speed = min(max, speed + (ACC_PER_SEC2 / tick.ticksPerSec))
                     control.directionVertical == DirectionVertical.Down ->
-                        speed = max(0f, speed - (accPerSec2 / tick.ticksPerSec))
+                        speed = max(0f, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
                 }
 
                 // updateKick
@@ -213,25 +211,25 @@ class Tank(
                     val fy: Float = position.y - onY
                     val cx: Float = 1f - fx
                     val cy: Float = 1f - fy
-                    val fxc: Boolean = (fx < tankRadius) && isShore(terrainLeft)
-                    val cxc: Boolean = ((1 - fx) < tankRadius) && isShore(terrainRight)
-                    val fyc: Boolean = (fy < tankRadius) && isShore(terrainUp)
-                    val cyc: Boolean = ((1 - fy) < tankRadius) && isShore(terrainDown)
+                    val fxc: Boolean = (fx < TANK_RADIUS) && isShore(terrainLeft)
+                    val cxc: Boolean = ((1 - fx) < TANK_RADIUS) && isShore(terrainRight)
+                    val fyc: Boolean = (fy < TANK_RADIUS) && isShore(terrainUp)
+                    val cyc: Boolean = ((1 - fy) < TANK_RADIUS) && isShore(terrainDown)
 
                     push = when {
-                        fxc.not() && fyc.not() && (((fx * fx + fy * fy) < (tankRadius * tankRadius)) && isShore(
+                        fxc.not() && fyc.not() && (((fx * fx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainUpLeft
                         ))
                         -> v2(fx, fy)
-                        cxc.not() && fyc.not() && (((cx * cx + fy * fy) < (tankRadius * tankRadius)) && isShore(
+                        cxc.not() && fyc.not() && (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainUpRight
                         ))
                         -> v2(-cx, fy)
-                        fxc.not() && cyc.not() && (((fx * fx + cy * cy) < (tankRadius * tankRadius)) && isShore(
+                        fxc.not() && cyc.not() && (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainDownLeft
                         ))
                         -> v2(fx, -cy)
-                        cxc.not() && cyc.not() && (((cx * cx + cy * cy) < (tankRadius * tankRadius)) && isShore(
+                        cxc.not() && cyc.not() && (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainDownRight
                         ))
                         -> v2(-cx, -cy)
@@ -257,13 +255,13 @@ class Tank(
                     if (push.mag() > 0.00001) {
                         val f: Float = push.prj(dirToVec(bearing).scale(speed)).mag()
 
-                        if (f < forcePush) {
-                            position = position.add(push.norm().scale(forcePush / tick.ticksPerSec))
+                        if (f < FORCE_PUSH) {
+                            position = position.add(push.norm().scale(FORCE_PUSH / tick.ticksPerSec))
                         }
 
                         // apply breaks if not accelerating
                         if (control.directionVertical != DirectionVertical.Up) {
-                            speed = max(0f, speed - (accPerSec2 / tick.ticksPerSec))
+                            speed = max(0f, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
                         }
                     }
                 }
@@ -296,7 +294,7 @@ class Tank(
 
                 // shooting
 
-                if (control.shootButton && tankShells > 0 && reload >= reloadSec) {
+                if (control.shootButton && tankShells > 0 && reload >= RELOAD_SEC) {
                     launchShell(scope, bearing, onBoat, position, sightRange)
                     reload = 0f
                     tankShells--
@@ -358,7 +356,7 @@ class Tank(
     }
 
     private fun collisionDetect(p: V2): V2 {
-        val rr: Float = tankRadius * tankRadius
+        val rr: Float = TANK_RADIUS * TANK_RADIUS
 
         val fx: Int = p.x.toInt()
         val fy: Int = p.y.toInt()
@@ -367,44 +365,44 @@ class Tank(
         val ly: Float = p.y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        val lxc: Boolean = lx < tankRadius && bmap.getEntity(fx - 1, fy).isSolid(owner)
-        val hxc: Boolean = hx < tankRadius && bmap.getEntity(fx + 1, fy).isSolid(owner)
-        val lyc: Boolean = ly < tankRadius && bmap.getEntity(fx, fy - 1).isSolid(owner)
-        val hyc: Boolean = hy < tankRadius && bmap.getEntity(fx, fy + 1).isSolid(owner)
+        val lxc: Boolean = lx < TANK_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner)
+        val hxc: Boolean = hx < TANK_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner)
+        val lyc: Boolean = ly < TANK_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner)
+        val hyc: Boolean = hy < TANK_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner)
 
         var sqr: Float = lx * lx + ly * ly
         if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner)) {
-            val sca: Float = tankRadius / sqrt(sqr)
+            val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
         if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner)) {
-            val sca: Float = tankRadius / sqrt(sqr)
+            val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
         if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner)) {
-            val sca: Float = tankRadius / sqrt(sqr)
+            val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
         if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner)) {
-            val sca: Float = tankRadius / sqrt(sqr)
+            val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }
 
         return v2(
             x = when {
-                lxc -> fx + tankRadius
-                hxc -> fx + (1f - tankRadius)
+                lxc -> fx + TANK_RADIUS
+                hxc -> fx + (1f - TANK_RADIUS)
                 else -> p.x
             },
             y = when {
-                lyc -> fy + tankRadius
-                hyc -> fy + (1f - tankRadius)
+                lyc -> fy + TANK_RADIUS
+                hyc -> fy + (1f - TANK_RADIUS)
                 else -> p.y
             }
         )
