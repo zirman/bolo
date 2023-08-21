@@ -1,127 +1,87 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-
-val kotlinVersion = "1.4.21"
-val serializationVersion = "1.0.0-RC"
-val ktorVersion = "1.4.0"
-
 plugins {
-    kotlin("multiplatform") version "1.4.0"
-    kotlin("plugin.serialization") version "1.4.0"
-    application //to run JVM part
+    application
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.versions)
 }
 
-group = "com.robch"
+group = "dev.robch"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    jcenter()
-    mavenCentral()
-    maven("https://plugins.gradle.org/m2/")
-    maven("https://dl.bintray.com/kotlin-js-wrappers/")
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
-    maven("https://dl.bintray.com/kotlin/kotlinx")
-    maven("https://dl.bintray.com/kotlin/ktor")
+application {
+    mainClass.set("me.robch.application.ServerKt")
 }
 
 kotlin {
     jvm {
+        jvmToolchain(jdkVersion = 17)
+
+        compilations.all {
+            kotlinOptions.jvmTarget = "17"
+        }
+
         withJava()
+
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
     }
 
     js(IR) {
+        binaries.executable()
+
         browser {
-            binaries.executable()
         }
     }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation(libs.kotlinxSerializationProtobuf)
+                implementation(libs.kotlinxCoroutinesCore)
             }
         }
 
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(libs.kotlinTest)
+                implementation(libs.kotlinTestCommon)
+                implementation(libs.kotlinTestAnnotationsCommon)
             }
         }
 
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-serialization:$ktorVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-netty:$ktorVersion")
-                implementation("io.ktor:ktor-html-builder:$ktorVersion")
-                implementation("ch.qos.logback:logback-classic:1.2.3")
-                implementation("io.ktor:ktor-websockets:$ktorVersion")
-                implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.1.1")
+                implementation(libs.ktorServerCore)
+                implementation(libs.ktorServerNetty)
+                implementation(libs.ktorServerHtmlBuilder)
+                implementation(libs.ktorServerContentNegotiation)
+                implementation(libs.ktorServerCompression)
+                implementation(libs.ktorServerWebsockets)
+                implementation(libs.ktorSerialization)
+                implementation(libs.ktorSerializationKotlinxJson)
+                implementation(libs.ktorWebsockets)
+                implementation(libs.logbackClassic)
             }
         }
 
         val jsMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-js:$ktorVersion") //include http&websockets
-
-                //ktor client js json
-                implementation("io.ktor:ktor-client-json-js:$ktorVersion")
-                implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
-
-                implementation("org.jetbrains:kotlin-react:16.13.1-pre.110-kotlin-1.4.0")
-                implementation("org.jetbrains:kotlin-react-dom:16.13.1-pre.110-kotlin-1.4.0")
-                implementation(npm("react", "16.13.1"))
-                implementation(npm("react-dom", "16.13.1"))
+                implementation(libs.ktorClientJs)
+                implementation(libs.ktorClientJsonJs)
+                implementation(libs.ktorClientSerializationJs)
+                implementation(libs.kotlinxCoroutinesCore)
+                implementation(libs.kotlinxCoroutinesCoreJs)
             }
         }
     }
 }
 
-application {
-    mainClassName = "ServerKt"
+tasks.named<Copy>("jvmProcessResources") {
+    from(tasks.named("jsBrowserDistribution"))
 }
 
-// include JS artifacts in any JAR we generate
-tasks.getByName<Jar>("jvmJar") {
-    val taskName = if (project.hasProperty("isProduction")) {
-        "jsBrowserProductionWebpack"
-    } else {
-        "jsBrowserDevelopmentWebpack"
-    }
-
-    val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
-        .apply { outputFileName = "bolo.js" }
-
-    dependsOn(webpackTask) // make sure JS gets compiled first
-    from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
-}
-
-tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-}
-
-distributions {
-    main {
-        contents {
-            from("$buildDir/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
-}
-
-// Alias "installDist" as "stage" (for cloud providers)
-tasks.create("stage") {
-    dependsOn(tasks.getByName("installDist"))
-}
-
-tasks.getByName<JavaExec>("run") {
-    classpath(tasks.getByName<Jar>("jvmJar")) // so that the JS artifacts generated by `jvmJar` can be found and served
+tasks.named<JavaExec>("run") {
+    dependsOn(tasks.named<Jar>("jvmJar"))
+    classpath(tasks.named<Jar>("jvmJar"))
 }
