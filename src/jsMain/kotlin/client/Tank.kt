@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSerializationApi::class)
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
 package client
 
@@ -15,7 +15,6 @@ import math.clampRange
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.pi
 import math.tau
-import kotlinx.serialization.ExperimentalSerializationApi
 import math.V2
 import math.add
 import math.mag

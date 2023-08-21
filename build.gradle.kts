@@ -1,23 +1,21 @@
 plugins {
-    application
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.versions)
+    application
 }
 
 group = "dev.robch"
 version = "1.0-SNAPSHOT"
-
-application {
-    mainClass.set("me.robch.application.ServerKt")
-}
 
 kotlin {
     jvm {
         jvmToolchain(jdkVersion = 17)
 
         compilations.all {
-            kotlinOptions.jvmTarget = "17"
+            kotlinOptions {
+                jvmTarget = "17"
+            }
         }
 
         withJava()
@@ -75,6 +73,10 @@ kotlin {
             }
         }
     }
+}
+
+application {
+    mainClass.set("me.robch.application.ServerKt")
 }
 
 tasks.named<Copy>("jvmProcessResources") {

@@ -11,9 +11,9 @@ data class BmapExtra(
 
 fun Bmap.toExtra(owner: Int): BmapExtra =
     BmapExtra(
-        owner,
-        pills.map { it.code },
-        bases.map { it.code },
+        owner = owner,
+        pillCodes = pills.map { it.code },
+        baseCodes = bases.map { it.code },
     )
 
 fun BmapExtra.loadCodes(bmap: Bmap) {

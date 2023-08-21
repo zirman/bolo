@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSerializationApi::class)
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
 package client
 
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import math.M4
 import math.V2
 import math.add

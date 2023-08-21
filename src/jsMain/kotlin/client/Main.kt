@@ -1,4 +1,8 @@
-@file:OptIn(ExperimentalUnsignedTypes::class, DelicateCoroutinesApi::class, ExperimentalSerializationApi::class)
+@file:OptIn(
+    ExperimentalUnsignedTypes::class,
+    kotlinx.coroutines.DelicateCoroutinesApi::class,
+    kotlinx.serialization.ExperimentalSerializationApi::class
+)
 
 package client
 
@@ -16,14 +20,12 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import util.awaitPair
 
