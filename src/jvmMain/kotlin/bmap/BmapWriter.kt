@@ -7,15 +7,21 @@ fun getDamageLevel(terrain: Terrain): Int =
         Terrain.Swamp0,
         Terrain.Rubble0,
         Terrain.Grass0,
-        Terrain.WallDamaged0 -> 3
+        Terrain.WallDamaged0,
+        -> 3
+
         Terrain.Swamp1,
         Terrain.Rubble1,
         Terrain.Grass1,
-        Terrain.WallDamaged1 -> 2
+        Terrain.WallDamaged1,
+        -> 2
+
         Terrain.Swamp2,
         Terrain.Rubble2,
         Terrain.Grass2,
-        Terrain.WallDamaged2 -> 1
+        Terrain.WallDamaged2,
+        -> 1
+
         else -> 0
     }
 
@@ -26,22 +32,30 @@ fun terrainToNibble(t: Terrain): Int =
         Terrain.Swamp0,
         Terrain.Swamp1,
         Terrain.Swamp2,
-        Terrain.Swamp3 -> 2
+        Terrain.Swamp3,
+        -> 2
+
         Terrain.Crater -> 3
         Terrain.Road -> 4
         Terrain.Tree -> 5
         Terrain.Rubble0,
         Terrain.Rubble1,
         Terrain.Rubble2,
-        Terrain.Rubble3 -> 6
+        Terrain.Rubble3,
+        -> 6
+
         Terrain.Grass0,
         Terrain.Grass1,
         Terrain.Grass2,
-        Terrain.Grass3 -> 7
+        Terrain.Grass3,
+        -> 7
+
         Terrain.WallDamaged0,
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
-        Terrain.WallDamaged3 -> 8
+        Terrain.WallDamaged3,
+        -> 8
+
         Terrain.Boat -> 9
         Terrain.SwampMined -> 10
         Terrain.CraterMined -> 11
@@ -304,9 +318,10 @@ fun writeBmapCode(
                         } else { // sequence of different terrain
                             x++
                             while (x - beginX < 8 &&
-                                    x < worldWidth - border &&
-                                    bmapCode[x, y] != bmapCode[x - 1, y] &&
-                                    bmapCode[x, y] != 0) {
+                                x < worldWidth - border &&
+                                bmapCode[x, y] != bmapCode[x - 1, y] &&
+                                bmapCode[x, y] != 0
+                            ) {
                                 x++
                             }
 

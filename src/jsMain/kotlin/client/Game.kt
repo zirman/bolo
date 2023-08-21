@@ -50,7 +50,7 @@ sealed interface BuildOp {
         val terrain: bmap.Terrain,
         val x: Int,
         val y: Int,
-        val result: (Boolean) -> Unit
+        val result: (Boolean) -> Unit,
     ) : BuildOp
 
     data object PillPlacement : BuildOp
@@ -551,7 +551,7 @@ class Game(
         bearing: Float,
         onBoat: Boolean,
         startPosition: V2,
-        sightRange: Float
+        sightRange: Float,
     ) {
         shells.add(Shell(scope, this, startPosition, bearing, onBoat, sightRange))
     }
@@ -575,7 +575,8 @@ fun Entity.isShore(owner: Int): Boolean =
             when (terrain) {
                 Terrain.Sea,
                 Terrain.River,
-                Terrain.SeaMined -> false
+                Terrain.SeaMined,
+                -> false
 
                 Terrain.Boat,
                 Terrain.Wall,
@@ -603,7 +604,8 @@ fun Entity.isShore(owner: Int): Boolean =
                 Terrain.RoadMined,
                 Terrain.ForestMined,
                 Terrain.RubbleMined,
-                Terrain.GrassMined -> true
+                Terrain.GrassMined,
+                -> true
             }
     }
 
@@ -635,7 +637,8 @@ fun Entity.isShellable(owner: Int): Boolean =
                 Terrain.CraterMined,
                 Terrain.RoadMined,
                 Terrain.RubbleMined,
-                Terrain.GrassMined -> false
+                Terrain.GrassMined,
+                -> false
 
                 Terrain.Wall,
                 Terrain.Tree,
@@ -643,6 +646,7 @@ fun Entity.isShellable(owner: Int): Boolean =
                 Terrain.WallDamaged1,
                 Terrain.WallDamaged2,
                 Terrain.WallDamaged3,
-                Terrain.ForestMined -> true
+                Terrain.ForestMined,
+                -> true
             }
     }

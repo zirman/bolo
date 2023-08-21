@@ -25,6 +25,7 @@ suspend fun loadImage(src: String): Image =
                     when (event.type) {
                         "load" ->
                             continuation.resume(image)
+
                         "error" ->
                             continuation.resumeWithException(Exception("error loading image"))
                     }

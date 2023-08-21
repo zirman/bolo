@@ -186,7 +186,8 @@ fun Application.myApplicationModule() {
                                             Terrain.Grass3 -> bmap[frameClient.x, frameClient.y] == Terrain.Tree
                                             Terrain.Boat -> bmap[frameClient.x, frameClient.y] == Terrain.River
                                             Terrain.Wall,
-                                            Terrain.Road -> isBuildable(bmap[frameClient.x, frameClient.y])
+                                            Terrain.Road,
+                                            -> isBuildable(bmap[frameClient.x, frameClient.y])
 
                                             else -> false
                                         }
@@ -448,7 +449,8 @@ fun Application.myApplicationModule() {
                         }
 
                         is Frame.Ping,
-                        is Frame.Pong -> {
+                        is Frame.Pong,
+                        -> {
                         }
 
                         is Frame.Close -> {

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
+@file:OptIn(kotlin.ExperimentalUnsignedTypes::class)
 
 package bmap
 
@@ -142,7 +142,9 @@ fun Entity.isSolid(owner: Int): Boolean =
                 Terrain.WallDamaged0,
                 Terrain.WallDamaged1,
                 Terrain.WallDamaged2,
-                Terrain.WallDamaged3 -> true
+                Terrain.WallDamaged3,
+                -> true
+
                 Terrain.Sea,
                 Terrain.River,
                 Terrain.Swamp0,
@@ -167,7 +169,8 @@ fun Entity.isSolid(owner: Int): Boolean =
                 Terrain.RoadMined,
                 Terrain.ForestMined,
                 Terrain.RubbleMined,
-                Terrain.GrassMined -> false
+                Terrain.GrassMined,
+                -> false
             }
     }
 

@@ -21,13 +21,13 @@ import io.ktor.websocket.readBytes
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.serialization.protobuf.ProtoBuf
-import util.awaitPair
 
 fun main() {
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -41,12 +41,8 @@ fun main() {
         checkWebSocket()
         checkWebRTC()
 
-        val (tileProgram, spriteProgram) =
-            awaitPair(
-                scope = this,
-                { gl.createTileProgram() },
-                { gl.createSpriteProgram() },
-            )
+        val tileProgram = async { gl.createTileProgram() }
+        val spriteProgram = gl.createSpriteProgram()
 
         HttpClient { install(WebSockets) }.ws(
             host = window.location.host,
@@ -69,7 +65,7 @@ fun main() {
             val owner = bmapExtra.owner
             bmapExtra.loadCodes(bmap)
 
-            val game = Game(outgoing, owner, bmap, bmapCode, tileProgram, spriteProgram)
+            val game = Game(outgoing, owner, bmap, bmapCode, tileProgram.await(), spriteProgram)
 
             // emit decoded server frames to game
             incoming

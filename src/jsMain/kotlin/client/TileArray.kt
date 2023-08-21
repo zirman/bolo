@@ -81,22 +81,30 @@ fun Terrain.toTile(): Tile =
         Terrain.Swamp0,
         Terrain.Swamp1,
         Terrain.Swamp2,
-        Terrain.Swamp3 -> Tile.Swamp
+        Terrain.Swamp3,
+        -> Tile.Swamp
+
         Terrain.Crater -> Tile.Crater
         Terrain.Road -> Tile.Road
         Terrain.Tree -> Tile.Forest
         Terrain.Rubble0,
         Terrain.Rubble1,
         Terrain.Rubble2,
-        Terrain.Rubble3 -> Tile.Rubble
+        Terrain.Rubble3,
+        -> Tile.Rubble
+
         Terrain.Grass0,
         Terrain.Grass1,
         Terrain.Grass2,
-        Terrain.Grass3 -> Tile.Grass
+        Terrain.Grass3,
+        -> Tile.Grass
+
         Terrain.WallDamaged0,
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
-        Terrain.WallDamaged3 -> Tile.DamagedWall
+        Terrain.WallDamaged3,
+        -> Tile.DamagedWall
+
         Terrain.SeaMined -> Tile.SeaMined
         Terrain.SwampMined -> Tile.SwampMined
         Terrain.CraterMined -> Tile.CraterMined

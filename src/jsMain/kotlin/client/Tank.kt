@@ -169,10 +169,12 @@ class Tank(
                         rotVel = min(maxVelocity, rotVel + (acceleration / tick.ticksPerSec))
                         bearing = (bearing + (rotVel / tick.ticksPerSec)).clampCycle(Float.tau)
                     }
+
                     DirectionHorizontal.Right -> {
                         rotVel = max(-maxVelocity, rotVel - (acceleration / tick.ticksPerSec))
                         bearing = (bearing + (rotVel / tick.ticksPerSec)).clampCycle(Float.tau)
                     }
+
                     else -> {
                         rotVel = 0f
                     }
@@ -184,8 +186,10 @@ class Tank(
                 when {
                     speed > max ->
                         speed = max(max, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
+
                     control.directionVertical == DirectionVertical.Up ->
                         speed = min(max, speed + (ACC_PER_SEC2 / tick.ticksPerSec))
+
                     control.directionVertical == DirectionVertical.Down ->
                         speed = max(0f, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
                 }
@@ -220,29 +224,35 @@ class Tank(
                             terrainUpLeft
                         ))
                         -> v2(fx, fy)
+
                         cxc.not() && fyc.not() && (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainUpRight
                         ))
                         -> v2(-cx, fy)
+
                         fxc.not() && cyc.not() && (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainDownLeft
                         ))
                         -> v2(fx, -cy)
+
                         cxc.not() && cyc.not() && (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
                             terrainDownRight
                         ))
                         -> v2(-cx, -cy)
+
                         else -> when {
                             fxc -> when {
                                 fyc -> v2(fy, fx)
                                 cyc -> v2(cy, -fx)
                                 else -> v2(fx, 0f)
                             }
+
                             cxc -> when {
                                 fyc -> v2(-fy, cx)
                                 cyc -> v2(-cy, -cx)
                                 else -> v2(-cx, 0f)
                             }
+
                             else -> when {
                                 fyc -> v2(0f, fy)
                                 cyc -> v2(0f, -cy)

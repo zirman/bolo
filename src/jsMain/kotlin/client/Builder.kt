@@ -39,8 +39,10 @@ class Builder(
             when (this) {
                 is Entity.Pill ->
                     if (ref.armor > 0) 0f else MAX_SPEED
+
                 is Entity.Base ->
                     if (ref.owner != 0xff && ref.owner != owner && ref.armor >= 5) 0f else MAX_SPEED
+
                 is Entity.Terrain ->
                     when (terrain) {
                         Terrain.Swamp0,
@@ -54,9 +56,13 @@ class Builder(
                         Terrain.Rubble3,
                         Terrain.SwampMined,
                         Terrain.CraterMined,
-                        Terrain.RubbleMined -> MAX_SPEED / 4f
+                        Terrain.RubbleMined,
+                        -> MAX_SPEED / 4f
+
                         Terrain.Tree,
-                        Terrain.ForestMined -> MAX_SPEED / 2f
+                        Terrain.ForestMined,
+                        -> MAX_SPEED / 2f
+
                         Terrain.Grass0,
                         Terrain.Grass1,
                         Terrain.Grass2,
@@ -64,7 +70,9 @@ class Builder(
                         Terrain.GrassMined,
                         Terrain.Road,
                         Terrain.Boat,
-                        Terrain.RoadMined -> MAX_SPEED
+                        Terrain.RoadMined,
+                        -> MAX_SPEED
+
                         Terrain.River,
                         Terrain.Sea,
                         Terrain.Wall,
@@ -72,7 +80,8 @@ class Builder(
                         Terrain.WallDamaged1,
                         Terrain.WallDamaged2,
                         Terrain.WallDamaged3,
-                        Terrain.SeaMined -> 0f
+                        Terrain.SeaMined,
+                        -> 0f
                     }
             }
 
@@ -80,18 +89,24 @@ class Builder(
             when (this) {
                 is Entity.Pill ->
                     ref.armor > 0
+
                 is Entity.Base ->
                     ref.owner != 0xff && ref.owner != owner && ref.armor >= 5
+
                 is Entity.Terrain ->
                     when (terrain) {
                         Terrain.Wall,
                         Terrain.WallDamaged0,
                         Terrain.WallDamaged1,
                         Terrain.WallDamaged2,
-                        Terrain.WallDamaged3 -> true
+                        Terrain.WallDamaged3,
+                        -> true
+
                         Terrain.River -> true
                         Terrain.Sea,
-                        Terrain.SeaMined -> true
+                        Terrain.SeaMined,
+                        -> true
+
                         Terrain.Swamp0,
                         Terrain.Swamp1,
                         Terrain.Swamp2,
@@ -113,7 +128,8 @@ class Builder(
                         Terrain.RoadMined,
                         Terrain.ForestMined,
                         Terrain.RubbleMined,
-                        Terrain.GrassMined -> false
+                        Terrain.GrassMined,
+                        -> false
                     }
             }
     }
@@ -144,6 +160,7 @@ class Builder(
                         wait(1f)
                         doWhile { waiting }
                     }
+
                     is BuilderMission.BuildWall -> {
                         var waiting = true
 
@@ -158,6 +175,7 @@ class Builder(
                         wait(1f)
                         doWhile { waiting }
                     }
+
                     is BuilderMission.BuildRoad -> {
                         var waiting = true
 
@@ -172,6 +190,7 @@ class Builder(
                         wait(1f)
                         doWhile { waiting }
                     }
+
                     is BuilderMission.BuildBoat -> {
                         var waiting = true
 
@@ -186,10 +205,13 @@ class Builder(
                         wait(1f)
                         doWhile { waiting }
                     }
+
                     is BuilderMission.PlaceMine -> {
                     }
+
                     is BuilderMission.PlacePill -> {
                     }
+
                     is BuilderMission.RepairPill -> {
                     }
                 }

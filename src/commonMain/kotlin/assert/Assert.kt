@@ -13,10 +13,18 @@ fun Float.assertLessThan(max: Float): Float = if (this < max) this else throw Ex
 fun Double.assertLessThan(max: Double): Double =
     if (this < max) this else throw Exception("assertion failed $this < $max")
 
-fun Int.assertLessThanOrEqual(max: Int): Int = if (this <= max) this else throw Exception("assertion failed $this <= $max")
-fun Byte.assertLessThanOrEqual(max: Byte): Byte = if (this <= max) this else throw Exception("assertion failed $this <= $max")
-fun UByte.assertLessThanOrEqual(max: UByte): UByte = if (this <= max) this else throw Exception("assertion failed $this <= $max")
-fun Float.assertLessThanOrEqual(max: Float): Float = if (this <= max) this else throw Exception("assertion failed $this <= $max")
+fun Int.assertLessThanOrEqual(max: Int): Int =
+    if (this <= max) this else throw Exception("assertion failed $this <= $max")
+
+fun Byte.assertLessThanOrEqual(max: Byte): Byte =
+    if (this <= max) this else throw Exception("assertion failed $this <= $max")
+
+fun UByte.assertLessThanOrEqual(max: UByte): UByte =
+    if (this <= max) this else throw Exception("assertion failed $this <= $max")
+
+fun Float.assertLessThanOrEqual(max: Float): Float =
+    if (this <= max) this else throw Exception("assertion failed $this <= $max")
+
 fun Double.assertLessThanOrEqual(max: Double): Double =
     if (this <= max) this else throw Exception("assertion failed $this <= $max")
 

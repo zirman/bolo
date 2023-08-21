@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface FrameClient {
+
     @Serializable
     data class TerrainBuild(
         val terrain: Terrain,

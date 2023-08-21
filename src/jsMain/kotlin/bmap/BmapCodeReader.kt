@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
+@file:OptIn(kotlin.ExperimentalUnsignedTypes::class)
 
 package bmap
 
@@ -87,10 +87,10 @@ class BmapCodeReader(
 
     private fun readRun(): Run {
         val datalen: Int = readUByte().toInt()
-        val y: Int       = readUByte().toInt()
-        val startx: Int  = readUByte().toInt()
-        val endx: Int    = readUByte().toInt()
-        val data    = getNibbleReader(datalen - 4)
+        val y: Int = readUByte().toInt()
+        val startx: Int = readUByte().toInt()
+        val endx: Int = readUByte().toInt()
+        val data = getNibbleReader(datalen - 4)
         return Run(datalen, y, startx, endx, data)
     }
 }

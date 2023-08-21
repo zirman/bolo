@@ -1,22 +1,6 @@
 package util
 
 import bmap.Terrain
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-
-suspend fun <A, B> awaitPair(
-    scope: CoroutineScope,
-    aBlock: suspend CoroutineScope.() -> A,
-    bBlock: suspend CoroutineScope.() -> B
-): Pair<A, B> {
-    val deferredA = scope.async(block = aBlock)
-    val deferredB = scope.async(block = bBlock)
-
-    return Pair(
-        deferredA.await(),
-        deferredB.await(),
-    )
-}
 
 const val canvasId = "bolo-canvas"
 
@@ -58,7 +42,9 @@ fun isWater(terrain: Terrain): Boolean =
         Terrain.Sea,
         Terrain.River,
         Terrain.Boat,
-        Terrain.SeaMined -> true
+        Terrain.SeaMined,
+        -> true
+
         Terrain.Wall,
         Terrain.Swamp0,
         Terrain.Swamp1,
@@ -84,14 +70,17 @@ fun isWater(terrain: Terrain): Boolean =
         Terrain.RoadMined,
         Terrain.ForestMined,
         Terrain.RubbleMined,
-        Terrain.GrassMined -> false
+        Terrain.GrassMined,
+        -> false
     }
 
 fun isShore(terrain: Terrain): Boolean =
     when (terrain) {
         Terrain.Sea,
         Terrain.River,
-        Terrain.SeaMined -> false
+        Terrain.SeaMined,
+        -> false
+
         Terrain.Boat,
         Terrain.Wall,
         Terrain.Swamp0,
@@ -118,7 +107,8 @@ fun isShore(terrain: Terrain): Boolean =
         Terrain.RoadMined,
         Terrain.ForestMined,
         Terrain.RubbleMined,
-        Terrain.GrassMined -> true
+        Terrain.GrassMined,
+        -> true
     }
 
 fun isDrivable(terrain: Terrain): Boolean =
@@ -131,7 +121,9 @@ fun isDrivable(terrain: Terrain): Boolean =
         Terrain.WallDamaged0,
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
-        Terrain.WallDamaged3 -> false
+        Terrain.WallDamaged3,
+        -> false
+
         Terrain.Swamp0,
         Terrain.Swamp1,
         Terrain.Swamp2,
@@ -152,7 +144,8 @@ fun isDrivable(terrain: Terrain): Boolean =
         Terrain.RoadMined,
         Terrain.ForestMined,
         Terrain.RubbleMined,
-        Terrain.GrassMined -> true
+        Terrain.GrassMined,
+        -> true
     }
 
 fun getSpeedMax(terrain: Terrain): Float =
@@ -169,24 +162,33 @@ fun getSpeedMax(terrain: Terrain): Float =
         Terrain.Rubble3,
         Terrain.SwampMined,
         Terrain.CraterMined,
-        Terrain.RubbleMined -> 75f / 128f
+        Terrain.RubbleMined,
+        -> 75f / 128f
+
         Terrain.Tree,
-        Terrain.ForestMined -> 75f / 64f
+        Terrain.ForestMined,
+        -> 75f / 64f
+
         Terrain.Grass0,
         Terrain.Grass1,
         Terrain.Grass2,
         Terrain.Grass3,
-        Terrain.GrassMined -> 75f / 32f
+        Terrain.GrassMined,
+        -> 75f / 32f
+
         Terrain.Road,
         Terrain.Boat,
-        Terrain.RoadMined -> 25f / 8f
+        Terrain.RoadMined,
+        -> 25f / 8f
+
         Terrain.Sea,
         Terrain.Wall,
         Terrain.WallDamaged0,
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
         Terrain.WallDamaged3,
-        Terrain.SeaMined -> 0f
+        Terrain.SeaMined,
+        -> 0f
     }
 
 fun getMaxAngularVelocity(terrain: Terrain): Float =
@@ -203,9 +205,13 @@ fun getMaxAngularVelocity(terrain: Terrain): Float =
         Terrain.Rubble3,
         Terrain.SwampMined,
         Terrain.CraterMined,
-        Terrain.RubbleMined -> 5f / 8f
+        Terrain.RubbleMined,
+        -> 5f / 8f
+
         Terrain.Tree,
-        Terrain.ForestMined -> 5f / 4f
+        Terrain.ForestMined,
+        -> 5f / 4f
+
         Terrain.Grass0,
         Terrain.Grass1,
         Terrain.Grass2,
@@ -213,14 +219,17 @@ fun getMaxAngularVelocity(terrain: Terrain): Float =
         Terrain.GrassMined,
         Terrain.Road,
         Terrain.Boat,
-        Terrain.RoadMined -> 5f / 2f
+        Terrain.RoadMined,
+        -> 5f / 2f
+
         Terrain.Sea,
         Terrain.Wall,
         Terrain.WallDamaged0,
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
         Terrain.WallDamaged3,
-        Terrain.SeaMined -> 0f
+        Terrain.SeaMined,
+        -> 0f
     }
 
 fun isBuildable(terrain: Terrain): Boolean =
@@ -234,7 +243,9 @@ fun isBuildable(terrain: Terrain): Boolean =
         Terrain.WallDamaged1,
         Terrain.WallDamaged2,
         Terrain.WallDamaged3,
-        Terrain.Tree -> false
+        Terrain.Tree,
+        -> false
+
         Terrain.Swamp0,
         Terrain.Swamp1,
         Terrain.Swamp2,
@@ -254,5 +265,6 @@ fun isBuildable(terrain: Terrain): Boolean =
         Terrain.RoadMined,
         Terrain.ForestMined,
         Terrain.RubbleMined,
-        Terrain.GrassMined -> true
+        Terrain.GrassMined,
+        -> true
     }
