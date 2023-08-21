@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package client
 
 import bmap.Entity
@@ -43,7 +45,6 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("NAME_SHADOWING")
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 class Tank(
     private val scope: CoroutineScope,

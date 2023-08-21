@@ -3,7 +3,6 @@ package client
 import bmap.Entity
 import bmap.Terrain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.ExperimentalSerializationApi
 import math.V2
 import math.add
 import math.scale
@@ -14,7 +13,6 @@ import util.isWater
 import kotlin.math.max
 import kotlin.math.min
 
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 class Shell(
     scope: CoroutineScope,

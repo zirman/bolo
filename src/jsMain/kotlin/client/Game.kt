@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package client
 
 import bmap.Bmap
@@ -60,7 +62,6 @@ sealed interface BuildOp {
     ) : BuildOp
 }
 
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 interface GamePublic {
     val bmap: Bmap
@@ -80,7 +81,6 @@ interface GamePublic {
     operator fun get(x: Int, y: Int): Entity
 }
 
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 class Game(
     override val sendChannel: SendChannel<Frame>,

@@ -1,4 +1,4 @@
-@file:OptIn(DelicateCoroutinesApi::class)
+@file:OptIn(DelicateCoroutinesApi::class, ExperimentalSerializationApi::class)
 
 package client
 
@@ -29,7 +29,6 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import util.awaitPair
 
 @FlowPreview
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 fun main() {
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->

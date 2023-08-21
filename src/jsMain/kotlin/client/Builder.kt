@@ -3,7 +3,6 @@ package client
 import bmap.Entity
 import bmap.Terrain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.ExperimentalSerializationApi
 import math.V2
 import math.add
 import math.mag
@@ -24,7 +23,6 @@ sealed interface BuilderMission {
     data class RepairPill(val index: Int, val material: Int) : BuilderMission
 }
 
-@ExperimentalSerializationApi
 @ExperimentalUnsignedTypes
 class Builder(
     scope: CoroutineScope,
