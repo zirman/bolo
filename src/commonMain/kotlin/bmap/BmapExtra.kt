@@ -9,7 +9,6 @@ data class BmapExtra(
     val baseCodes: List<Int>,
 )
 
-@ExperimentalUnsignedTypes
 fun Bmap.toExtra(owner: Int): BmapExtra =
     BmapExtra(
         owner,
@@ -17,7 +16,6 @@ fun Bmap.toExtra(owner: Int): BmapExtra =
         bases.map { it.code },
     )
 
-@ExperimentalUnsignedTypes
 fun BmapExtra.loadCodes(bmap: Bmap) {
     pillCodes.forEachIndexed { index, code ->
         bmap.pills[index].code = code

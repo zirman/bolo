@@ -16,7 +16,6 @@ const val tilesCount: Int = tileSheetWidth * tileSheetHeight
 
 fun tileInd(x: Int, y: Int): Int = (tileSheetWidth * y) + x
 
-@Suppress("util.unused")
 enum class Tile(val index: Int) {
     Sea(tileInd(x = 9, y = 4)),
     Boat(tileInd(x = 14, y = 10)),
@@ -73,7 +72,6 @@ enum class Tile(val index: Int) {
     PillFriendly15(tileInd(x = 15, y = 15)),
 }
 
-@ExperimentalUnsignedTypes
 fun Terrain.toTile(): Tile =
     when (this) {
         Terrain.Sea -> Tile.Sea
@@ -108,7 +106,6 @@ fun Terrain.toTile(): Tile =
         Terrain.GrassMined -> Tile.GrassMined
     }
 
-@ExperimentalUnsignedTypes
 class TileArray(private val bmap: Bmap, private val owner: Int) {
     val tiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
         .also { tiles ->

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package bmap
 
 import assert.assertEqual
@@ -52,7 +54,6 @@ enum class Terrain {
 
 fun ind(x: Int, y: Int): Int = (worldWidth * y) + x
 
-@ExperimentalUnsignedTypes
 class Bmap(
     val pills: Array<Pill>,
     val bases: Array<Base>,
@@ -204,7 +205,6 @@ data class StartInfo(
     val dir: Int,
 )
 
-@ExperimentalUnsignedTypes
 data class Run(
     val dataLen: Int,  // length of the data for this run
     // INCLUDING this 4 byte header
@@ -215,7 +215,6 @@ data class Run(
     val data: NibbleReader,
 )
 
-@ExperimentalUnsignedTypes
 class NibbleReader(private val buffer: UByteArray) {
     private var offset: Int = 0
     private var nibbled = false
@@ -241,7 +240,6 @@ class NibbleReader(private val buffer: UByteArray) {
     }
 }
 
-@ExperimentalUnsignedTypes
 class BmapReader(
     offset: Int,
     private val buffer: UByteArray,
@@ -383,7 +381,6 @@ class BmapReader(
     }
 }
 
-@ExperimentalUnsignedTypes
 fun nibbleToTerrain(nibble: Int): Terrain =
     when (nibble) {
         0 -> Terrain.Wall
@@ -409,7 +406,6 @@ fun defaultTerrain(x: Int, y: Int): Terrain =
     if (x < border || y < border || x >= worldWidth - border || y >= worldHeight - border) Terrain.SeaMined
     else Terrain.Sea
 
-@ExperimentalUnsignedTypes
 class BmapCode {
     private val code = UByteArray(worldWidth * worldHeight)
 

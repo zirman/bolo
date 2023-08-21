@@ -45,7 +45,6 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("NAME_SHADOWING")
-@ExperimentalUnsignedTypes
 class Tank(
     private val scope: CoroutineScope,
     game: Game,

@@ -62,7 +62,6 @@ sealed interface BuildOp {
     ) : BuildOp
 }
 
-@ExperimentalUnsignedTypes
 interface GamePublic {
     val bmap: Bmap
     val random: Random
@@ -81,7 +80,6 @@ interface GamePublic {
     operator fun get(x: Int, y: Int): Entity
 }
 
-@ExperimentalUnsignedTypes
 class Game(
     override val sendChannel: SendChannel<Frame>,
     override val owner: Int,

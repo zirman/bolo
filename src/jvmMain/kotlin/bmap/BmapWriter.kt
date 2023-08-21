@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package bmap
 
 fun getDamageLevel(terrain: Terrain): Int =
@@ -50,7 +52,6 @@ fun terrainToNibble(t: Terrain): Int =
         else -> throw Exception()
     }
 
-@ExperimentalUnsignedTypes
 fun writeBmap(
     bmap: Bmap,
     buffer: MutableList<UByte>,
@@ -169,7 +170,6 @@ fun writeBmap(
     writeUByte(0xff.toUByte())
 }
 
-@ExperimentalUnsignedTypes
 fun writeDamage(
     bmap: Bmap,
     buffer: MutableList<UByte>,
@@ -255,7 +255,6 @@ fun writeDamage(
     writeUByte(0xff.toUByte())
 }
 
-@ExperimentalUnsignedTypes
 fun writeBmapCode(
     bmapCode: BmapCode,
     buffer: MutableList<UByte>,
@@ -338,7 +337,6 @@ fun writeBmapCode(
     writeUByte(0xff.toUByte())
 }
 
-@ExperimentalUnsignedTypes
 class NibbleWriter {
     private val buffer: MutableList<UByte> = mutableListOf()
     private var nibbled: Boolean = false
@@ -363,7 +361,6 @@ class NibbleWriter {
     }
 }
 
-//@ExperimentalUnsignedTypes
 //fun writeBmapExtra(
 //    owner: Int,
 //    pills: Array<bmap.Pill>,

@@ -23,7 +23,6 @@ sealed interface BuilderMission {
     data class RepairPill(val index: Int, val material: Int) : BuilderMission
 }
 
-@ExperimentalUnsignedTypes
 class Builder(
     scope: CoroutineScope,
     game: Game,

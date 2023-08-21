@@ -52,7 +52,6 @@ const val spriteSheetHeight = 16
 
 const val spriteSheetSrc = "static/sprite_sheet.png"
 
-@Suppress("util.unused")
 enum class Sprite(val int: Int) {
     TankBoat0(spriteInd(x = 0, y = 0)),
     TankBoat1(spriteInd(x = 1, y = 0)),
@@ -184,7 +183,6 @@ enum class Sprite(val int: Int) {
 
 data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
 
-@ExperimentalUnsignedTypes
 suspend fun WebGLRenderingContext.createTileProgram(): (clipMatrix: M4, tileArray: TileArray) -> Unit {
     val program = createProgram().assertNotNull("shader program is null")
 

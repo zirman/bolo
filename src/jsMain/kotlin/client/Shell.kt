@@ -13,7 +13,6 @@ import util.isWater
 import kotlin.math.max
 import kotlin.math.min
 
-@ExperimentalUnsignedTypes
 class Shell(
     scope: CoroutineScope,
     game: Game,

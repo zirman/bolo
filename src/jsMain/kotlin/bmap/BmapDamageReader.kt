@@ -1,10 +1,11 @@
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package bmap
 
 import assert.assertEqual
 import assert.assertLessThan
 import assert.assertLessThanOrEqual
 
-@ExperimentalUnsignedTypes
 class BmapDamageReader(
     offset: Int,
     bmap: Bmap,
