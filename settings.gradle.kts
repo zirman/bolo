@@ -14,7 +14,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            val kotlin = "1.9.0"
+            val kotlin = "1.9.10"
 
             version(
                 /* alias = */ "kotlin",
@@ -28,12 +28,12 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "kotlinxSerialization",
-                /* version = */ "1.6.0-RC"
+                /* version = */ "1.6.0"
             )
 
             version(
                 /* alias = */ "ktor",
-                /* version = */ "2.3.3"
+                /* version = */ "2.3.4"
             )
 
             plugin(
