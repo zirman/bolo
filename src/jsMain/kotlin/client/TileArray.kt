@@ -6,6 +6,7 @@ import bmap.border
 import bmap.ind
 import bmap.worldHeight
 import bmap.worldWidth
+import frame.Owner
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
@@ -114,7 +115,7 @@ fun Terrain.toTile(): Tile =
         Terrain.GrassMined -> Tile.GrassMined
     }
 
-class TileArray(private val bmap: Bmap, private val owner: Int) {
+class TileArray(private val bmap: Bmap, private val owner: Owner) {
     val tiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
         .also { tiles ->
             for (y in 0.until(worldHeight)) {
@@ -127,7 +128,7 @@ class TileArray(private val bmap: Bmap, private val owner: Int) {
                 tiles[ind(base.x, base.y)] =
                     when (base.owner) {
                         0xff -> Tile.BaseNeutral
-                        owner -> Tile.BaseFriendly
+                        owner.int -> Tile.BaseFriendly
                         else -> Tile.BaseHostile
                     }
                         .index.toByte()
@@ -148,7 +149,7 @@ class TileArray(private val bmap: Bmap, private val owner: Int) {
         for (pill in bmap.pills) {
             if (pill.isPlaced && pill.x == x && pill.y == y) {
                 tiles[ind(pill.x, pill.y)] =
-                    ((if (pill.owner == owner) Tile.PillFriendly0 else Tile.PillHostile0).index + pill.armor).toByte()
+                    ((if (pill.owner == owner.int) Tile.PillFriendly0 else Tile.PillHostile0).index + pill.armor).toByte()
                 return
             }
         }
@@ -158,7 +159,7 @@ class TileArray(private val bmap: Bmap, private val owner: Int) {
                 tiles[ind(base.x, base.y)] =
                     when (base.owner) {
                         0xff -> Tile.BaseNeutral
-                        owner -> Tile.BaseFriendly
+                        owner.int -> Tile.BaseFriendly
                         else -> Tile.BaseHostile
                     }
                         .index.toByte()

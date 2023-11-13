@@ -243,7 +243,7 @@ class Builder(
     private fun moveTo(delta: Float, targetPosition: V2): Boolean {
         val diff = targetPosition.sub(position)
         val mag = diff.mag()
-        val speed = this[position.x.toInt(), position.y.toInt()].builderSpeed(owner)
+        val speed = this[position.x.toInt(), position.y.toInt()].builderSpeed(owner.int)
         val move = speed * delta
 
         return if (mag >= move) {
@@ -264,31 +264,31 @@ class Builder(
         val ly: Float = y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        val lxc: Boolean = lx < BUILDER_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner)
-        val hxc: Boolean = hx < BUILDER_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner)
-        val lyc: Boolean = ly < BUILDER_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner)
-        val hyc: Boolean = hy < BUILDER_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner)
+        val lxc: Boolean = lx < BUILDER_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner.int)
+        val hxc: Boolean = hx < BUILDER_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner.int)
+        val lyc: Boolean = ly < BUILDER_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner.int)
+        val hyc: Boolean = hy < BUILDER_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner.int)
 
         var sqr: Float = lx * lx + ly * ly
-        if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner)) {
+        if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
-        if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner)) {
+        if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
-        if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner)) {
+        if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
-        if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner)) {
+        if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }

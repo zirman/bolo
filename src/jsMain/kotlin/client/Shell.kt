@@ -43,7 +43,7 @@ class Shell(
             val y: Int = position.y.toInt()
             val entity = bmap.getEntity(x, y)
 
-            if ((fromBoat && entity.isShore(owner)) || entity.isShellable(owner)) {
+            if ((fromBoat && entity.isShore(owner.int)) || entity.isShellable(owner.int)) {
                 when (entity) {
                     is Entity.Pill -> pillDamage(bmap.pills.indexOfFirst { it === entity.ref })
                     is Entity.Base -> baseDamage(bmap.bases.indexOfFirst { it === entity.ref })

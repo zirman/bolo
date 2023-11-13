@@ -12,20 +12,25 @@ import bmap.worldHeight
 import bmap.worldWidth
 import frame.FrameClient
 import frame.FrameServer
+import frame.Owner
 import io.ktor.websocket.Frame
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.await
 import kotlinx.coroutines.awaitAnimationFrame
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.serialization.protobuf.ProtoBuf
-import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
-import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
-import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromHexString
+import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.protobuf.ProtoBuf
 import math.M4
 import math.V2
 import math.add
@@ -34,8 +39,14 @@ import math.scale
 import math.v2Origin
 import math.x
 import math.y
+import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
+import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
+import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
 import util.dirToVec
 import kotlin.js.Date
+import kotlin.js.Json
+import kotlin.js.Promise
+import kotlin.js.json
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -64,7 +75,7 @@ sealed interface BuildOp {
 interface GamePublic {
     val bmap: Bmap
     val random: Random
-    val owner: Int
+    val owner: Owner
     val sendChannel: SendChannel<Frame>
     var center: V2
     fun launchTank(scope: CoroutineScope)
@@ -81,11 +92,12 @@ interface GamePublic {
 
 class Game(
     override val sendChannel: SendChannel<Frame>,
-    override val owner: Int,
+    override val owner: Owner,
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
     private val tileProgram: (clipMatrix: M4, tiles: TileArray) -> Unit,
     private val spriteProgram: (M4, List<SpriteInstance>) -> Unit,
+    private val scope: CoroutineScope,
 ) : GamePublic {
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
@@ -103,10 +115,10 @@ class Game(
     private val shells = mutableListOf<Shell>()
     private val builders = mutableListOf<Builder>()
 
-    suspend fun run() = coroutineScope {
-        launchServerFlow(this)
-        launchGameLoop(this)
-        launchTank(this)
+    fun launch() {
+        launchServerFlow(scope)
+        launchGameLoop(scope)
+        launchTank(scope)
     }
 
     override val tank get() = tanks.firstOrNull { it.isVisible }
@@ -130,16 +142,13 @@ class Game(
     override suspend fun buildTerrain(x: Int, y: Int, t: Terrain, result: (Boolean) -> Unit) {
         buildQueue.add(BuildOp.Terrain(t, x, y, result))
 
-        ProtoBuf
-            .encodeToByteArray(
-                FrameClient.serializer(),
-                FrameClient.TerrainBuild(
-                    terrain = t,
-                    x = x,
-                    y = y,
-                ),
+        FrameClient
+            .TerrainBuild(
+                terrain = t,
+                x = x,
+                y = y,
             )
-            .let { Frame.Binary(fin = true, it) }
+            .toFrame()
             .let { sendChannel.send(it) }
     }
 
@@ -179,7 +188,7 @@ class Game(
 //            .let { sendChannel.send(it) }
 //    }
 
-    private fun render() {
+    private fun render(frameCount: Int) {
         gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
         gl.disable(DEPTH_TEST)
 
@@ -197,16 +206,6 @@ class Game(
         try {
             tileProgram(clipMatrix, tileArray)
 
-//            for (peer of peers.values()) {
-//                spriteArray.push({
-//                    x: peer.positionX,
-//                    math.math.getY: peer.positionY,
-//                    spriteIndex:
-//                    (peer.onBoat ? client.Sprite.TankEnemyBoat0 : client.Sprite.TankEnemy0) +
-//                    Math.floor((peer.bearing + (Float.util.getPi * (1f / 16f))) * (8f / Float.util.getPi)) % 16,
-//                })
-//            }
-
             val sprites = mutableListOf<SpriteInstance>()
 
             for (builder in builders) {
@@ -215,6 +214,16 @@ class Game(
                     y = builder.position.y,
                     sprite = Sprite.Lgm0,
                 ).let { sprites.add(it) }
+            }
+
+            for ((_, peer) in peers) {
+                if (peer.bearing.isNaN().not()) {
+                    SpriteInstance(
+                        x = peer.positionX,
+                        y = peer.positionY,
+                        sprite = (if (peer.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0).withBearing(peer.bearing),
+                    ).let { sprites.add(it) }
+                }
             }
 
             for (tank in tanks) {
@@ -244,8 +253,25 @@ class Game(
             }
 
             spriteProgram(clipMatrix, sprites)
+
+            // only send to one peer per tick
+            if (peers.isNotEmpty()) {
+                val dataChannel = peers.values.toList()[frameCount % peers.size].dataChannel
+
+                if (dataChannel.readyState == "open") {
+                    dataChannel.send(
+                        PeerUpdate(
+                            tankPositionX = tank?.position?.x ?: Float.NaN,
+                            tankPositionY = tank?.position?.y ?: Float.NaN,
+                            tankBearing = tank?.bearing ?: Float.NaN,
+                            tankBoat = tank?.onBoat == true,
+                        ).toHexString(),
+                    )
+                }
+            }
         } catch (error: Throwable) {
-            println("error $error")
+            error.printStackTrace()
+            throw error
         }
     }
 
@@ -253,33 +279,27 @@ class Game(
         bmap.damage(x, y)
         tileArray.update(x, y)
 
-        ProtoBuf
-            .encodeToByteArray(
-                FrameClient.serializer(),
-                FrameClient.TerrainDamage(
-                    code = bmapCode[x, y],
-                    x = x,
-                    y = y,
-                ),
+        FrameClient
+            .TerrainDamage(
+                code = bmapCode[x, y],
+                x = x,
+                y = y,
             )
-            .let { Frame.Binary(fin = true, it) }
-            .let { sendChannel.send(it) }
+            .toFrame()
+            .run { sendChannel.send(this) }
     }
 
     override suspend fun baseDamage(index: Int) {
         val base = bmap.bases[index]
         base.armor = max(0, base.armor - 8)
 
-        ProtoBuf
-            .encodeToByteArray(
-                FrameClient.serializer(),
-                FrameClient.BaseDamage(
-                    index,
-                    code = base.code,
-                ),
+        FrameClient
+            .BaseDamage(
+                index = index,
+                code = base.code,
             )
-            .let { Frame.Binary(fin = true, it) }
-            .let { sendChannel.send(it) }
+            .toFrame()
+            .run { sendChannel.send(this) }
     }
 
     override suspend fun pillDamage(index: Int) {
@@ -287,18 +307,15 @@ class Game(
         pill.armor = max(0, pill.armor - 1)
         tileArray.update(pill.x, pill.y)
 
-        ProtoBuf
-            .encodeToByteArray(
-                FrameClient.serializer(),
-                FrameClient.PillDamage(
-                    index,
-                    code = pill.code,
-                    x = pill.x,
-                    y = pill.y,
-                ),
+        FrameClient
+            .PillDamage(
+                index = index,
+                code = pill.code,
+                x = pill.x,
+                y = pill.y,
             )
-            .let { Frame.Binary(fin = true, it) }
-            .let { sendChannel.send(it) }
+            .toFrame()
+            .run { sendChannel.send(this) }
     }
 
     override operator fun get(x: Int, y: Int): Entity {
@@ -324,67 +341,70 @@ class Game(
         return Entity.Terrain(bmap[x, y])
     }
 
-    private fun launchGameLoop(scope: CoroutineScope) = scope.launch {
-        while (true) {
-            val time = window.awaitAnimationFrame()
-            frameRegulator.removeAll { time - it > 1000.0 }
-            frameRegulator.add(time)
-            val ticksPerSec = max(1, frameRegulator.size).toFloat()
+    private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch {
+        try {
+            for (frameCount in 0..Int.MAX_VALUE) {
+                val time = window.awaitAnimationFrame()
+                frameRegulator.removeAll { time - it > 1000.0 }
+                frameRegulator.add(time)
+                val ticksPerSec = max(1, frameRegulator.size).toFloat()
 
-            val tick =
-                Tick(
+                val tick = Tick(
                     control = Control.getControlState(),
                     ticksPerSec = ticksPerSec,
                     delta = 1f / ticksPerSec,
                 )
 
-            val devicePixelRatio = window.devicePixelRatio
+                val devicePixelRatio = window.devicePixelRatio
 
-            when (val mouse = tick.control.mouse) {
-                // updates viewport
-                is Mouse.Drag -> {
-                    center.x -= ((mouse.x.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                    center.y += ((mouse.y.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                }
-                // builder actions
-                is Mouse.Up -> {
-                    val sqrX: Int =
-                        (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+                when (val mouse = tick.control.mouse) {
+                    // updates viewport
+                    is Mouse.Drag -> {
+                        center.x -= ((mouse.x.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+                        center.y += ((mouse.y.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+                    }
+                    // builder actions
+                    is Mouse.Up -> {
+                        val sqrX: Int =
+                            (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
 
-                    val sqrY: Int =
-                        (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+                        val sqrY: Int =
+                            (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
-                    if (isBuilderInTank && sqrX in border.until(worldWidth - border) && sqrY in border.until(worldHeight - border)) {
-                        when (tick.control.builderMode) {
-                            is BuilderMode.Tree -> {
-                                if (bmap[sqrX, sqrY] == Terrain.Tree) {
-                                    tank?.let { tank ->
-                                        launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                        isBuilderInTank = false
+                        if (isBuilderInTank && sqrX in border.until(worldWidth - border) && sqrY in border.until(
+                                worldHeight - border
+                            )
+                        ) {
+                            when (tick.control.builderMode) {
+                                is BuilderMode.Tree -> {
+                                    if (bmap[sqrX, sqrY] == Terrain.Tree) {
+                                        tank?.let { tank ->
+                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                            isBuilderInTank = false
+                                        }
                                     }
                                 }
-                            }
 
-                            is BuilderMode.Road -> {
-                                // TODO: proper check
-                                if (bmap[sqrX, sqrY] == Terrain.Grass3) {
-                                    tank?.let { tank ->
-                                        launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
-                                        isBuilderInTank = false
+                                is BuilderMode.Road -> {
+                                    // TODO: proper check
+                                    if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                                        tank?.let { tank ->
+                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
+                                            isBuilderInTank = false
+                                        }
                                     }
                                 }
-                            }
 
-                            is BuilderMode.Wall -> {
-                                if (bmap[sqrX, sqrY] == Terrain.Grass3) {
-                                    tank?.let { tank ->
-                                        launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildWall)
-                                        isBuilderInTank = false
+                                is BuilderMode.Wall -> {
+                                    if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                                        tank?.let { tank ->
+                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildWall)
+                                            isBuilderInTank = false
+                                        }
                                     }
                                 }
-                            }
 
-                            is BuilderMode.Pill -> {
+                                is BuilderMode.Pill -> {
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -405,142 +425,301 @@ class Game(
 ////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
 //                                    }
 //                                }
-                            }
+                                }
 
-                            is BuilderMode.Mine -> {
+                                is BuilderMode.Mine -> {
+                                }
                             }
                         }
                     }
+
+                    null -> {}
                 }
 
-                null -> {}
+                tanks.removeAll { it.job.isCompleted }
+
+                for (tank in tanks) {
+                    tank.resumeWith(tick)
+                }
+
+                shells.removeAll { it.job.isCompleted }
+
+                for (shell in shells) {
+                    shell.resumeWith(tick)
+                }
+
+                builders.removeAll { it.job.isCompleted }
+
+                for (builder in builders) {
+                    builder.resumeWith(tick)
+                }
+
+                render(frameCount)
             }
-
-            tanks.removeAll { it.job.isCompleted }
-
-            for (tank in tanks) {
-                tank.resumeWith(tick)
-            }
-
-            shells.removeAll { it.job.isCompleted }
-
-            for (shell in shells) {
-                shell.resumeWith(tick)
-            }
-
-            builders.removeAll { it.job.isCompleted }
-
-            for (builder in builders) {
-                builder.resumeWith(tick)
-            }
-
-            render()
+        } catch (error: Throwable) {
+            currentCoroutineContext().ensureActive()
+            error.printStackTrace()
+            throw error
         }
     }
 
-    private fun launchServerFlow(scope: CoroutineScope) = frameServerFlow.map { frameServer ->
-        when (frameServer) {
-            is FrameServer.TerrainBuild -> {
-                // build from other players
-                bmap[frameServer.x, frameServer.y] = frameServer.terrain
-                bmapCode.inc(frameServer.x, frameServer.y)
-                tileArray.update(frameServer.x, frameServer.y)
+    private val peers: MutableMap<Owner, Peer> = mutableMapOf()
+
+    private fun launchServerFlow(scope: CoroutineScope): Job {
+        return frameServerFlow
+            .map { frameServer ->
+                when (frameServer) {
+                    is FrameServer.Signal -> {
+                        println("$frameServer")
+                        val peerConnection = getPeer(frameServer.from).peerConnection
+
+                        when (frameServer) {
+                            is FrameServer.Signal.NewPeer -> {
+                                // RTCPeerConnection created above
+                            }
+
+                            is FrameServer.Signal.Offer -> {
+                                peerConnection
+                                    .setRemoteDescription(
+                                        JSON.parse(frameServer.sessionDescription),
+                                    )
+                                    .unsafeCast<Promise<Any?>>().await()
+
+                                val a = peerConnection.createAnswer()
+                                    .unsafeCast<Promise<Any?>>().await()
+                                a.let { peerConnection.setLocalDescription(it) }
+                                    .unsafeCast<Promise<Any?>>().await()
+
+                                // val answer = peerConnection.localDescription.unsafeCast<Any?>()
+                                //     ?: throw IllegalStateException("localDescription == null")
+
+                                FrameClient.Signal
+                                    .Answer(
+                                        owner = frameServer.from,
+                                        sessionDescription = JSON.stringify(a),
+                                    )
+                                    .toFrame()
+                                    .run { sendChannel.send(this) }
+                            }
+
+                            is FrameServer.Signal.Answer -> {
+                                peerConnection
+                                    .setRemoteDescription(
+                                        JSON.parse(frameServer.sessionDescription),
+                                    )
+                                    .unsafeCast<Promise<Any?>>().await()
+                            }
+
+                            is FrameServer.Signal.IceCandidate -> {
+                                peerConnection
+                                    .addIceCandidate(
+                                        JSON.parse(frameServer.iceCandidate),
+                                    )
+                                    .unsafeCast<Promise<Any?>>().await()
+                            }
+                        }
+                    }
+
+                    is FrameServer.TerrainBuild -> {
+                        // build from other players
+                        bmap[frameServer.x, frameServer.y] = frameServer.terrain
+                        bmapCode.inc(frameServer.x, frameServer.y)
+                        tileArray.update(frameServer.x, frameServer.y)
+                    }
+
+                    is FrameServer.TerrainBuildSuccess -> {
+                        val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                        bmap[buildOp.x, buildOp.y] = buildOp.terrain
+                        bmapCode.inc(buildOp.x, buildOp.y)
+                        tileArray.update(buildOp.x, buildOp.y)
+                        buildOp.result(true)
+                    }
+
+                    is FrameServer.TerrainBuildFailed -> {
+                        val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                        buildOp.result(false)
+                    }
+
+                    is FrameServer.TerrainDamage -> {
+                        // damage from other players
+                        bmap.damage(frameServer.x, frameServer.y)
+                        tileArray.update(frameServer.x, frameServer.y)
+                    }
+
+                    is FrameServer.BaseTake -> {
+                        val base = bmap.bases[frameServer.index]
+                        base.code++
+                        base.owner = frameServer.owner
+                        base.armor = frameServer.armor
+                        base.shells = frameServer.shells
+                        base.mines = frameServer.mines
+                        tileArray.update(base.x, base.y)
+                    }
+
+                    is FrameServer.BaseDamage -> {
+                        val base = bmap.bases[frameServer.index]
+                        base.armor = max(0, base.armor - 8)
+                    }
+
+                    is FrameServer.PillDamage -> {
+                        val pill = bmap.pills[frameServer.index]
+                        pill.armor = max(0, pill.armor - 1)
+                        tileArray.update(pill.x, pill.y)
+                    }
+
+                    is FrameServer.PillRepair -> {
+                        val pill = bmap.pills[frameServer.index]
+                        pill.armor = frameServer.armor
+                        pill.code++
+                        tileArray.update(pill.x, pill.y)
+                    }
+
+                    is FrameServer.PillRepairSuccess -> {
+                        // buildQueue.removeAt(0) as BuildOp.PillRepair
+                        // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
+                    }
+
+                    is FrameServer.PillRepairFailed -> {
+                        // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
+                        // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
+                    }
+
+                    is FrameServer.PillTake -> {
+                        val pill = bmap.pills[frameServer.index]
+                        pill.owner = frameServer.owner
+                        pill.isPlaced = false
+                        tileArray.update(pill.x, pill.y)
+                    }
+
+                    is FrameServer.PillDrop -> {
+                        val pill = bmap.pills[frameServer.index]
+                        pill.owner = frameServer.owner
+                        pill.x = frameServer.x
+                        pill.y = frameServer.y
+                        pill.isPlaced = true
+                        tileArray.update(pill.x, pill.y)
+                    }
+
+                    is FrameServer.PillPlacement -> {
+                        val pill = bmap.pills[frameServer.index]
+                        pill.armor = frameServer.armor
+                        pill.x = frameServer.x
+                        pill.y = frameServer.y
+                        pill.isPlaced = true
+                        pill.code++
+                        tileArray.update(pill.x, pill.y)
+                    }
+
+                    is FrameServer.PillPlacementSuccess -> {
+                        // buildQueue.removeAt(0) is BuildOp.PillPlacement
+                        // Unit
+                    }
+
+                    is FrameServer.PillPlacementFailed -> {
+                        // buildQueue.removeAt(0) is BuildOp.PillPlacement
+                        // tankMaterial = (tankMaterial + pillPerMaterial).clampRange(0, tankMaterialMax)
+                    }
+                }
+            }
+            .launchIn(scope)
+    }
+
+    private fun getPeer(from: Owner): Peer {
+        return peers.getOrPut(from) {
+            val peerConnection = newRTCPeerConnection()
+
+            peerConnection.onnegotiationneeded = { event: dynamic ->
+                println("PeerConnection.onnegotiationneeded(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+
+                scope.launch {
+                    peerConnection.createOffer()
+                        .unsafeCast<Promise<Any?>>().await()
+                        .let { peerConnection.setLocalDescription(it) }
+                        .unsafeCast<Promise<Any?>>().await()
+
+                    while (true) {
+                        val offer = peerConnection.localDescription
+                            ?: throw IllegalStateException("localDescription == null")
+
+                        // Delay sending offer to work around bug in some implementations
+                        // of WebRTC from connecting.
+                        if (offer.sdp.unsafeCast<String>().contains("candidate")) {
+                            FrameClient.Signal
+                                .Offer(
+                                    owner = from,
+                                    sessionDescription = JSON.stringify(offer),
+                                )
+                                .toFrame()
+                                .run { sendChannel.send(this) }
+
+                            break
+                        }
+
+                        delay(10)
+                    }
+                }
             }
 
-            is FrameServer.TerrainBuildSuccess -> {
-                val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                bmap[buildOp.x, buildOp.y] = buildOp.terrain
-                bmapCode.inc(buildOp.x, buildOp.y)
-                tileArray.update(buildOp.x, buildOp.y)
-                buildOp.result(true)
+            peerConnection.onconnectionstatechange = {
+                println("PeerConnection.onconnectionstatechange(): $from ${peerConnection.connectionState.unsafeCast<String>()}")
             }
 
-            is FrameServer.TerrainBuildFailed -> {
-                val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                buildOp.result(false)
+            peerConnection.ondatachannel = { event: dynamic ->
+                println("peerConnection.ondatachannel(): $from")
+
+                event.channel.onopen = {
+                    println("channel.onopen(): $from")
+                }
+
+                event.channel.onmessage = { message: dynamic ->
+                    peerEventUpdate(
+                        from = from,
+                        peerUpdate = message.data.unsafeCast<String>().toPeerUpdate(),
+                    )
+                }
+
+                event.channel.onclose = {
+                    println("channel.onclose(): $from")
+                }
+
+                event.channel.onerror = {
+                    println("channel.onerror(): $from")
+                }
             }
 
-            is FrameServer.TerrainDamage -> {
-                // damage from other players
-                bmap.damage(frameServer.x, frameServer.y)
-                tileArray.update(frameServer.x, frameServer.y)
+            val dataChannel = peerConnection.createDataChannel(
+                "Data Channel: $from",
+                json(
+                    "negotiated" to false,
+                    "ordered" to false,
+                    "maxRetransmits" to 0,
+                ),
+            )
+
+            dataChannel.onopen = { event: dynamic ->
+                println("DataChannel.onopen(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
-            is FrameServer.BaseTake -> {
-                val base = bmap.bases[frameServer.index]
-                base.code++
-                base.owner = frameServer.owner
-                base.armor = frameServer.armor
-                base.shells = frameServer.shells
-                base.mines = frameServer.mines
-                tileArray.update(base.x, base.y)
+            dataChannel.onmessage = { event: dynamic ->
+                println("DataChannel.onmessage(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+
+                peerEventUpdate(
+                    from = from,
+                    peerUpdate = JSON.parse(event.data.unsafeCast<String>()),
+                )
             }
 
-            is FrameServer.BaseDamage -> {
-                val base = bmap.bases[frameServer.index]
-                base.armor = max(0, base.armor - 8)
+            dataChannel.onclose = { event: dynamic ->
+                println("DataChannel.onclose(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
-            is FrameServer.PillDamage -> {
-                val pill = bmap.pills[frameServer.index]
-                pill.armor = max(0, pill.armor - 1)
-                tileArray.update(pill.x, pill.y)
+            dataChannel.onerror = { event: dynamic ->
+                println("DataChannel.onerror(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
-            is FrameServer.PillRepair -> {
-                val pill = bmap.pills[frameServer.index]
-                pill.armor = frameServer.armor
-                pill.code++
-                tileArray.update(pill.x, pill.y)
-            }
-
-            is FrameServer.PillRepairSuccess -> {
-//                buildQueue.removeAt(0) as BuildOp.PillRepair
-//                tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
-            }
-
-            is FrameServer.PillRepairFailed -> {
-//                val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
-//                tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
-            }
-
-            is FrameServer.PillTake -> {
-                val pill = bmap.pills[frameServer.index]
-                pill.owner = frameServer.owner
-                pill.isPlaced = false
-                tileArray.update(pill.x, pill.y)
-            }
-
-            is FrameServer.PillDrop -> {
-                val pill = bmap.pills[frameServer.index]
-                pill.owner = frameServer.owner
-                pill.x = frameServer.x
-                pill.y = frameServer.y
-                pill.isPlaced = true
-                tileArray.update(pill.x, pill.y)
-            }
-
-            is FrameServer.PillPlacement -> {
-                val pill = bmap.pills[frameServer.index]
-                pill.armor = frameServer.armor
-                pill.x = frameServer.x
-                pill.y = frameServer.y
-                pill.isPlaced = true
-                pill.code++
-                tileArray.update(pill.x, pill.y)
-            }
-
-            is FrameServer.PillPlacementSuccess -> {
-//                buildQueue.removeAt(0) is BuildOp.PillPlacement
-                //Unit
-            }
-
-            is FrameServer.PillPlacementFailed -> {
-//                buildQueue.removeAt(0) is BuildOp.PillPlacement
-//                tankMaterial = (tankMaterial + pillPerMaterial).clampRange(0, tankMaterialMax)
-            }
+            Peer(peerConnection, dataChannel)
         }
-    }.launchIn(scope)
+    }
 
     override fun launchTank(scope: CoroutineScope) {
         tanks.add(Tank(scope, this))
@@ -564,6 +743,17 @@ class Game(
         buildOp: BuilderMission,
     ) {
         builders.add(Builder(scope, this, startPosition, targetX, targetY, buildOp))
+    }
+
+    private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
+        val peer = peers[from] ?: throw IllegalStateException("peers[${from}] is null")
+        peer.positionX = peerUpdate.tankPositionX
+        peer.positionY = peerUpdate.tankPositionY
+        peer.bearing = peerUpdate.tankBearing
+    }
+
+    private fun peerEventClose(owner: Owner) {
+        peers.remove(owner) ?: throw IllegalStateException("peers[${owner}] is null")
     }
 }
 
@@ -650,3 +840,61 @@ fun Entity.isShellable(owner: Int): Boolean =
                 -> true
             }
     }
+
+fun newRTCPeerConnection(): dynamic = js(
+    """
+    new RTCPeerConnection({
+        iceServers: [
+            {
+                urls: ["stun:robch.dev", "turn:robch.dev"],
+                username: "prouser",
+                credential: "BE3pJ@",
+            },
+        ],
+    })
+    """,
+)
+
+private val frameClientSerializer = FrameClient.serializer()
+
+private fun FrameClient.toFrame(): Frame {
+    return ProtoBuf
+        .encodeToByteArray(
+            serializer = frameClientSerializer,
+            value = this,
+        )
+        .let { Frame.Binary(fin = true, data = it) }
+}
+
+@Serializable
+data class PeerUpdate(
+    val tankPositionX: Float,
+    val tankPositionY: Float,
+    val tankBearing: Float,
+    val tankBoat: Boolean,
+)
+
+private val peerUpdateSerializer = PeerUpdate.serializer()
+
+private fun PeerUpdate.toHexString(): String {
+    return ProtoBuf.encodeToHexString(
+        serializer = peerUpdateSerializer,
+        value = this,
+    )
+}
+
+private fun String.toPeerUpdate(): PeerUpdate {
+    return ProtoBuf.decodeFromHexString(
+        deserializer = peerUpdateSerializer,
+        hex = this,
+    )
+}
+
+data class Peer(
+    val peerConnection: dynamic,
+    val dataChannel: dynamic,
+    var positionX: Float = Float.NaN,
+    var positionY: Float = Float.NaN,
+    var bearing: Float = Float.NaN,
+    var onBoat: Boolean = false,
+)

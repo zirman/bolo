@@ -109,7 +109,7 @@ class Tank(
             val terrainDownRight = bmap[onX + 1, onY + 1]
 
             // check for destruction
-            if (bmap.getEntity(onX, onY).isSolid(owner)) {
+            if (bmap.getEntity(onX, onY).isSolid(owner.int)) {
                 var time = 0f
                 isVisible = false
                 // super boom
@@ -374,31 +374,31 @@ class Tank(
         val ly: Float = p.y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        val lxc: Boolean = lx < TANK_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner)
-        val hxc: Boolean = hx < TANK_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner)
-        val lyc: Boolean = ly < TANK_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner)
-        val hyc: Boolean = hy < TANK_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner)
+        val lxc: Boolean = lx < TANK_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner.int)
+        val hxc: Boolean = hx < TANK_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner.int)
+        val lyc: Boolean = ly < TANK_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner.int)
+        val hyc: Boolean = hy < TANK_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner.int)
 
         var sqr: Float = lx * lx + ly * ly
-        if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner)) {
+        if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
-        if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner)) {
+        if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
-        if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner)) {
+        if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
-        if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner)) {
+        if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
             return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }

@@ -7,6 +7,23 @@ import kotlinx.serialization.Serializable
 sealed interface FrameServer {
 
     @Serializable
+    sealed interface Signal : FrameServer {
+        val from: Owner
+
+        @Serializable
+        data class NewPeer(override val from: Owner) : Signal
+
+        @Serializable
+        data class Offer(override val from: Owner, val sessionDescription: String) : Signal
+
+        @Serializable
+        data class Answer(override val from: Owner, val sessionDescription: String) : Signal
+
+        @Serializable
+        data class IceCandidate(override val from: Owner, val iceCandidate: String) : Signal
+    }
+
+    @Serializable
     data class TerrainBuild(
         val terrain: Terrain,
         val x: Int,

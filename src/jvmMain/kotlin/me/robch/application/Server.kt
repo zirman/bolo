@@ -3,15 +3,16 @@
 package me.robch.application
 
 import bmap.BmapCode
-import bmap.BmapExtra
 import bmap.BmapReader
 import bmap.Terrain
+import bmap.toByteArray
 import bmap.toExtra
 import bmap.writeBmap
 import bmap.writeBmapCode
 import bmap.writeDamage
 import frame.FrameClient
 import frame.FrameServer
+import frame.Owner
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -31,6 +32,8 @@ import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.*
 import io.netty.handler.codec.compression.StandardCompressionOptions.gzip
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.html.body
 import kotlinx.html.canvas
 import kotlinx.html.head
@@ -46,6 +49,8 @@ import util.isBuildable
 import util.pillArmorMax
 import java.io.File
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.min
 
@@ -133,35 +138,16 @@ fun Application.myApplicationModule() {
             }
         }
 
-        val clients: Array<DefaultWebSocketServerSession?> = arrayOfNulls(16)
-        //val calls: Map<string, Generator<void, void, { id: number, message: SignalClient }>> = mapOf()
-
-        var nextOwner = 0
-
-        fun getOwner(): Int {
-            for (i in clients.indices) {
-                val owner: Int = (nextOwner + i) % clients.size
-
-                if (clients[owner] == null) {
-                    val ret: Int = owner
-                    nextOwner = (owner + 1) % clients.size
-                    return ret
-                }
-            }
-
-            throw Exception()
-        }
+        val nextOwnerId = AtomicInteger()
+        val clients: MutableMap<Owner, DefaultWebSocketServerSession> = ConcurrentHashMap()
 
         webSocket("/ws") {
-            var owner: Int? = null
-
+            if (clients.size >= 16) {
+                throw Exception("clients full")
+            }
+            val owner = Owner(nextOwnerId.getAndIncrement())
+            clients[owner] = this
             try {
-                if (clients.all { it != null }) {
-                    throw Exception("clients full")
-                }
-
-                owner = getOwner()
-                clients[owner] = this
                 val buffer: MutableList<UByte> = mutableListOf()
                 writeBmap(bmap, buffer)
                 writeDamage(bmap, buffer)
@@ -170,16 +156,45 @@ fun Application.myApplicationModule() {
                 buffer
                     .toUByteArray()
                     .toByteArray()
-                    .plus(ProtoBuf.encodeToByteArray(BmapExtra.serializer(), bmap.toExtra(owner)))
-                    .let { send(it) }
+                    .plus(bmap.toExtra(owner.int).toByteArray())
+                    .run { send(this) }
 
-                // TODO: ensure on one thread
+                clients.forEach { (callee) ->
+                    if (callee != owner) {
+                        FrameServer.Signal
+                            .NewPeer(callee)
+                            .toByteArray()
+                            .run { send(this) }
+                    }
+                }
 
                 for (frame in incoming) {
                     when (frame) {
                         is Frame.Binary -> {
-                            when (val frameClient = ProtoBuf
-                                .decodeFromByteArray(FrameClient.serializer(), frame.readBytes())) {
+                            when (val frameClient = frame.toFrameClient()) {
+                                is FrameClient.Signal -> {
+                                    clients[frameClient.owner]?.run {
+                                        when (frameClient) {
+                                            is FrameClient.Signal.Offer -> FrameServer.Signal.Offer(
+                                                from = owner,
+                                                sessionDescription = frameClient.sessionDescription
+                                            )
+
+                                            is FrameClient.Signal.Answer -> FrameServer.Signal.Answer(
+                                                from = owner,
+                                                sessionDescription = frameClient.sessionDescription
+                                            )
+
+                                            is FrameClient.Signal.IceCandidate -> FrameServer.Signal.IceCandidate(
+                                                from = owner,
+                                                iceCandidate = frameClient.iceCandidate
+                                            )
+                                        }
+                                            .toByteArray()
+                                            .run { send(this) }
+                                    }
+                                }
+
                                 is FrameClient.TerrainBuild -> {
                                     val isSuccessful =
                                         when (frameClient.terrain) {
@@ -192,32 +207,28 @@ fun Application.myApplicationModule() {
                                             else -> false
                                         }
 
-                                    ProtoBuf
-                                        .encodeToByteArray(
-                                            FrameServer.serializer(),
-                                            if (isSuccessful) FrameServer.TerrainBuildSuccess
-                                            else FrameServer.TerrainBuildFailed,
-                                        )
-                                        .let { Frame.Binary(fin = true, it) }
-                                        .let { outgoing.send(it) }
+                                    run {
+                                        if (isSuccessful) FrameServer.TerrainBuildSuccess
+                                        else FrameServer.TerrainBuildFailed
+                                    }
+                                        .toByteArray()
+                                        .run { send(this) }
 
                                     if (isSuccessful) {
                                         bmap[frameClient.x, frameClient.y] = frameClient.terrain
                                         bmapCode.inc(frameClient.x, frameClient.y)
 
-                                        val serverFrame = ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.TerrainBuild(
-                                                    terrain = frameClient.terrain,
-                                                    x = frameClient.x,
-                                                    y = frameClient.y,
-                                                ),
+                                        val serverFrame = FrameServer
+                                            .TerrainBuild(
+                                                terrain = frameClient.terrain,
+                                                x = frameClient.x,
+                                                y = frameClient.y,
                                             )
+                                            .toByteArray()
 
-                                        clients.filterNotNull().filter { it != this }.forEach { client ->
-                                            client.outgoing.send(Frame.Binary(fin = true, serverFrame))
-                                        }
+                                        clients
+                                            .filter { (_, client) -> client != this }
+                                            .forEach { (_, client) -> client.send(serverFrame) }
                                     }
 
                                     Unit
@@ -227,45 +238,41 @@ fun Application.myApplicationModule() {
                                     bmap.damage(frameClient.x, frameClient.y)
                                     val codeMatches = bmapCode[frameClient.x, frameClient.y] == frameClient.code
 
-                                    val serverFrame = ProtoBuf
-                                        .encodeToByteArray(
-                                            FrameServer.serializer(),
-                                            FrameServer.TerrainDamage(
-                                                x = frameClient.x,
-                                                y = frameClient.y,
-                                            ),
+                                    val serverFrame = FrameServer
+                                        .TerrainDamage(
+                                            x = frameClient.x,
+                                            y = frameClient.y,
                                         )
+                                        .toByteArray()
 
-                                    (if (codeMatches) {
-                                        clients.filter { it != this }
-                                    } else {
-                                        clients.asList()
-                                    })
-                                        .filterNotNull().forEach { client ->
-                                            client.outgoing.send(Frame.Binary(fin = true, serverFrame))
+                                    clients
+                                        .let { clients ->
+                                            if (codeMatches) {
+                                                clients.filter { (_, client) -> client != this }
+                                            } else {
+                                                clients
+                                            }
                                         }
+                                        .forEach { (_, client) -> client.send(serverFrame) }
                                 }
 
                                 is FrameClient.BaseDamage -> {
                                     val base = bmap.bases[frameClient.index]
                                     base.armor = max(0, base.armor - 8)
 
-                                    val serverFrame = ProtoBuf
-                                        .encodeToByteArray(
-                                            FrameServer.serializer(),
-                                            FrameServer.BaseDamage(
-                                                index = frameClient.index,
-                                            ),
-                                        )
+                                    val serverFrame = FrameServer
+                                        .BaseDamage(index = frameClient.index)
+                                        .toByteArray()
 
-                                    (if (base.code == frameClient.code) {
-                                        clients.filter { it != this }
-                                    } else {
-                                        clients.asList()
-                                    })
-                                        .filterNotNull().forEach { client ->
-                                            client.outgoing.send(Frame.Binary(fin = true, serverFrame))
+                                    clients
+                                        .let { clients ->
+                                            if (base.code == frameClient.code) {
+                                                clients.filter { (_, client) -> client != this }
+                                            } else {
+                                                clients
+                                            }
                                         }
+                                        .forEach { (_, client) -> client.send(serverFrame) }
                                 }
 
                                 is FrameClient.PillDamage -> {
@@ -277,22 +284,15 @@ fun Application.myApplicationModule() {
                                     ) {
                                         pill.armor = max(0, pill.armor - 1)
 
-                                        val serverFrame = ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.PillDamage(
-                                                    index = frameClient.index,
-                                                ),
-                                            )
+                                        val serverFrame = FrameServer
+                                            .PillDamage(index = frameClient.index)
+                                            .toByteArray()
 
-                                        (if (pill.code == frameClient.code) {
-                                            clients.filter { it != this }
-                                        } else {
-                                            clients.asList()
-                                        })
-                                            .filterNotNull().forEach { client ->
-                                                client.outgoing.send(Frame.Binary(fin = true, serverFrame))
+                                        clients.forEach { (_, client) ->
+                                            if (pill.code != frameClient.code) {
+                                                client.send(serverFrame)
                                             }
+                                        }
                                     }
 
                                     Unit
@@ -312,28 +312,19 @@ fun Application.myApplicationModule() {
                                         pill.armor = newArmor
                                         pill.code++
 
-                                        ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.PillRepairSuccess(
-                                                    material = (additionalArmor - (newArmor - oldArmor)) / 4,
-                                                ),
-                                            )
-                                            .let { Frame.Binary(fin = true, it) }
-                                            .let { outgoing.send(it) }
+                                        FrameServer
+                                            .PillRepairSuccess(material = (additionalArmor - (newArmor - oldArmor)) / 4)
+                                            .toByteArray()
+                                            .run { send(this) }
 
-                                        val serverFrame = ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.PillRepair(
-                                                    index = frameClient.index,
-                                                    armor = pill.armor,
-                                                ),
+                                        val serverFrame = FrameServer
+                                            .PillRepair(
+                                                index = frameClient.index,
+                                                armor = pill.armor,
                                             )
+                                            .toByteArray()
 
-                                        clients.filterNotNull().forEach { client ->
-                                            client.outgoing.send(Frame.Binary(fin = true, serverFrame))
-                                        }
+                                        clients.forEach { (_, client) -> client.send(serverFrame) }
                                     }
 
                                     Unit
@@ -343,7 +334,7 @@ fun Application.myApplicationModule() {
                                     val pill = bmap.pills[frameClient.index]
 
                                     if (pill.isPlaced.not() &&
-                                        pill.owner == owner
+                                        pill.owner == owner.int
                                     ) {
                                         pill.isPlaced = true
                                         pill.armor = min(pillArmorMax, frameClient.material * 4)
@@ -351,28 +342,20 @@ fun Application.myApplicationModule() {
                                         pill.y = frameClient.y
                                         pill.code++
 
-                                        ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.PillPlacementSuccess,
-                                            )
-                                            .let { Frame.Binary(fin = true, it) }
-                                            .let { outgoing.send(it) }
+                                        FrameServer.PillPlacementSuccess
+                                            .toByteArray()
+                                            .run { send(this) }
 
-                                        val serverFrame = ProtoBuf
-                                            .encodeToByteArray(
-                                                FrameServer.serializer(),
-                                                FrameServer.PillPlacement(
-                                                    index = frameClient.index,
-                                                    armor = pill.armor,
-                                                    x = pill.x,
-                                                    y = pill.y,
-                                                ),
+                                        val serverFrame = FrameServer
+                                            .PillPlacement(
+                                                index = frameClient.index,
+                                                armor = pill.armor,
+                                                x = pill.x,
+                                                y = pill.y,
                                             )
+                                            .toByteArray()
 
-                                        clients.filterNotNull().forEach { client ->
-                                            client.outgoing.send(Frame.Binary(fin = true, serverFrame))
-                                        }
+                                        clients.forEach { (_, client) -> client.send(serverFrame) }
                                     }
 
                                     Unit
@@ -381,7 +364,7 @@ fun Application.myApplicationModule() {
                                 is FrameClient.Position -> {
                                     // update held pill positions
                                     bmap.pills
-                                        .filter { it.owner == owner && it.isPlaced.not() }
+                                        .filter { it.owner == owner.int && it.isPlaced.not() }
                                         .forEach { pill ->
                                             pill.x = frameClient.x
                                             pill.y = frameClient.y
@@ -394,21 +377,17 @@ fun Application.myApplicationModule() {
                                             pill.y == frameClient.y &&
                                             pill.armor == 0
                                         ) {
-                                            pill.owner = owner
+                                            pill.owner = owner.int
                                             pill.isPlaced = false
 
-                                            val serverFrame = ProtoBuf
-                                                .encodeToByteArray(
-                                                    FrameServer.serializer(),
-                                                    FrameServer.PillTake(
-                                                        index = index,
-                                                        owner = owner,
-                                                    ),
+                                            val serverFrame = FrameServer
+                                                .PillTake(
+                                                    index = index,
+                                                    owner = owner.int,
                                                 )
+                                                .toByteArray()
 
-                                            clients.filterNotNull().forEach { client ->
-                                                client.outgoing.send(Frame.Binary(fin = true, serverFrame))
-                                            }
+                                            clients.forEach { (_, client) -> client.send(serverFrame) }
                                         }
                                     }
 
@@ -424,24 +403,20 @@ fun Application.myApplicationModule() {
                                                 base.mines = 0
                                             }
 
-                                            base.owner = owner
+                                            base.owner = owner.int
                                             base.code++
 
-                                            val serverFrame = ProtoBuf
-                                                .encodeToByteArray(
-                                                    FrameServer.serializer(),
-                                                    FrameServer.BaseTake(
-                                                        index = index,
-                                                        owner = base.owner,
-                                                        armor = base.armor,
-                                                        shells = base.shells,
-                                                        mines = base.mines,
-                                                    ),
+                                            val serverFrame = FrameServer
+                                                .BaseTake(
+                                                    index = index,
+                                                    owner = base.owner,
+                                                    armor = base.armor,
+                                                    shells = base.shells,
+                                                    mines = base.mines,
                                                 )
+                                                .toByteArray()
 
-                                            clients.filterNotNull().forEach { client ->
-                                                client.outgoing.send(Frame.Binary(fin = true, serverFrame))
-                                            }
+                                            clients.forEach { (_, client) -> client.send(serverFrame) }
                                         }
                                     }
                                 }
@@ -463,61 +438,70 @@ fun Application.myApplicationModule() {
                     }
                 }
             } catch (error: Throwable) {
-                println("error: $error")
-                close()
+                currentCoroutineContext().ensureActive()
+                error.printStackTrace()
+                throw error
             } finally {
-                if (owner != null) {
-                    clients[owner] = null
+                close()
+                clients.remove(owner)
 
-                    // drop pills
-                    bmap.pills.forEachIndexed { index, pill ->
-                        if (pill.owner == owner) {
-                            pill.owner = 0xff
+                // drop pills
+                bmap.pills.forEachIndexed { index, pill ->
+                    if (pill.owner == owner.int) {
+                        pill.owner = 0xff
 
-                            if (pill.isPlaced.not()) {
-                                // TODO check placement
-                                pill.isPlaced = true
-                            }
-
-                            val frameServer = ProtoBuf.encodeToByteArray(
-                                FrameServer.serializer(),
-                                FrameServer.PillDrop(
-                                    index = index,
-                                    owner = pill.owner,
-                                    x = pill.x,
-                                    y = pill.y,
-                                ),
-                            )
-
-                            clients.filterNotNull().forEach { client ->
-                                client.outgoing.send(Frame.Binary(fin = true, frameServer))
-                            }
+                        if (pill.isPlaced.not()) {
+                            // TODO check placement
+                            pill.isPlaced = true
                         }
+
+                        val frameServer = FrameServer
+                            .PillDrop(
+                                index = index,
+                                owner = pill.owner,
+                                x = pill.x,
+                                y = pill.y,
+                            )
+                            .toByteArray()
+
+                        clients.forEach { (_, client) -> client.send(frameServer) }
                     }
+                }
 
-                    // neutralize bases
-                    bmap.bases.forEachIndexed { index, base ->
-                        if (base.owner == owner) {
-                            base.owner = 0xff
+                // neutralize bases
+                bmap.bases.forEachIndexed { index, base ->
+                    if (base.owner == owner.int) {
+                        base.owner = 0xff
 
-                            val frameServer = ProtoBuf.encodeToByteArray(
-                                FrameServer.serializer(),
-                                FrameServer.BaseTake(
-                                    index = index,
-                                    owner = base.owner,
-                                    armor = base.armor,
-                                    shells = base.shells,
-                                    mines = base.mines,
-                                ),
+                        val frameServer = FrameServer
+                            .BaseTake(
+                                index = index,
+                                owner = base.owner,
+                                armor = base.armor,
+                                shells = base.shells,
+                                mines = base.mines,
                             )
+                            .toByteArray()
 
-                            clients.filterNotNull().forEach { client ->
-                                client.outgoing.send(Frame.Binary(fin = true, frameServer))
-                            }
-                        }
+                        clients.forEach { (_, client) -> client.send(frameServer) }
                     }
                 }
             }
         }
     }
+}
+
+private val frameServerSerializer = FrameServer.serializer()
+
+private fun FrameServer.toByteArray(): ByteArray {
+    return ProtoBuf.encodeToByteArray(frameServerSerializer, this)
+}
+
+private val frameClientSerializer = FrameClient.serializer()
+
+fun Frame.Binary.toFrameClient(): FrameClient {
+    return ProtoBuf.decodeFromByteArray(
+        deserializer = frameClientSerializer,
+        bytes = this.readBytes()
+    )
 }
