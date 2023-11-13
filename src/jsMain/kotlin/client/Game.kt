@@ -21,7 +21,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.awaitAnimationFrame
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
@@ -485,19 +484,21 @@ class Game(
                                     )
                                     .unsafeCast<Promise<Any?>>().await()
 
-                                val a = peerConnection.createAnswer()
+                                peerConnection.createAnswer()
                                     .unsafeCast<Promise<Any?>>().await()
-                                a.let { peerConnection.setLocalDescription(it) }
+                                    .let { peerConnection.setLocalDescription(it) }
                                     .unsafeCast<Promise<Any?>>().await()
 
-                                // val answer = peerConnection.localDescription.unsafeCast<Any?>()
-                                //     ?: throw IllegalStateException("localDescription == null")
-
-                                FrameClient.Signal
-                                    .Answer(
-                                        owner = frameServer.from,
-                                        sessionDescription = JSON.stringify(a),
-                                    )
+                                run {
+                                    peerConnection.localDescription.unsafeCast<Any?>()
+                                        ?: throw IllegalStateException("localDescription == null")
+                                }
+                                    .let { answer ->
+                                        FrameClient.Signal.Answer(
+                                            owner = frameServer.from,
+                                            sessionDescription = JSON.stringify(answer),
+                                        )
+                                    }
                                     .toFrame()
                                     .run { sendChannel.send(this) }
                             }
@@ -637,14 +638,16 @@ class Game(
                         .let { peerConnection.setLocalDescription(it) }
                         .unsafeCast<Promise<Any?>>().await()
 
-                    val offer = peerConnection.localDescription
-                        ?: throw IllegalStateException("localDescription == null")
-
-                    FrameClient.Signal
-                        .Offer(
-                            owner = from,
-                            sessionDescription = JSON.stringify(offer),
-                        )
+                    run {
+                        peerConnection.localDescription.unsafeCast<Json?>()
+                            ?: throw IllegalStateException("localDescription == null")
+                    }
+                        .let { offer ->
+                            FrameClient.Signal.Offer(
+                                owner = from,
+                                sessionDescription = JSON.stringify(offer),
+                            )
+                        }
                         .toFrame()
                         .run { sendChannel.send(this) }
                 }
