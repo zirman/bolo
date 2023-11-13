@@ -629,7 +629,7 @@ class Game(
             val peerConnection = newRTCPeerConnection()
 
             peerConnection.onnegotiationneeded = { event: dynamic ->
-                println("PeerConnection.onnegotiationneeded(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+                println("PeerConnection.onnegotiationneeded: $from ${JSON.stringify(event.unsafeCast<Json>())}")
 
                 scope.launch {
                     peerConnection.createOffer()
@@ -637,38 +637,28 @@ class Game(
                         .let { peerConnection.setLocalDescription(it) }
                         .unsafeCast<Promise<Any?>>().await()
 
-                    while (true) {
-                        val offer = peerConnection.localDescription
-                            ?: throw IllegalStateException("localDescription == null")
+                    val offer = peerConnection.localDescription
+                        ?: throw IllegalStateException("localDescription == null")
 
-                        // Delay sending offer to work around bug in some implementations
-                        // of WebRTC from connecting.
-                        if (offer.sdp.unsafeCast<String>().contains("candidate")) {
-                            FrameClient.Signal
-                                .Offer(
-                                    owner = from,
-                                    sessionDescription = JSON.stringify(offer),
-                                )
-                                .toFrame()
-                                .run { sendChannel.send(this) }
-
-                            break
-                        }
-
-                        delay(10)
-                    }
+                    FrameClient.Signal
+                        .Offer(
+                            owner = from,
+                            sessionDescription = JSON.stringify(offer),
+                        )
+                        .toFrame()
+                        .run { sendChannel.send(this) }
                 }
             }
 
             peerConnection.onconnectionstatechange = {
-                println("PeerConnection.onconnectionstatechange(): $from ${peerConnection.connectionState.unsafeCast<String>()}")
+                println("PeerConnection.onconnectionstatechange: $from ${peerConnection.connectionState.unsafeCast<String>()}")
             }
 
             peerConnection.ondatachannel = { event: dynamic ->
-                println("peerConnection.ondatachannel(): $from")
+                println("peerConnection.ondatachannel: $from")
 
                 event.channel.onopen = {
-                    println("channel.onopen(): $from")
+                    println("channel.onopen: $from")
                 }
 
                 event.channel.onmessage = { message: dynamic ->
@@ -679,11 +669,27 @@ class Game(
                 }
 
                 event.channel.onclose = {
-                    println("channel.onclose(): $from")
+                    println("channel.onclose: $from")
                 }
 
                 event.channel.onerror = {
-                    println("channel.onerror(): $from")
+                    println("channel.onerror: $from")
+                }
+            }
+
+            peerConnection.onicecandidate = { peerConnectionIceEvent: dynamic ->
+                println("PeerConnection.onicecandidate: $from ${JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>())}")
+
+                if (peerConnectionIceEvent.unsafeCast<Json?>() != null) {
+                    scope.launch {
+                        FrameClient.Signal
+                            .IceCandidate(
+                                owner = from,
+                                iceCandidate = JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>()),
+                            )
+                            .toFrame()
+                            .run { sendChannel.send(this) }
+                    }
                 }
             }
 
@@ -697,11 +703,11 @@ class Game(
             )
 
             dataChannel.onopen = { event: dynamic ->
-                println("DataChannel.onopen(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+                println("DataChannel.onopen: $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
             dataChannel.onmessage = { event: dynamic ->
-                println("DataChannel.onmessage(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+                println("DataChannel.onmessage: $from ${JSON.stringify(event.unsafeCast<Json>())}")
 
                 peerEventUpdate(
                     from = from,
@@ -710,11 +716,11 @@ class Game(
             }
 
             dataChannel.onclose = { event: dynamic ->
-                println("DataChannel.onclose(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+                println("DataChannel.onclose: $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
             dataChannel.onerror = { event: dynamic ->
-                println("DataChannel.onerror(): $from ${JSON.stringify(event.unsafeCast<Json>())}")
+                println("DataChannel.onerror: $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
             Peer(peerConnection, dataChannel)
