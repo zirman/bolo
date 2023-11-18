@@ -1,9 +1,17 @@
 package client
 
 import assert.assertNotNull
-import math.clampCycle
 import bmap.ind
+import bmap.worldHeight
+import bmap.worldWidth
 import kotlinx.browser.window
+import math.M4
+import math.clampCycle
+import math.pi
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
+import org.khronos.webgl.WebGLProgram
+import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.ARRAY_BUFFER
 import org.khronos.webgl.WebGLRenderingContext.Companion.BLEND
@@ -28,14 +36,6 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.UNPACK_ALIGNMENT
 import org.khronos.webgl.WebGLRenderingContext.Companion.UNSIGNED_BYTE
 import org.khronos.webgl.WebGLRenderingContext.Companion.UNSIGNED_SHORT
 import org.khronos.webgl.WebGLRenderingContext.Companion.VERTEX_SHADER
-import math.pi
-import bmap.worldHeight
-import bmap.worldWidth
-import math.M4
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.Uint16Array
-import org.khronos.webgl.WebGLProgram
-import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLTexture
 import org.khronos.webgl.WebGLUniformLocation
 import org.khronos.webgl.set
@@ -183,7 +183,9 @@ enum class Sprite(val int: Int) {
 
 data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
 
-suspend fun WebGLRenderingContext.createTileProgram(): (clipMatrix: M4, tileArray: TileArray) -> Unit {
+typealias TileProgram = (clipMatrix: M4, tileArray: TileArray) -> Unit
+
+suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
     val program = createProgram().assertNotNull("shader program is null")
 
     createShader(
@@ -447,8 +449,10 @@ suspend fun WebGLRenderingContext.createTileProgram(): (clipMatrix: M4, tileArra
     }
 }
 
+typealias SpriteProgram = (M4, List<SpriteInstance>) -> Unit
+
 // generator could have been used but cannot type check because of multiple yield types
-suspend fun WebGLRenderingContext.createSpriteProgram(): (M4, List<SpriteInstance>) -> Unit {
+suspend fun WebGLRenderingContext.createSpriteProgram(): SpriteProgram {
     val program = createProgram().assertNotNull("createProgram() failed")
 
     createShader(

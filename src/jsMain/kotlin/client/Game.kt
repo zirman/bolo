@@ -38,9 +38,12 @@ import math.scale
 import math.v2Origin
 import math.x
 import math.y
+import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import util.dirToVec
 import kotlin.js.Date
 import kotlin.js.Json
@@ -97,7 +100,10 @@ class Game(
     private val tileProgram: (clipMatrix: M4, tiles: TileArray) -> Unit,
     private val spriteProgram: (M4, List<SpriteInstance>) -> Unit,
     private val scope: CoroutineScope,
-) : GamePublic {
+) : KoinComponent, GamePublic {
+    val gl: WebGLRenderingContext by inject()
+//    val canvas: HTMLCanvasElement by inject()
+
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
     override var isBuilderInTank: Boolean = true
@@ -469,7 +475,6 @@ class Game(
             .map { frameServer ->
                 when (frameServer) {
                     is FrameServer.Signal -> {
-                        println("$frameServer")
                         val peerConnection = getPeer(frameServer.from).peerConnection
 
                         when (frameServer) {

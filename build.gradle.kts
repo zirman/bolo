@@ -36,9 +36,16 @@ kotlin {
         }
     }
 
+    dependencies {
+        implementation(project.dependencies.platform(libs.koinBom))
+        compileOnly(libs.koinCore)
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project.dependencies.platform(libs.koinBom))
+                implementation(libs.koinCore)
                 implementation(libs.kotlinxSerializationProtobuf)
                 implementation(libs.kotlinxCoroutinesCore)
             }
@@ -46,6 +53,8 @@ kotlin {
 
         val commonTest by getting {
             dependencies {
+                implementation(project.dependencies.platform(libs.koinBom))
+                implementation(libs.koinCore)
                 implementation(libs.kotlinTest)
                 implementation(libs.kotlinTestCommon)
                 implementation(libs.kotlinTestAnnotationsCommon)
@@ -54,6 +63,10 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
+                implementation(project.dependencies.platform(libs.koinBom))
+                implementation(libs.koinCore)
+                implementation(libs.koinKtor)
+                implementation(libs.koinLoggerSlf4j)
                 implementation(libs.ktorServerCore)
                 implementation(libs.ktorServerNetty)
                 implementation(libs.ktorServerHtmlBuilder)
@@ -69,6 +82,8 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
+                implementation(project.dependencies.platform(libs.koinBom))
+                implementation(libs.koinCore)
                 implementation(libs.ktorClientJs)
                 implementation(libs.ktorClientJsonJs)
                 implementation(libs.ktorClientSerializationJs)

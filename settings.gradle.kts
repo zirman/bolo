@@ -52,6 +52,54 @@ dependencyResolutionManagement {
             ).version("0.47.0")
 
             library(
+                /* alias = */ "koinBom",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-bom"
+            ).version("3.5.2-RC1")
+
+            library(
+                /* alias = */ "koinCore",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-core"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinTest",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-test"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinTest",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-test"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinTestJunit5",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-test-junit5"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinTestJunit5",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-test-junit5"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinKtor",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-ktor"
+            ).withoutVersion()
+
+            library(
+                /* alias = */ "koinLoggerSlf4j",
+                /* group = */ "io.insert-koin",
+                /* artifact = */ "koin-logger-slf4j"
+            ).withoutVersion()
+
+            library(
                 /* alias = */ "kotlinTest",
                 /* group = */ "org.jetbrains.kotlin",
                 /* artifact = */ "kotlin-test"
