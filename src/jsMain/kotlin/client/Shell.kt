@@ -15,12 +15,12 @@ import kotlin.math.min
 
 class Shell(
     scope: CoroutineScope,
-    game: Game,
+    game: GameImpl,
     startPosition: V2,
     val bearing: Float,
     private val fromBoat: Boolean,
     private val sightRange: Float,
-) : GamePublic by game, GeneratorLoop<Tick>(scope) {
+) : Game by game, GeneratorLoop<Tick>(scope) {
     companion object {
         private const val SHELL_VEL: Float = 7f
         private const val LEAD = 1f / 2f

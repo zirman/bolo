@@ -46,8 +46,8 @@ import kotlin.math.sqrt
 @Suppress("NAME_SHADOWING")
 class Tank(
     private val scope: CoroutineScope,
-    game: Game,
-) : GamePublic by game, GeneratorLoop<Tick>(scope) {
+    game: GameImpl,
+) : Game by game, GeneratorLoop<Tick>(scope) {
     companion object {
         private const val TANK_RADIUS: Float = 3f / 8f
         private const val FORCE_PUSH: Float = 25f / 16f

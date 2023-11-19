@@ -3,9 +3,9 @@ package client
 import org.koin.core.context.startKoin
 
 fun main() {
-    startKoin {
+    val koin = startKoin {
         modules(clientModule)
-    }
+    }.koin
 
-    ClientApplication()
+    koin.get<ClientApplication>()
 }

@@ -5,6 +5,9 @@ import bmap.ind
 import bmap.worldHeight
 import bmap.worldWidth
 import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import math.M4
 import math.clampCycle
 import math.pi
@@ -185,7 +188,9 @@ data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
 
 typealias TileProgram = (clipMatrix: M4, tileArray: TileArray) -> Unit
 
-suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
+fun WebGLRenderingContext.createTileProgram(
+    coroutineScope: CoroutineScope,
+): Deferred<TileProgram> = coroutineScope.async {
     val program = createProgram().assertNotNull("shader program is null")
 
     createShader(
@@ -369,7 +374,7 @@ suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
         STATIC_DRAW,
     )
 
-    return { clipMatrix, tileArray ->
+    fun(clipMatrix: M4, tileArray: TileArray) {
         useProgram(program)
         disable(BLEND)
 
@@ -396,7 +401,12 @@ suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
 
         setTextureUniform(location = uTiles, texture = tilesTexture, unit = TEXTURE0, x = 0)
         setTextureUniform(location = uTileMap, texture = tileMapTexture, unit = TEXTURE0, x = 1)
-        setTextureUniform(location = uOriginToDestination, texture = originToDestinationTexture, unit = TEXTURE0, x = 2)
+        setTextureUniform(
+            location = uOriginToDestination,
+            texture = originToDestinationTexture,
+            unit = TEXTURE0,
+            x = 2,
+        )
         setTextureUniform(location = uSourceToOrigin, texture = sourceToOriginTexture, unit = TEXTURE0, x = 3)
 
         uniformMatrix2fv(
@@ -452,7 +462,9 @@ suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
 typealias SpriteProgram = (M4, List<SpriteInstance>) -> Unit
 
 // generator could have been used but cannot type check because of multiple yield types
-suspend fun WebGLRenderingContext.createSpriteProgram(): SpriteProgram {
+fun WebGLRenderingContext.createSpriteProgram(
+    coroutineScope: CoroutineScope,
+): Deferred<SpriteProgram> = coroutineScope.async {
     val program = createProgram().assertNotNull("createProgram() failed")
 
     createShader(
@@ -531,7 +543,7 @@ suspend fun WebGLRenderingContext.createSpriteProgram(): SpriteProgram {
     // initialize element array buffer
     val elementBuffer = createBuffer().assertNotNull("createBuffer() failed")
 
-    return fun(clipMatrix: M4, sprites: List<SpriteInstance>) {
+    fun(clipMatrix: M4, sprites: List<SpriteInstance>) {
         val (vertex, coordinate, element) = spriteToBuffer(sprites)
         useProgram(program)
         enable(BLEND)

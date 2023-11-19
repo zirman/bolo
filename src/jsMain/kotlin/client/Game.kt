@@ -14,17 +14,22 @@ import frame.FrameClient
 import frame.FrameServer
 import frame.Owner
 import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlinx.coroutines.awaitAnimationFrame
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromHexString
@@ -76,7 +81,7 @@ sealed interface BuildOp {
     ) : BuildOp
 }
 
-interface GamePublic {
+interface Game {
     val bmap: Bmap
     val random: Random
     val owner: Owner
@@ -94,17 +99,18 @@ interface GamePublic {
     operator fun get(x: Int, y: Int): Entity
 }
 
-class Game(
+class GameImpl(
     override val sendChannel: SendChannel<Frame>,
     override val owner: Owner,
     override val bmap: Bmap,
-    private val bmapCode: BmapCode,
-    private val tileProgram: (clipMatrix: M4, tiles: TileArray) -> Unit,
-    private val spriteProgram: (M4, List<SpriteInstance>) -> Unit,
     private val scope: CoroutineScope,
-) : KoinComponent, GamePublic {
-    val gl: WebGLRenderingContext by inject(named(Element.WebGL))
-    val canvas: HTMLCanvasElement by inject(named(Element.Canvas))
+    private val receiveChannel: ReceiveChannel<Frame>,
+    private val bmapCode: BmapCode,
+) : KoinComponent, Game {
+    private val gl: WebGLRenderingContext by inject(named(Element.WebGL))
+    private val canvas: HTMLCanvasElement by inject(named(Element.Canvas))
+    private val tileProgram: Deferred<TileProgram> by inject(named(WebGlProgram.Tile))
+    private val spriteProgram: Deferred<SpriteProgram> by inject(named(WebGlProgram.Sprite))
 
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
@@ -122,7 +128,8 @@ class Game(
     private val shells = mutableListOf<Shell>()
     private val builders = mutableListOf<Builder>()
 
-    fun launch() {
+    init {
+        launchReceiverFlow(scope)
         launchServerFlow(scope)
         launchGameLoop(scope)
         launchTank(scope)
@@ -195,7 +202,7 @@ class Game(
 //            .let { sendChannel.send(it) }
 //    }
 
-    private fun render(frameCount: Int) {
+    private fun render(frameCount: Int, tileProgram: TileProgram, spriteProgram: SpriteProgram) {
         gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
         gl.disable(DEPTH_TEST)
 
@@ -392,7 +399,7 @@ class Game(
             builder.resumeWith(tick)
         }
 
-        render(frameCount)
+        render(frameCount, tileProgram.await(), spriteProgram.await())
     }
 
     private fun handleMouseEvents(tick: Tick) {
@@ -412,9 +419,9 @@ class Game(
                 val sqrY: Int =
                     (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
-                if (isBuilderInTank && sqrX in border.until(worldWidth - border) && sqrY in border.until(
-                        worldHeight - border
-                    )
+                if (isBuilderInTank &&
+                    sqrX in border.until(worldWidth - border) &&
+                    sqrY in border.until(worldHeight - border)
                 ) {
                     when (tick.control.builderMode) {
                         is BuilderMode.Tree -> {
@@ -479,6 +486,24 @@ class Game(
     }
 
     private val peers: MutableMap<Owner, Peer> = mutableMapOf()
+
+    private fun launchReceiverFlow(scope: CoroutineScope): Job {
+        // emit decoded server frames to game
+        return receiveChannel
+            .consumeAsFlow()
+            .transform { frame ->
+                when (frame) {
+                    is Frame.Binary -> emit(frame)
+                    is Frame.Text -> throw IllegalStateException("unexpected text frame")
+                    is Frame.Close -> throw IllegalStateException("connection closed by server")
+                    is Frame.Ping -> Unit
+                    is Frame.Pong -> Unit
+                }
+            }
+            .map { ProtoBuf.decodeFromByteArray(FrameServer.serializer(), it.readBytes()) }
+            .map { frameServerFlow.emit(it) }
+            .launchIn(scope)
+    }
 
     private fun launchServerFlow(scope: CoroutineScope): Job {
         return frameServerFlow

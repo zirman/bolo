@@ -1,9 +1,13 @@
 package client
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.utils.io.CancellationException
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import org.khronos.webgl.WebGLRenderingContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -15,7 +19,19 @@ enum class Element {
     WebGL,
 }
 
+enum class WebGlProgram {
+    Tile,
+    Sprite,
+}
+
 val clientModule = module {
+    single<ClientApplication> {
+        ClientApplication(
+            coroutineScope = get(),
+            httpClient = get(),
+        )
+    }
+
     single<CoroutineExceptionHandler> {
         CoroutineExceptionHandler { _, throwable ->
             if (throwable !is CancellationException) {
@@ -57,4 +73,16 @@ val clientModule = module {
                 window.onresize = { resize() }
             }
     }
+
+    single<CoroutineScope> { CoroutineScope(get<CoroutineExceptionHandler>()) }
+
+    single<Deferred<TileProgram>>(named(WebGlProgram.Tile)) {
+        get<WebGLRenderingContext>(named(Element.WebGL)).createTileProgram(get())
+    }
+
+    single<Deferred<SpriteProgram>>(named(WebGlProgram.Sprite)) {
+        get<WebGLRenderingContext>(named(Element.WebGL)).createSpriteProgram(get())
+    }
+
+    single<HttpClient> { HttpClient { install(WebSockets) } }
 }

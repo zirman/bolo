@@ -25,12 +25,12 @@ sealed interface BuilderMission {
 
 class Builder(
     scope: CoroutineScope,
-    game: Game,
+    game: GameImpl,
     startPosition: V2,
     private val targetX: Int,
     private val targetY: Int,
     private val buildOp: BuilderMission,
-) : GamePublic by game, GeneratorLoop<Tick>(scope) {
+) : Game by game, GeneratorLoop<Tick>(scope) {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
