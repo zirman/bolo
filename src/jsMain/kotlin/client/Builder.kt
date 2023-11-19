@@ -23,14 +23,18 @@ sealed interface BuilderMission {
     data class RepairPill(val index: Int, val material: Int) : BuilderMission
 }
 
-class Builder(
+interface Builder : GeneratorLoop<Tick> {
+    val position: V2
+}
+
+class BuilderImpl(
     scope: CoroutineScope,
-    game: GameImpl,
+    game: Game,
     startPosition: V2,
     private val targetX: Int,
     private val targetY: Int,
     private val buildOp: BuilderMission,
-) : Game by game, GeneratorLoop<Tick>(scope) {
+) : GeneratorLoopImpl<Tick>(scope), Builder, Game by game {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
@@ -134,7 +138,7 @@ class Builder(
             }
     }
 
-    var position: V2 = startPosition
+    override var position: V2 = startPosition
         private set
 
     private var material: Int = 0

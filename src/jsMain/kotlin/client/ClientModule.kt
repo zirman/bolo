@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import org.khronos.webgl.WebGLRenderingContext
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.w3c.dom.HTMLCanvasElement
@@ -24,12 +26,9 @@ enum class WebGlProgram {
     Sprite,
 }
 
-val clientModule = module {
-    single<ClientApplication> {
-        ClientApplication(
-            coroutineScope = get(),
-            httpClient = get(),
-        )
+val clientModule = module(createdAtStart = true) {
+    single<ClientApplication> { ClientApplication(get(), get()) } withOptions {
+        createdAtStart()
     }
 
     single<CoroutineExceptionHandler> {
@@ -85,4 +84,48 @@ val clientModule = module {
     }
 
     single<HttpClient> { HttpClient { install(WebSockets) } }
+
+    single<Game> { parameters ->
+        GameImpl(
+            scope = get(),
+            gl = get(named(Element.WebGL)),
+            canvas = get(named(Element.Canvas)),
+            tileProgram = get(named(WebGlProgram.Tile)),
+            spriteProgram = get(named(WebGlProgram.Sprite)),
+            sendChannel = parameters.get(),
+            owner = parameters.get(),
+            bmap = parameters.get(),
+            receiveChannel = parameters.get(),
+            bmapCode = parameters.get(),
+        )
+    }
+
+    factory<Tank> {
+        TankImpl(
+            scope = get(),
+            game = get(),
+        )
+    }
+
+    factory<Shell> { parameters ->
+        ShellImpl(
+            scope = get(),
+            game = get(),
+            startPosition = parameters.get(),
+            bearing = parameters.get(),
+            fromBoat = parameters.get(),
+            sightRange = parameters.get(),
+        )
+    }
+
+    factory<Builder> { parameters ->
+        BuilderImpl(
+            scope = get(),
+            game = get(),
+            startPosition = parameters.get(),
+            targetX = parameters.get(),
+            targetY = parameters.get(),
+            buildOp = parameters.get(),
+        )
+    }
 }

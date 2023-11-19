@@ -13,14 +13,19 @@ import util.isWater
 import kotlin.math.max
 import kotlin.math.min
 
-class Shell(
+interface Shell : GeneratorLoop<Tick> {
+    val position: V2
+    val bearing: Float
+}
+
+class ShellImpl(
     scope: CoroutineScope,
-    game: GameImpl,
+    game: Game,
     startPosition: V2,
-    val bearing: Float,
+    override val bearing: Float,
     private val fromBoat: Boolean,
     private val sightRange: Float,
-) : Game by game, GeneratorLoop<Tick>(scope) {
+) : GeneratorLoopImpl<Tick>(scope), Shell, Game by game {
     companion object {
         private const val SHELL_VEL: Float = 7f
         private const val LEAD = 1f / 2f
@@ -28,7 +33,7 @@ class Shell(
 
     private val direction: V2 = dirToVec(bearing)
 
-    var position: V2 = startPosition.add(direction.scale(LEAD))
+    override var position: V2 = startPosition.add(direction.scale(LEAD))
         private set
 
     override suspend fun launch() {

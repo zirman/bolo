@@ -23,11 +23,13 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.parameter.parametersOf
 
 class ClientApplication(
     coroutineScope: CoroutineScope,
     private val httpClient: HttpClient,
-) {
+) : KoinComponent {
     init {
         checkWebSocket()
         checkWebRTC()
@@ -60,14 +62,15 @@ class ClientApplication(
             val owner = Owner(bmapExtra.owner)
             bmapExtra.loadCodes(bmap)
 
-            GameImpl(
-                sendChannel = outgoing,
-                owner = owner,
-                bmap = bmap,
-                scope = this,
-                receiveChannel = incoming,
-                bmapCode = bmapCode,
-            )
+            getKoin().get<Game> {
+                parametersOf(
+                    outgoing,
+                    owner,
+                    bmap,
+                    incoming,
+                    bmapCode,
+                )
+            }
 
             awaitCancellation()
         } catch (error: Throwable) {

@@ -3,9 +3,8 @@ package client
 import org.koin.core.context.startKoin
 
 fun main() {
-    val koin = startKoin {
+    startKoin {
         modules(clientModule)
-    }.koin
-
-    koin.get<ClientApplication>()
+        createEagerInstances()
+    }
 }

@@ -43,11 +43,20 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+interface Tank : GeneratorLoop<Tick> {
+    val position: V2
+    val bearing: Float
+    val sightRange: Float
+    val onBoat: Boolean
+    var material: Int
+    val isVisible: Boolean
+}
+
 @Suppress("NAME_SHADOWING")
-class Tank(
-    private val scope: CoroutineScope,
-    game: GameImpl,
-) : Game by game, GeneratorLoop<Tick>(scope) {
+class TankImpl(
+    scope: CoroutineScope,
+    game: Game,
+) : GeneratorLoopImpl<Tick>(scope), Tank, Game by game {
     companion object {
         private const val TANK_RADIUS: Float = 3f / 8f
         private const val FORCE_PUSH: Float = 25f / 16f
@@ -60,21 +69,21 @@ class Tank(
 
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
-    var position: V2 = v2(x = start.x.toFloat() + (1f / 2f), y = start.y.toFloat() + (1f / 2f))
+    override var position: V2 = v2(x = start.x.toFloat() + (1f / 2f), y = start.y.toFloat() + (1f / 2f))
         private set
 
-    var bearing: Float = start.dir.toFloat() * (Float.pi / 8f)
+    override var bearing: Float = start.dir.toFloat() * (Float.pi / 8f)
         private set
 
-    var sightRange: Float = 6f
+    override var sightRange: Float = 6f
         private set
 
-    var onBoat: Boolean = true
+    override var onBoat: Boolean = true
         private set
 
-    var material: Int = 0
+    override var material: Int = 0
 
-    var isVisible: Boolean = true
+    override var isVisible: Boolean = true
         private set
 
     init {
@@ -120,7 +129,7 @@ class Tank(
                     time < 5f
                 }
 
-                launchTank(scope)
+                launchTank()
                 false
             } else if (!onBoat && onTerrain == Terrain.Sea) {
                 var time = 0f
@@ -132,7 +141,7 @@ class Tank(
                     time < 5f
                 }
 
-                launchTank(scope)
+                launchTank()
                 false
             } else if (tankArmor <= 0) {
                 var time = 0f
@@ -145,7 +154,7 @@ class Tank(
                     time < 5f
                 }
 
-                launchTank(scope)
+                launchTank()
                 false
             } else if (onTerrain == Terrain.SeaMined) {
                 var time = 0f
@@ -304,7 +313,7 @@ class Tank(
                 // shooting
 
                 if (control.shootButton && tankShells > 0 && reload >= RELOAD_SEC) {
-                    launchShell(scope, bearing, onBoat, position, sightRange)
+                    launchShell(bearing, onBoat, position, sightRange)
                     reload = 0f
                     tankShells--
                 }

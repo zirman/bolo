@@ -48,8 +48,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import org.koin.core.qualifier.named
+import org.koin.core.parameter.parametersOf
 import org.w3c.dom.HTMLCanvasElement
 import util.dirToVec
 import kotlin.js.Date
@@ -87,9 +86,9 @@ interface Game {
     val owner: Owner
     val sendChannel: SendChannel<Frame>
     var center: V2
-    fun launchTank(scope: CoroutineScope)
-    fun launchShell(scope: CoroutineScope, bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
-    fun launchBuilder(scope: CoroutineScope, startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
+    fun launchTank()
+    fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
+    fun launchBuilder(startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
     suspend fun buildTerrain(x: Int, y: Int, t: Terrain, result: (Boolean) -> Unit)
     suspend fun baseDamage(index: Int)
@@ -100,23 +99,22 @@ interface Game {
 }
 
 class GameImpl(
+    private val scope: CoroutineScope,
+    private val gl: WebGLRenderingContext,
+    private val canvas: HTMLCanvasElement,
+    private val tileProgram: Deferred<TileProgram>,
+    private val spriteProgram: Deferred<SpriteProgram>,
     override val sendChannel: SendChannel<Frame>,
     override val owner: Owner,
     override val bmap: Bmap,
-    private val scope: CoroutineScope,
     private val receiveChannel: ReceiveChannel<Frame>,
     private val bmapCode: BmapCode,
-) : KoinComponent, Game {
-    private val gl: WebGLRenderingContext by inject(named(Element.WebGL))
-    private val canvas: HTMLCanvasElement by inject(named(Element.Canvas))
-    private val tileProgram: Deferred<TileProgram> by inject(named(WebGlProgram.Tile))
-    private val spriteProgram: Deferred<SpriteProgram> by inject(named(WebGlProgram.Sprite))
-
+) : Game, KoinComponent {
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
     override var isBuilderInTank: Boolean = true
 
-    val frameServerFlow = MutableSharedFlow<FrameServer>()
+    private val frameServerFlow = MutableSharedFlow<FrameServer>()
 
     private val frameRegulator: MutableSet<Double> = mutableSetOf()
 
@@ -132,7 +130,8 @@ class GameImpl(
         launchReceiverFlow(scope)
         launchServerFlow(scope)
         launchGameLoop(scope)
-        launchTank(scope)
+        // allow Game to finish instantiating before injecting game into Tank
+        scope.launch { launchTank() }
     }
 
     override val tank get() = tanks.firstOrNull { it.isVisible }
@@ -427,7 +426,7 @@ class GameImpl(
                         is BuilderMode.Tree -> {
                             if (bmap[sqrX, sqrY] == Terrain.Tree) {
                                 tank?.let { tank ->
-                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
                                     isBuilderInTank = false
                                 }
                             }
@@ -437,7 +436,7 @@ class GameImpl(
                             // TODO: proper check
                             if (bmap[sqrX, sqrY] == Terrain.Grass3) {
                                 tank?.let { tank ->
-                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
+                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
                                     isBuilderInTank = false
                                 }
                             }
@@ -446,7 +445,7 @@ class GameImpl(
                         is BuilderMode.Wall -> {
                             if (bmap[sqrX, sqrY] == Terrain.Grass3) {
                                 tank?.let { tank ->
-                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildWall)
+                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)
                                     isBuilderInTank = false
                                 }
                             }
@@ -764,28 +763,26 @@ class GameImpl(
         }
     }
 
-    override fun launchTank(scope: CoroutineScope) {
-        tanks.add(Tank(scope, this))
+    override fun launchTank() {
+        tanks.add(getKoin().get())
     }
 
     override fun launchShell(
-        scope: CoroutineScope,
         bearing: Float,
         onBoat: Boolean,
         startPosition: V2,
         sightRange: Float,
     ) {
-        shells.add(Shell(scope, this, startPosition, bearing, onBoat, sightRange))
+        shells.add(getKoin().get { parametersOf(startPosition, bearing, onBoat, sightRange) })
     }
 
     override fun launchBuilder(
-        scope: CoroutineScope,
         startPosition: V2,
         targetX: Int,
         targetY: Int,
         buildOp: BuilderMission,
     ) {
-        builders.add(Builder(scope, this, startPosition, targetX, targetY, buildOp))
+        builders.add(getKoin().get { parametersOf(startPosition, targetX, targetY, buildOp) })
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
