@@ -63,26 +63,23 @@ fun terrainToNibble(t: Terrain): Int =
         Terrain.ForestMined -> 13
         Terrain.RubbleMined -> 14
         Terrain.GrassMined -> 15
-        else -> throw Exception()
+        else -> throw IllegalStateException()
     }
 
-fun writeBmap(
-    bmap: Bmap,
-    buffer: MutableList<UByte>,
-) {
+fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     fun writeString(str: String) {
         for (c in str.encodeToByteArray().toUByteArray()) {
-            buffer.add(c)
+            add(c)
         }
     }
 
     fun writeUByte(n: UByte) {
-        buffer.add(n)
+        add(n)
     }
 
     fun writeBuffer(buf: List<UByte>) {
         for (byte in buf) {
-            buffer.add(byte)
+            add(byte)
         }
     }
 
@@ -182,25 +179,23 @@ fun writeBmap(
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
+    return this
 }
 
-fun writeDamage(
-    bmap: Bmap,
-    buffer: MutableList<UByte>,
-) {
+fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
     fun writeString(str: String) {
         for (c in str.encodeToByteArray().toUByteArray()) {
-            buffer.add(c)
+            add(c)
         }
     }
 
     fun writeUByte(n: UByte) {
-        buffer.add(n)
+        add(n)
     }
 
     fun writeBuffer(buf: List<UByte>) {
         for (byte in buf) {
-            buffer.add(byte)
+            add(byte)
         }
     }
 
@@ -267,25 +262,23 @@ fun writeDamage(
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
+    return this
 }
 
-fun writeBmapCode(
-    bmapCode: BmapCode,
-    buffer: MutableList<UByte>,
-) {
+fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
     fun writeString(str: String) {
         for (c in str.encodeToByteArray().toUByteArray()) {
-            buffer.add(c)
+            add(c)
         }
     }
 
     fun writeUByte(n: UByte) {
-        buffer.add(n)
+        add(n)
     }
 
     fun writeBuffer(buf: List<UByte>) {
         for (byte in buf) {
-            buffer.add(byte)
+            add(byte)
         }
     }
 
@@ -350,6 +343,7 @@ fun writeBmapCode(
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
     writeUByte(0xff.toUByte())
+    return this
 }
 
 class NibbleWriter {

@@ -36,23 +36,25 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import org.khronos.webgl.WebGLRenderingContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 
 class ClientApplication : KoinComponent {
     private val coroutineExceptionHandler: CoroutineExceptionHandler by inject()
-    private val gl: WebGLRenderingContext by inject()
+    private val gl: WebGLRenderingContext by inject(named(Element.WebGL))
 
     init {
+        checkWebSocket()
+        checkWebRTC()
+
         GlobalScope.launch(coroutineExceptionHandler) {
             run()
         }
     }
 
     private suspend fun run() = coroutineScope {
-        checkWebSocket()
-        checkWebRTC()
-
         val tileProgram = async { gl.createTileProgram() }
         val spriteProgram = async { gl.createSpriteProgram() }
+
         HttpClient { install(WebSockets) }.ws(
             host = window.location.host,
 //            port = window.location.port.toInt(),
@@ -67,7 +69,7 @@ class ClientApplication : KoinComponent {
         spriteProgram: SpriteProgram,
     ) {
         try {
-            val buffer = (incoming.receive() as Frame.Binary).readBytes().asUByteArray()
+            val buffer = run { incoming.receive() as Frame.Binary }.readBytes().asUByteArray()
             val bmapReader = BmapReader(offset = 0, buffer)
             val bmapDamageReader = BmapDamageReader(offset = bmapReader.offset, bmap = bmapReader.bmap, buffer)
             val bmapCodeReader = BmapCodeReader(offset = bmapDamageReader.offset, buffer)
@@ -98,8 +100,8 @@ class ClientApplication : KoinComponent {
                 .transform { frame ->
                     when (frame) {
                         is Frame.Binary -> emit(frame)
-                        is Frame.Text -> throw Exception("unexpected text frame")
-                        is Frame.Close -> throw Exception("connection closed by server")
+                        is Frame.Text -> throw IllegalStateException("unexpected text frame")
+                        is Frame.Close -> throw IllegalStateException("connection closed by server")
                         is Frame.Ping -> Unit
                         is Frame.Pong -> Unit
                     }

@@ -44,6 +44,8 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.qualifier.named
+import org.w3c.dom.HTMLCanvasElement
 import util.dirToVec
 import kotlin.js.Date
 import kotlin.js.Json
@@ -101,8 +103,8 @@ class Game(
     private val spriteProgram: (M4, List<SpriteInstance>) -> Unit,
     private val scope: CoroutineScope,
 ) : KoinComponent, GamePublic {
-    val gl: WebGLRenderingContext by inject()
-//    val canvas: HTMLCanvasElement by inject()
+    val gl: WebGLRenderingContext by inject(named(Element.WebGL))
+    val canvas: HTMLCanvasElement by inject(named(Element.Canvas))
 
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
@@ -349,67 +351,101 @@ class Game(
     private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch {
         try {
             for (frameCount in 0..Int.MAX_VALUE) {
-                val time = window.awaitAnimationFrame()
-                frameRegulator.removeAll { time - it > 1000.0 }
-                frameRegulator.add(time)
-                val ticksPerSec = max(1, frameRegulator.size).toFloat()
+                renderFrame(frameCount)
+            }
+        } catch (error: Throwable) {
+            currentCoroutineContext().ensureActive()
+            error.printStackTrace()
+            throw error
+        }
+    }
 
-                val tick = Tick(
-                    control = Control.getControlState(),
-                    ticksPerSec = ticksPerSec,
-                    delta = 1f / ticksPerSec,
-                )
+    private suspend fun renderFrame(frameCount: Int) {
+        val time = window.awaitAnimationFrame()
+        frameRegulator.removeAll { time - it > 1000.0 }
+        frameRegulator.add(time)
+        val ticksPerSec = max(1, frameRegulator.size).toFloat()
 
-                val devicePixelRatio = window.devicePixelRatio
+        val tick = Tick(
+            control = Control.getControlState(),
+            ticksPerSec = ticksPerSec,
+            delta = 1f / ticksPerSec,
+        )
 
-                when (val mouse = tick.control.mouse) {
-                    // updates viewport
-                    is Mouse.Drag -> {
-                        center.x -= ((mouse.x.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                        center.y += ((mouse.y.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                    }
-                    // builder actions
-                    is Mouse.Up -> {
-                        val sqrX: Int =
-                            (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+        handleMouseEvents(tick)
 
-                        val sqrY: Int =
-                            (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+        tanks.removeAll { it.job.isCompleted }
 
-                        if (isBuilderInTank && sqrX in border.until(worldWidth - border) && sqrY in border.until(
-                                worldHeight - border
-                            )
-                        ) {
-                            when (tick.control.builderMode) {
-                                is BuilderMode.Tree -> {
-                                    if (bmap[sqrX, sqrY] == Terrain.Tree) {
-                                        tank?.let { tank ->
-                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                            isBuilderInTank = false
-                                        }
-                                    }
+        for (tank in tanks) {
+            tank.resumeWith(tick)
+        }
+
+        shells.removeAll { it.job.isCompleted }
+
+        for (shell in shells) {
+            shell.resumeWith(tick)
+        }
+
+        builders.removeAll { it.job.isCompleted }
+
+        for (builder in builders) {
+            builder.resumeWith(tick)
+        }
+
+        render(frameCount)
+    }
+
+    private fun handleMouseEvents(tick: Tick) {
+        val devicePixelRatio = window.devicePixelRatio
+
+        when (val mouse = tick.control.mouse) {
+            // updates viewport
+            is Mouse.Drag -> {
+                center.x -= ((mouse.x.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+                center.y += ((mouse.y.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+            }
+            // builder actions
+            is Mouse.Up -> {
+                val sqrX: Int =
+                    (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+
+                val sqrY: Int =
+                    (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+
+                if (isBuilderInTank && sqrX in border.until(worldWidth - border) && sqrY in border.until(
+                        worldHeight - border
+                    )
+                ) {
+                    when (tick.control.builderMode) {
+                        is BuilderMode.Tree -> {
+                            if (bmap[sqrX, sqrY] == Terrain.Tree) {
+                                tank?.let { tank ->
+                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                    isBuilderInTank = false
                                 }
+                            }
+                        }
 
-                                is BuilderMode.Road -> {
-                                    // TODO: proper check
-                                    if (bmap[sqrX, sqrY] == Terrain.Grass3) {
-                                        tank?.let { tank ->
-                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
-                                            isBuilderInTank = false
-                                        }
-                                    }
+                        is BuilderMode.Road -> {
+                            // TODO: proper check
+                            if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                                tank?.let { tank ->
+                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
+                                    isBuilderInTank = false
                                 }
+                            }
+                        }
 
-                                is BuilderMode.Wall -> {
-                                    if (bmap[sqrX, sqrY] == Terrain.Grass3) {
-                                        tank?.let { tank ->
-                                            launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildWall)
-                                            isBuilderInTank = false
-                                        }
-                                    }
+                        is BuilderMode.Wall -> {
+                            if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                                tank?.let { tank ->
+                                    launchBuilder(scope, tank.position, sqrX, sqrY, BuilderMission.BuildWall)
+                                    isBuilderInTank = false
                                 }
+                            }
+                        }
 
-                                is BuilderMode.Pill -> {
+                        is BuilderMode.Pill -> {
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -430,41 +466,15 @@ class Game(
 ////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
 //                                    }
 //                                }
-                                }
+                        }
 
-                                is BuilderMode.Mine -> {
-                                }
-                            }
+                        is BuilderMode.Mine -> {
                         }
                     }
-
-                    null -> {}
                 }
-
-                tanks.removeAll { it.job.isCompleted }
-
-                for (tank in tanks) {
-                    tank.resumeWith(tick)
-                }
-
-                shells.removeAll { it.job.isCompleted }
-
-                for (shell in shells) {
-                    shell.resumeWith(tick)
-                }
-
-                builders.removeAll { it.job.isCompleted }
-
-                for (builder in builders) {
-                    builder.resumeWith(tick)
-                }
-
-                render(frameCount)
             }
-        } catch (error: Throwable) {
-            currentCoroutineContext().ensureActive()
-            error.printStackTrace()
-            throw error
+
+            null -> {}
         }
     }
 
@@ -484,9 +494,7 @@ class Game(
 
                             is FrameServer.Signal.Offer -> {
                                 peerConnection
-                                    .setRemoteDescription(
-                                        JSON.parse(frameServer.sessionDescription),
-                                    )
+                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
                                     .unsafeCast<Promise<Any?>>().await()
 
                                 peerConnection.createAnswer()
@@ -510,17 +518,13 @@ class Game(
 
                             is FrameServer.Signal.Answer -> {
                                 peerConnection
-                                    .setRemoteDescription(
-                                        JSON.parse(frameServer.sessionDescription),
-                                    )
+                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
                                     .unsafeCast<Promise<Any?>>().await()
                             }
 
                             is FrameServer.Signal.IceCandidate -> {
                                 peerConnection
-                                    .addIceCandidate(
-                                        JSON.parse(frameServer.iceCandidate),
-                                    )
+                                    .addIceCandidate(JSON.parse(frameServer.iceCandidate))
                                     .unsafeCast<Promise<Any?>>().await()
                             }
                         }

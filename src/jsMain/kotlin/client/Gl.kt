@@ -234,7 +234,7 @@ suspend fun WebGLRenderingContext.createTileProgram(): TileProgram {
 
     if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
         window.alert("Unable to initialize the shader program: ${getProgramInfoLog(program)}")
-        throw Exception(getProgramInfoLog(program))
+        throw IllegalStateException(getProgramInfoLog(program))
     }
 
     val image = loadImage(tileSheetSrc)
@@ -495,7 +495,7 @@ suspend fun WebGLRenderingContext.createSpriteProgram(): SpriteProgram {
 
     if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
         window.alert("linkProgram() failed: ${getProgramInfoLog(program)}")
-        throw Exception()
+        throw IllegalStateException()
     }
 
     val image = loadImage(spriteSheetSrc)
@@ -606,7 +606,7 @@ private fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int,
     compileShader(vertexShader)
 
     if ((getShaderParameter(vertexShader, WebGLRenderingContext.COMPILE_STATUS) as Boolean).not()) {
-        throw Exception(getShaderInfoLog(vertexShader))
+        throw IllegalStateException(getShaderInfoLog(vertexShader))
     }
 
     attachShader(program, vertexShader)

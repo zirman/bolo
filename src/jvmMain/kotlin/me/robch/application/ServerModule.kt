@@ -5,11 +5,12 @@ package me.robch.application
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.BmapReader
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import java.io.File
 
 val serverModule = module {
-    single<BoloServer> { BoloServer() }
+    singleOf(::BoloServer)
 
     single<Bmap> {
         File("build/processedResources/jvm/main/maps/Baringi.map")
@@ -19,5 +20,5 @@ val serverModule = module {
             .bmap
     }
 
-    single<BmapCode> { BmapCode() }
+    singleOf(::BmapCode)
 }

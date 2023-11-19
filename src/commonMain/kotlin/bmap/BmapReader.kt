@@ -402,7 +402,7 @@ fun nibbleToTerrain(nibble: Int): Terrain =
         13 -> Terrain.ForestMined
         14 -> Terrain.RubbleMined
         15 -> Terrain.GrassMined
-        else -> throw Exception("invalid nibble")
+        else -> throw IllegalStateException("invalid nibble")
     }
 
 fun defaultTerrain(x: Int, y: Int): Terrain =
@@ -455,5 +455,5 @@ private fun terrainDamage(terrain: Terrain): Terrain =
         Terrain.ForestMined -> Terrain.Crater
         Terrain.RubbleMined -> Terrain.Crater
         Terrain.GrassMined -> Terrain.Crater
-        else -> throw Exception("damageTerrain(): invalid terrain")
+        else -> throw IllegalStateException("damageTerrain(): invalid terrain")
     }
