@@ -67,6 +67,7 @@ fun Application.ktorModule() {
             call.respondHtml {
                 head {
                     title { +"Bolo" }
+
                     style {
                         unsafe {
                             raw(

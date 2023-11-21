@@ -19,8 +19,6 @@ import io.ktor.websocket.close
 import io.ktor.websocket.send
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import util.isBuildable
 import util.pillArmorMax
 import java.util.concurrent.ConcurrentHashMap
@@ -31,9 +29,10 @@ import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
 
-class BoloServer : KoinComponent {
-    val bmap: Bmap by inject()
-    val bmapCode: BmapCode by inject()
+class BoloServer(
+    private val bmap: Bmap,
+    private val bmapCode: BmapCode,
+) {
     val nextOwnerId = AtomicInteger()
     val clients: MutableMap<Owner, DefaultWebSocketServerSession> = ConcurrentHashMap()
 
@@ -171,7 +170,6 @@ class BoloServer : KoinComponent {
                 .forEach { (_, client) -> client.send(serverFrame) }
         }
     }
-
 
     private suspend fun DefaultWebSocketServerSession.handleFrame(owner: Owner, frame: Frame): Boolean {
         when (frame) {
@@ -425,5 +423,14 @@ class BoloServer : KoinComponent {
                 clients.forEach { (_, client) -> client.send(frameServer) }
             }
         }
+
+        FrameServer.Signal
+            .Disconnect(from = owner)
+            .toByteArray()
+            .run {
+                clients.forEach { (_, client) ->
+                    client.send(this)
+                }
+            }
     }
 }

@@ -21,6 +21,9 @@ sealed interface FrameServer {
 
         @Serializable
         data class IceCandidate(override val from: Owner, val iceCandidate: String) : Signal
+
+        @Serializable
+        data class Disconnect(override val from: Owner) : Signal
     }
 
     @Serializable

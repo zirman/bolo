@@ -1,13 +1,20 @@
 package client
 
+import bmap.Bmap
+import bmap.BmapCode
+import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.utils.io.CancellationException
+import io.ktor.websocket.Frame
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import math.V2
 import org.khronos.webgl.WebGLRenderingContext
 import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
@@ -26,7 +33,7 @@ enum class WebGlProgram {
     Sprite,
 }
 
-val clientModule = module(createdAtStart = true) {
+val clientModule = module {
     single<ClientApplication> { ClientApplication(get(), get()) } withOptions {
         createdAtStart()
     }
@@ -38,6 +45,8 @@ val clientModule = module(createdAtStart = true) {
             }
         }
     }
+
+    single<CoroutineScope> { CoroutineScope(get<CoroutineExceptionHandler>()) }
 
     single<HTMLCanvasElement>(named(Element.Canvas)) {
         document.getElementById(canvasId) as? HTMLCanvasElement ?: throw IllegalStateException("Canvas not found")
@@ -73,8 +82,6 @@ val clientModule = module(createdAtStart = true) {
             }
     }
 
-    single<CoroutineScope> { CoroutineScope(get<CoroutineExceptionHandler>()) }
-
     single<Deferred<TileProgram>>(named(WebGlProgram.Tile)) {
         get<WebGLRenderingContext>(named(Element.WebGL)).createTileProgram(get())
     }
@@ -85,18 +92,26 @@ val clientModule = module(createdAtStart = true) {
 
     single<HttpClient> { HttpClient { install(WebSockets) } }
 
-    single<Game> { parameters ->
+    single<Game> {
+            (
+                sendChannel: SendChannel<Frame>,
+                owner: Owner,
+                bmap: Bmap,
+                receiveChannel: ReceiveChannel<Frame>,
+                bmapCode: BmapCode,
+            ),
+        ->
         GameImpl(
             scope = get(),
             gl = get(named(Element.WebGL)),
             canvas = get(named(Element.Canvas)),
             tileProgram = get(named(WebGlProgram.Tile)),
             spriteProgram = get(named(WebGlProgram.Sprite)),
-            sendChannel = parameters.get(),
-            owner = parameters.get(),
-            bmap = parameters.get(),
-            receiveChannel = parameters.get(),
-            bmapCode = parameters.get(),
+            sendChannel = sendChannel,
+            owner = owner,
+            bmap = bmap,
+            receiveChannel = receiveChannel,
+            bmapCode = bmapCode,
         )
     }
 
@@ -107,25 +122,39 @@ val clientModule = module(createdAtStart = true) {
         )
     }
 
-    factory<Shell> { parameters ->
+    factory<Shell> {
+            (
+                startPosition: V2,
+                bearing: Float,
+                fromBoat: Boolean,
+                sightRange: Float,
+            ),
+        ->
         ShellImpl(
             scope = get(),
             game = get(),
-            startPosition = parameters.get(),
-            bearing = parameters.get(),
-            fromBoat = parameters.get(),
-            sightRange = parameters.get(),
+            startPosition = startPosition,
+            bearing = bearing,
+            fromBoat = fromBoat,
+            sightRange = sightRange,
         )
     }
 
-    factory<Builder> { parameters ->
+    factory<Builder> {
+            (
+                startPosition: V2,
+                targetX: Int,
+                targetY: Int,
+                buildOp: BuilderMission,
+            ),
+        ->
         BuilderImpl(
             scope = get(),
             game = get(),
-            startPosition = parameters.get(),
-            targetX = parameters.get(),
-            targetY = parameters.get(),
-            buildOp = parameters.get(),
+            startPosition = startPosition,
+            targetX = targetX,
+            targetY = targetY,
+            buildOp = buildOp,
         )
     }
 }

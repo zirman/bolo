@@ -551,6 +551,10 @@ class GameImpl(
                                     .addIceCandidate(JSON.parse(frameServer.iceCandidate))
                                     .unsafeCast<Promise<Any?>>().await()
                             }
+
+                            is FrameServer.Signal.Disconnect -> {
+                                peers.remove(frameServer.from)
+                            }
                         }
                     }
 
