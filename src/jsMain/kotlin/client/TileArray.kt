@@ -118,8 +118,8 @@ fun Terrain.toTile(): Tile =
 class TileArray(private val bmap: Bmap, private val owner: Owner) {
     val tiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
         .also { tiles ->
-            for (y in 0.until(worldHeight)) {
-                for (x in 0.until(worldWidth)) {
+            for (y in 0..<worldHeight) {
+                for (x in 0..<worldWidth) {
                     tiles[ind(x, y)] = bmap[x, y].toTile().index.toByte()
                 }
             }

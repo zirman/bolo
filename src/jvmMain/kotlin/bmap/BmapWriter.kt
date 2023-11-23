@@ -121,7 +121,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     writeMulti(bmap.bases.asIterable()) { writeBase(it) }
     writeMulti(bmap.starts.asIterable()) { writeStart(it) }
 
-    for (y in border.until(worldHeight - border)) {
+    for (y in border..<worldHeight - border) {
         var x: Int = border
 
         while (x < worldWidth - border) {
@@ -156,7 +156,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
 
                             nibbleWriter.writeNibble((x - beginX) - 1)
 
-                            for (i in beginX.until(x)) {
+                            for (i in beginX..<x) {
                                 nibbleWriter.writeNibble(terrainToNibble(bmap[i, y]))
                             }
                         }
@@ -202,7 +202,7 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
     writeString("BMAPDAMG")
     writeUByte(1.toUByte())
 
-    for (y in border.until(worldHeight - border)) {
+    for (y in border..<worldHeight - border) {
         var x: Int = border
 
         while (x < worldWidth - border) {
@@ -239,7 +239,7 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
 
                             nibbleWriter.writeNibble((x - beginX) - 1)
 
-                            for (i in beginX.until(x)) {
+                            for (i in beginX..<x) {
                                 nibbleWriter.writeNibble(getDamageLevel(bmap[i, y]))
                             }
                         }
@@ -285,7 +285,7 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
     writeString("BMAPCODE")
     writeUByte(1.toUByte())
 
-    for (y in border.until(worldHeight - border)) {
+    for (y in border..<worldHeight - border) {
         var x: Int = border
 
         while (x < worldWidth - border) {
@@ -320,7 +320,7 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
 
                             nibbleWriter.writeNibble((x - beginX) - 1)
 
-                            for (i in beginX.until(x)) {
+                            for (i in beginX..<x) {
                                 nibbleWriter.writeNibble(bmapCode[i, y])
                             }
                         }

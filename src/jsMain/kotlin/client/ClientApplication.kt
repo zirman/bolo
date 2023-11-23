@@ -53,7 +53,7 @@ class ClientApplication(
             val bmapCodeReader = BmapCodeReader(offset = bmapDamageReader.offset, buffer)
 
             val bmapExtra = buffer
-                .sliceArray(bmapCodeReader.offset.until(buffer.size))
+                .sliceArray(bmapCodeReader.offset..<buffer.size)
                 .toByteArray()
                 .toBmapExtra()
 

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.ExperimentalUnsignedTypes::class)
+@file:OptIn(ExperimentalUnsignedTypes::class)
 
 package bmap
 
@@ -80,7 +80,7 @@ class BmapCodeReader(
 
     private fun getNibbleReader(datalen: Int): NibbleReader {
         (offset + datalen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset.until(offset + datalen)))
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + datalen))
         offset += datalen
         return nibbleReader
     }

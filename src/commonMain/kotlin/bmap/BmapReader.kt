@@ -61,8 +61,8 @@ class Bmap(
 ) {
     private val terrain = UByteArray(worldWidth * worldHeight)
         .apply {
-            for (y in 0.until(worldHeight)) {
-                for (x in 0.until(worldWidth)) {
+            for (y in 0..<worldHeight) {
+                for (x in 0..<worldWidth) {
                     this[ind(x, y)] = defaultTerrain(x, y).ordinal.toUByte()
                 }
             }
@@ -342,7 +342,7 @@ class BmapReader(
 
     private fun getNibbleReader(dataLen: Int): NibbleReader {
         (offset + dataLen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset.until(offset + dataLen)))
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLen))
         offset += dataLen
         return nibbleReader
     }

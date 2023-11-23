@@ -37,7 +37,7 @@ class BmapDamageReader(
                     while (x < endX) {
                         val dLevel: Int = run.data.readNibble()
 
-                        for (i in 0.until(dLevel)) {
+                        for (i in 0..<dLevel) {
                             bmap.damage(x, run.y)
                         }
                         x++
@@ -48,7 +48,7 @@ class BmapDamageReader(
                     val dLevel: Int = run.data.readNibble()
 
                     while (x < endX) {
-                        for (i in 0.until(dLevel)) {
+                        for (i in 0..<dLevel) {
                             bmap.damage(x, run.y)
                         }
 
@@ -86,7 +86,7 @@ class BmapDamageReader(
 
     private fun getNibbleReader(dataLen: Int): NibbleReader {
         (offset + dataLen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset.until(offset + dataLen)))
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLen))
         offset += dataLen
         return nibbleReader
     }

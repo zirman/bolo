@@ -458,8 +458,8 @@ class GameImpl(
                     (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
                 if (isBuilderInTank &&
-                    sqrX in border.until(worldWidth - border) &&
-                    sqrY in border.until(worldHeight - border)
+                    sqrX in border..<(worldWidth - border) &&
+                    sqrY in border..<(worldHeight - border)
                 ) {
                     when (tick.control.builderMode) {
                         is BuilderMode.Tree -> {

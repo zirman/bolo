@@ -309,8 +309,8 @@ fun WebGLRenderingContext.createTileProgram(
     val sourceToOriginTexture = createTexture().assertNotNull("createTexture() failed")
     val sourceToOriginArray = Float32Array(tilesCount * 3)
 
-    for (y in 0.until(tileSheetHeight)) {
-        for (x in 0.until(tileSheetWidth)) {
+    for (y in 0..<tileSheetHeight) {
+        for (x in 0..<tileSheetWidth) {
             sourceToOriginArray[(tileInd(x, y) * 3)] = x.toFloat() / tileSheetWidth.toFloat()      // s offset
             sourceToOriginArray[(tileInd(x, y) * 3) + 1] = y.toFloat() / tileSheetHeight.toFloat() // t offset
         }
@@ -335,8 +335,8 @@ fun WebGLRenderingContext.createTileProgram(
     // initialize origin to destination texture
     val originToDestinationArray = Float32Array((worldWidth * worldHeight) * 3)
 
-    for (y in 0.until(worldHeight)) {
-        for (x in 0.until(worldWidth)) {
+    for (y in 0..<worldHeight) {
+        for (x in 0..<worldWidth) {
             originToDestinationArray[(ind(x, y) * 3)] = -x.toFloat() / worldWidth.toFloat()      // s offset
             originToDestinationArray[(ind(x, y) * 3) + 1] = -y.toFloat() / worldHeight.toFloat() // t offset
         }
