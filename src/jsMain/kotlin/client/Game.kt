@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromHexString
 import kotlinx.serialization.encodeToHexString
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -94,6 +93,7 @@ interface Game {
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
     val tank: Tank?
+    val builder: Builder?
     var isBuilderInTank: Boolean
     operator fun get(x: Int, y: Int): Entity
 }
@@ -135,6 +135,7 @@ class GameImpl(
     }
 
     override val tank get() = tanks.firstOrNull { it.isVisible }
+    override val builder get() = builders.firstOrNull()
 
 //    private suspend fun treeHarvest(x: Int, y: Int) {
 //        buildQueue.add(BuildOp.Terrain(Terrain.Grass3, x, y))
@@ -230,11 +231,32 @@ class GameImpl(
             }
 
             for ((_, peer) in peers) {
-                if (peer.bearing.isNaN().not()) {
+                val tank = peer.tank
+
+                if (tank != null) {
                     SpriteInstance(
-                        x = peer.positionX,
-                        y = peer.positionY,
-                        sprite = (if (peer.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0).withBearing(peer.bearing),
+                        x = tank.positionX,
+                        y = tank.positionY,
+                        sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
+                            .withBearing(tank.bearing),
+                    ).let { sprites.add(it) }
+                }
+
+                for (shell in peer.shells) {
+                    SpriteInstance(
+                        x = shell.positionX,
+                        y = shell.positionY,
+                        sprite = Sprite.Shell0.withBearing(shell.bearing),
+                    ).let { sprites.add(it) }
+                }
+
+                val builder = peer.builder
+
+                if (builder != null) {
+                    SpriteInstance(
+                        x = builder.positionX,
+                        y = builder.positionY,
+                        sprite = Sprite.Lgm0,
                     ).let { sprites.add(it) }
                 }
             }
@@ -274,10 +296,27 @@ class GameImpl(
                 if (dataChannel.readyState == "open") {
                     dataChannel.send(
                         PeerUpdate(
-                            tankPositionX = tank?.position?.x ?: Float.NaN,
-                            tankPositionY = tank?.position?.y ?: Float.NaN,
-                            tankBearing = tank?.bearing ?: Float.NaN,
-                            tankBoat = tank?.onBoat == true,
+                            tank = tank?.let { tank ->
+                                PeerTank(
+                                    positionX = tank.position.x,
+                                    positionY = tank.position.y,
+                                    bearing = tank.bearing,
+                                    onBoat = tank.onBoat,
+                                )
+                            },
+                            shells = shells.map {
+                                PeerShell(
+                                    positionX = it.position.x,
+                                    positionY = it.position.y,
+                                    bearing = it.bearing,
+                                )
+                            },
+                            builder = builder?.let { builder ->
+                                PeerBuilder(
+                                    positionX = builder.position.x,
+                                    positionY = builder.position.y,
+                                )
+                            },
                         ).toHexString(),
                     )
                 }
@@ -763,7 +802,10 @@ class GameImpl(
                 println("DataChannel.onerror: $from ${JSON.stringify(event.unsafeCast<Json>())}")
             }
 
-            Peer(peerConnection, dataChannel)
+            Peer(
+                peerConnection = peerConnection,
+                dataChannel = dataChannel,
+            )
         }
     }
 
@@ -791,13 +833,9 @@ class GameImpl(
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
         val peer = peers[from] ?: throw IllegalStateException("peers[${from}] is null")
-        peer.positionX = peerUpdate.tankPositionX
-        peer.positionY = peerUpdate.tankPositionY
-        peer.bearing = peerUpdate.tankBearing
-    }
-
-    private fun peerEventClose(owner: Owner) {
-        peers.remove(owner) ?: throw IllegalStateException("peers[${owner}] is null")
+        peer.tank = peerUpdate.tank
+        peer.shells = peerUpdate.shells
+        peer.builder = peerUpdate.builder
     }
 }
 
@@ -910,14 +948,6 @@ private fun FrameClient.toFrame(): Frame {
         .let { Frame.Binary(fin = true, data = it) }
 }
 
-@Serializable
-data class PeerUpdate(
-    val tankPositionX: Float,
-    val tankPositionY: Float,
-    val tankBearing: Float,
-    val tankBoat: Boolean,
-)
-
 private val peerUpdateSerializer = PeerUpdate.serializer()
 
 private fun PeerUpdate.toHexString(): String {
@@ -933,12 +963,3 @@ private fun String.toPeerUpdate(): PeerUpdate {
         hex = this,
     )
 }
-
-data class Peer(
-    val peerConnection: dynamic,
-    val dataChannel: dynamic,
-    var positionX: Float = Float.NaN,
-    var positionY: Float = Float.NaN,
-    var bearing: Float = Float.NaN,
-    var onBoat: Boolean = false,
-)
