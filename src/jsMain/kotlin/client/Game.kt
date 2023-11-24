@@ -894,7 +894,7 @@ fun Entity.isShore(owner: Int): Boolean =
                 TerrainTile.SwampMined,
                 TerrainTile.CraterMined,
                 TerrainTile.RoadMined,
-                TerrainTile.ForestMined,
+                TerrainTile.TreeMined,
                 TerrainTile.RubbleMined,
                 TerrainTile.GrassMined,
                 -> true
@@ -938,7 +938,7 @@ fun Entity.isShellable(owner: Int): Boolean =
                 TerrainTile.WallDamaged1,
                 TerrainTile.WallDamaged2,
                 TerrainTile.WallDamaged3,
-                TerrainTile.ForestMined,
+                TerrainTile.TreeMined,
                 -> true
             }
     }

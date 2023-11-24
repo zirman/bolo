@@ -2,10 +2,10 @@ package client
 
 import bmap.TerrainTile
 
-fun TypeTile.isForestLikeTile(): Int {
+fun TypeTile.isTreeLikeTile(): Int {
     return when (this) {
-        TypeTile.Forest,
-        TypeTile.ForestMined,
+        TypeTile.Tree,
+        TypeTile.TreeMined,
         -> 1
 
         else -> 0
@@ -160,7 +160,7 @@ fun TerrainTile.isMinedTerrain(): Boolean {
         TerrainTile.SwampMined,
         TerrainTile.CraterMined,
         TerrainTile.RoadMined,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
         TerrainTile.SeaMined,

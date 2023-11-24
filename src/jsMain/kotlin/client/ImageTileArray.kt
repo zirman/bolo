@@ -25,7 +25,7 @@ enum class TypeTile {
     Swamp,
     Crater,
     Road,
-    Forest,
+    Tree,
     Rubble,
     Grass,
     DamagedWall,
@@ -33,7 +33,7 @@ enum class TypeTile {
     SwampMined,
     CraterMined,
     RoadMined,
-    ForestMined,
+    TreeMined,
     RubbleMined,
     GrassMined,
     BaseNeutral,
@@ -87,7 +87,7 @@ fun TerrainTile.toTypeTile(): TypeTile =
 
         TerrainTile.Crater -> TypeTile.Crater
         TerrainTile.Road -> TypeTile.Road
-        TerrainTile.Tree -> TypeTile.Forest
+        TerrainTile.Tree -> TypeTile.Tree
         TerrainTile.Rubble0,
         TerrainTile.Rubble1,
         TerrainTile.Rubble2,
@@ -110,7 +110,7 @@ fun TerrainTile.toTypeTile(): TypeTile =
         TerrainTile.SwampMined -> TypeTile.SwampMined
         TerrainTile.CraterMined -> TypeTile.CraterMined
         TerrainTile.RoadMined -> TypeTile.RoadMined
-        TerrainTile.ForestMined -> TypeTile.ForestMined
+        TerrainTile.TreeMined -> TypeTile.TreeMined
         TerrainTile.RubbleMined -> TypeTile.RubbleMined
         TerrainTile.GrassMined -> TypeTile.GrassMined
     }
@@ -245,39 +245,39 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
 
             TypeTile.Grass -> ImageTile.Grass
             TypeTile.GrassMined -> ImageTile.GrassMined
-            TypeTile.Forest -> when (getTypeTile(x - 1, y).isForestLikeTile()
-                .or(getTypeTile(x, y - 1).isForestLikeTile().shl(1))
-                .or(getTypeTile(x + 1, y).isForestLikeTile().shl(2))
-                .or(getTypeTile(x, y + 1).isForestLikeTile().shl(3))
+            TypeTile.Tree -> when (getTypeTile(x - 1, y).isTreeLikeTile()
+                .or(getTypeTile(x, y - 1).isTreeLikeTile().shl(1))
+                .or(getTypeTile(x + 1, y).isTreeLikeTile().shl(2))
+                .or(getTypeTile(x, y + 1).isTreeLikeTile().shl(3))
             ) {
-                0 -> ImageTile.Forest0
-                4 -> ImageTile.Forest1
-                1 -> ImageTile.Forest2
-                8 -> ImageTile.Forest3
-                12 -> ImageTile.Forest4
-                9 -> ImageTile.Forest5
-                2 -> ImageTile.Forest6
-                6 -> ImageTile.Forest7
-                3 -> ImageTile.Forest8
-                5, 7, 10, 11, 13, 14, 15 -> ImageTile.Forest9
+                0 -> ImageTile.Tree0
+                4 -> ImageTile.Tree1
+                1 -> ImageTile.Tree2
+                8 -> ImageTile.Tree3
+                12 -> ImageTile.Tree4
+                9 -> ImageTile.Tree5
+                2 -> ImageTile.Tree6
+                6 -> ImageTile.Tree7
+                3 -> ImageTile.Tree8
+                5, 7, 10, 11, 13, 14, 15 -> ImageTile.Tree9
                 else -> throw IllegalStateException("Impossible")
             }
 
-            TypeTile.ForestMined -> when (getTypeTile(x - 1, y).isForestLikeTile()
-                .or(getTypeTile(x, y - 1).isForestLikeTile().shl(1))
-                .or(getTypeTile(x + 1, y).isForestLikeTile().shl(2))
-                .or(getTypeTile(x, y + 1).isForestLikeTile().shl(3))
+            TypeTile.TreeMined -> when (getTypeTile(x - 1, y).isTreeLikeTile()
+                .or(getTypeTile(x, y - 1).isTreeLikeTile().shl(1))
+                .or(getTypeTile(x + 1, y).isTreeLikeTile().shl(2))
+                .or(getTypeTile(x, y + 1).isTreeLikeTile().shl(3))
             ) {
-                0 -> ImageTile.ForestMined0
-                4 -> ImageTile.ForestMined1
-                1 -> ImageTile.ForestMined2
-                8 -> ImageTile.ForestMined3
-                12 -> ImageTile.ForestMined4
-                9 -> ImageTile.ForestMined5
-                2 -> ImageTile.ForestMined6
-                6 -> ImageTile.ForestMined7
-                3 -> ImageTile.ForestMined8
-                5, 7, 10, 11, 13, 14, 15 -> ImageTile.ForestMined9
+                0 -> ImageTile.TreeMined0
+                4 -> ImageTile.TreeMined1
+                1 -> ImageTile.TreeMined2
+                8 -> ImageTile.TreeMined3
+                12 -> ImageTile.TreeMined4
+                9 -> ImageTile.TreeMined5
+                2 -> ImageTile.TreeMined6
+                6 -> ImageTile.TreeMined7
+                3 -> ImageTile.TreeMined8
+                5, 7, 10, 11, 13, 14, 15 -> ImageTile.TreeMined9
                 else -> throw IllegalStateException("Impossible")
             }
 

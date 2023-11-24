@@ -60,7 +60,7 @@ fun terrainToNibble(t: TerrainTile): Int =
         TerrainTile.SwampMined -> 10
         TerrainTile.CraterMined -> 11
         TerrainTile.RoadMined -> 12
-        TerrainTile.ForestMined -> 13
+        TerrainTile.TreeMined -> 13
         TerrainTile.RubbleMined -> 14
         TerrainTile.GrassMined -> 15
         else -> throw IllegalStateException()

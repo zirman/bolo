@@ -64,7 +64,7 @@ class BuilderImpl(
                         -> MAX_SPEED / 4f
 
                         TerrainTile.Tree,
-                        TerrainTile.ForestMined,
+                        TerrainTile.TreeMined,
                         -> MAX_SPEED / 2f
 
                         TerrainTile.Grass0,
@@ -130,7 +130,7 @@ class BuilderImpl(
                         TerrainTile.SwampMined,
                         TerrainTile.CraterMined,
                         TerrainTile.RoadMined,
-                        TerrainTile.ForestMined,
+                        TerrainTile.TreeMined,
                         TerrainTile.RubbleMined,
                         TerrainTile.GrassMined,
                         -> false

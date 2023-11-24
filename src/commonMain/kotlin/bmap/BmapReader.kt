@@ -47,7 +47,7 @@ enum class TerrainTile {
     SwampMined,
     CraterMined,
     RoadMined,
-    ForestMined,
+    TreeMined,
     RubbleMined,
     GrassMined,
 }
@@ -173,7 +173,7 @@ fun Entity.isSolid(owner: Int): Boolean =
                 TerrainTile.SwampMined,
                 TerrainTile.CraterMined,
                 TerrainTile.RoadMined,
-                TerrainTile.ForestMined,
+                TerrainTile.TreeMined,
                 TerrainTile.RubbleMined,
                 TerrainTile.GrassMined,
                 -> false
@@ -405,7 +405,7 @@ fun nibbleToTerrain(nibble: Int): TerrainTile =
         10 -> TerrainTile.SwampMined
         11 -> TerrainTile.CraterMined
         12 -> TerrainTile.RoadMined
-        13 -> TerrainTile.ForestMined
+        13 -> TerrainTile.TreeMined
         14 -> TerrainTile.RubbleMined
         15 -> TerrainTile.GrassMined
         else -> throw IllegalStateException("invalid nibble")
@@ -458,7 +458,7 @@ private fun TerrainTile.toTerrainDamage(): TerrainTile {
         TerrainTile.SwampMined -> TerrainTile.Crater
         TerrainTile.CraterMined -> TerrainTile.Crater
         TerrainTile.RoadMined -> TerrainTile.Crater
-        TerrainTile.ForestMined -> TerrainTile.Crater
+        TerrainTile.TreeMined -> TerrainTile.Crater
         TerrainTile.RubbleMined -> TerrainTile.Crater
         TerrainTile.GrassMined -> TerrainTile.Crater
         else -> throw IllegalStateException("toTerrainDamage(): Invalid terrain")
@@ -475,7 +475,7 @@ fun TerrainTile.toMinedTerrain(): TerrainTile? {
 
         TerrainTile.Crater -> TerrainTile.CraterMined
         TerrainTile.Road -> TerrainTile.RoadMined
-        TerrainTile.Tree -> TerrainTile.ForestMined
+        TerrainTile.Tree -> TerrainTile.TreeMined
 
         TerrainTile.Rubble0,
         TerrainTile.Rubble1,

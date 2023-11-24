@@ -68,7 +68,7 @@ fun isWater(terrain: TerrainTile): Boolean =
         TerrainTile.SwampMined,
         TerrainTile.CraterMined,
         TerrainTile.RoadMined,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
         -> false
@@ -105,7 +105,7 @@ fun isShore(terrain: TerrainTile): Boolean =
         TerrainTile.SwampMined,
         TerrainTile.CraterMined,
         TerrainTile.RoadMined,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
         -> true
@@ -142,7 +142,7 @@ fun isDrivable(terrain: TerrainTile): Boolean =
         TerrainTile.SwampMined,
         TerrainTile.CraterMined,
         TerrainTile.RoadMined,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
         -> true
@@ -166,7 +166,7 @@ fun getSpeedMax(terrain: TerrainTile): Float =
         -> 75f / 128f
 
         TerrainTile.Tree,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         -> 75f / 64f
 
         TerrainTile.Grass0,
@@ -209,7 +209,7 @@ fun getMaxAngularVelocity(terrain: TerrainTile): Float =
         -> 5f / 8f
 
         TerrainTile.Tree,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         -> 5f / 4f
 
         TerrainTile.Grass0,
@@ -263,7 +263,7 @@ fun isBuildable(terrain: TerrainTile): Boolean =
         TerrainTile.SwampMined,
         TerrainTile.CraterMined,
         TerrainTile.RoadMined,
-        TerrainTile.ForestMined,
+        TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
         -> true

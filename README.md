@@ -6,7 +6,7 @@ Multiplayer tank strategy game.
 
 * tank refueling
 * base replenishment
-* forest growth
+* tree growth
 * mine placement
 * mine chain reaction
 * explosion sprites
