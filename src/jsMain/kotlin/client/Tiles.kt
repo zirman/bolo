@@ -1,12 +1,12 @@
 package client
 
-fun TypeTile.isForestLikeTile(): Boolean {
+fun TypeTile.isForestLikeTile(): Int {
     return when (this) {
         TypeTile.Forest,
         TypeTile.ForestMined,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 

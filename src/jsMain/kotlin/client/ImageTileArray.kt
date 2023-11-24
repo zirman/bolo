@@ -218,37 +218,68 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
             TypeTile.SeaMined -> ImageTile.SeaMined
             TypeTile.Swamp -> ImageTile.Swamp
             TypeTile.SwampMined -> ImageTile.SwampMined
-            TypeTile.River -> {
-                when (
-                    getTypeTile(x - 1, y).isWaterLikeToWaterTile()
-                        .or(getTypeTile(x, y - 1).isWaterLikeToWaterTile().shl(1))
-                        .or(getTypeTile(x + 1, y).isWaterLikeToWaterTile().shl(2))
-                        .or(getTypeTile(x, y + 1).isWaterLikeToWaterTile().shl(3))
-                ) {
-                    0 -> ImageTile.River0
-                    4 -> ImageTile.River1
-                    5 -> ImageTile.River2
-                    1 -> ImageTile.River3
-                    8 -> ImageTile.River4
-                    12 -> ImageTile.River5
-                    13 -> ImageTile.River6
-                    9 -> ImageTile.River7
-                    10 -> ImageTile.River8
-                    14 -> ImageTile.River9
-                    15 -> ImageTile.River10
-                    11 -> ImageTile.River11
-                    2 -> ImageTile.River12
-                    6 -> ImageTile.River13
-                    7 -> ImageTile.River14
-                    3 -> ImageTile.River15
-                    else -> throw IllegalStateException("Impossible")
-                }
+            TypeTile.River -> when (
+                getTypeTile(x - 1, y).isWaterLikeToWaterTile()
+                    .or(getTypeTile(x, y - 1).isWaterLikeToWaterTile().shl(1))
+                    .or(getTypeTile(x + 1, y).isWaterLikeToWaterTile().shl(2))
+                    .or(getTypeTile(x, y + 1).isWaterLikeToWaterTile().shl(3))
+            ) {
+                0 -> ImageTile.River0
+                4 -> ImageTile.River1
+                5 -> ImageTile.River2
+                1 -> ImageTile.River3
+                8 -> ImageTile.River4
+                12 -> ImageTile.River5
+                13 -> ImageTile.River6
+                9 -> ImageTile.River7
+                10 -> ImageTile.River8
+                14 -> ImageTile.River9
+                15 -> ImageTile.River10
+                11 -> ImageTile.River11
+                2 -> ImageTile.River12
+                6 -> ImageTile.River13
+                7 -> ImageTile.River14
+                3 -> ImageTile.River15
+                else -> throw IllegalStateException("Impossible")
             }
 
             TypeTile.Grass -> ImageTile.Grass
             TypeTile.GrassMined -> ImageTile.GrassMined
-            TypeTile.Forest -> ImageTile.Forest
-            TypeTile.ForestMined -> ImageTile.ForestMined
+            TypeTile.Forest -> when (getTypeTile(x - 1, y).isForestLikeTile()
+                .or(getTypeTile(x, y - 1).isForestLikeTile().shl(1))
+                .or(getTypeTile(x + 1, y).isForestLikeTile().shl(2))
+                .or(getTypeTile(x, y + 1).isForestLikeTile().shl(3))
+            ) {
+                0 -> ImageTile.Forest0
+                4 -> ImageTile.Forest1
+                1 -> ImageTile.Forest2
+                8 -> ImageTile.Forest3
+                12 -> ImageTile.Forest4
+                9 -> ImageTile.Forest5
+                2 -> ImageTile.Forest6
+                6 -> ImageTile.Forest7
+                3 -> ImageTile.Forest8
+                5, 7, 10, 11, 13, 14, 15 -> ImageTile.Forest9
+                else -> throw IllegalStateException("Impossible")
+            }
+
+            TypeTile.ForestMined -> when (getTypeTile(x - 1, y).isForestLikeTile()
+                .or(getTypeTile(x, y - 1).isForestLikeTile().shl(1))
+                .or(getTypeTile(x + 1, y).isForestLikeTile().shl(2))
+                .or(getTypeTile(x, y + 1).isForestLikeTile().shl(3))
+            ) {
+                0 -> ImageTile.ForestMined0
+                4 -> ImageTile.ForestMined1
+                1 -> ImageTile.ForestMined2
+                8 -> ImageTile.ForestMined3
+                12 -> ImageTile.ForestMined4
+                9 -> ImageTile.ForestMined5
+                2 -> ImageTile.ForestMined6
+                6 -> ImageTile.ForestMined7
+                3 -> ImageTile.ForestMined8
+                5, 7, 10, 11, 13, 14, 15 -> ImageTile.ForestMined9
+                else -> throw IllegalStateException("Impossible")
+            }
             TypeTile.Crater -> ImageTile.Crater
             TypeTile.CraterMined -> ImageTile.CraterMined
             TypeTile.Road -> ImageTile.Road
