@@ -1,7 +1,7 @@
 package client
 
 import bmap.Entity
-import bmap.Terrain
+import bmap.TerrainTile
 import kotlinx.coroutines.CoroutineScope
 import math.V2
 import math.add
@@ -54,7 +54,7 @@ class ShellImpl(
                     is Entity.Base -> baseDamage(bmap.bases.indexOfFirst { it === entity.ref })
                     is Entity.Terrain -> {
                         // only damage road if it is a bridge
-                        if (entity.terrain != Terrain.Road ||
+                        if (entity.terrain != TerrainTile.Road ||
                             ((isWater(bmap[x - 1, y]) && isWater(bmap[x + 1, y])) ||
                                     ((isWater(bmap[x, y - 1]) && isWater(bmap[x, y + 1]))))
                         ) {

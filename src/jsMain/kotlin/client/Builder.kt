@@ -1,7 +1,7 @@
 package client
 
 import bmap.Entity
-import bmap.Terrain
+import bmap.TerrainTile
 import kotlinx.coroutines.CoroutineScope
 import math.V2
 import math.add
@@ -49,42 +49,42 @@ class BuilderImpl(
 
                 is Entity.Terrain ->
                     when (terrain) {
-                        Terrain.Swamp0,
-                        Terrain.Swamp1,
-                        Terrain.Swamp2,
-                        Terrain.Swamp3,
-                        Terrain.Crater,
-                        Terrain.Rubble0,
-                        Terrain.Rubble1,
-                        Terrain.Rubble2,
-                        Terrain.Rubble3,
-                        Terrain.SwampMined,
-                        Terrain.CraterMined,
-                        Terrain.RubbleMined,
+                        TerrainTile.Swamp0,
+                        TerrainTile.Swamp1,
+                        TerrainTile.Swamp2,
+                        TerrainTile.Swamp3,
+                        TerrainTile.Crater,
+                        TerrainTile.Rubble0,
+                        TerrainTile.Rubble1,
+                        TerrainTile.Rubble2,
+                        TerrainTile.Rubble3,
+                        TerrainTile.SwampMined,
+                        TerrainTile.CraterMined,
+                        TerrainTile.RubbleMined,
                         -> MAX_SPEED / 4f
 
-                        Terrain.Tree,
-                        Terrain.ForestMined,
+                        TerrainTile.Tree,
+                        TerrainTile.ForestMined,
                         -> MAX_SPEED / 2f
 
-                        Terrain.Grass0,
-                        Terrain.Grass1,
-                        Terrain.Grass2,
-                        Terrain.Grass3,
-                        Terrain.GrassMined,
-                        Terrain.Road,
-                        Terrain.Boat,
-                        Terrain.RoadMined,
+                        TerrainTile.Grass0,
+                        TerrainTile.Grass1,
+                        TerrainTile.Grass2,
+                        TerrainTile.Grass3,
+                        TerrainTile.GrassMined,
+                        TerrainTile.Road,
+                        TerrainTile.Boat,
+                        TerrainTile.RoadMined,
                         -> MAX_SPEED
 
-                        Terrain.River,
-                        Terrain.Sea,
-                        Terrain.Wall,
-                        Terrain.WallDamaged0,
-                        Terrain.WallDamaged1,
-                        Terrain.WallDamaged2,
-                        Terrain.WallDamaged3,
-                        Terrain.SeaMined,
+                        TerrainTile.River,
+                        TerrainTile.Sea,
+                        TerrainTile.Wall,
+                        TerrainTile.WallDamaged0,
+                        TerrainTile.WallDamaged1,
+                        TerrainTile.WallDamaged2,
+                        TerrainTile.WallDamaged3,
+                        TerrainTile.SeaMined,
                         -> 0f
                     }
             }
@@ -99,40 +99,40 @@ class BuilderImpl(
 
                 is Entity.Terrain ->
                     when (terrain) {
-                        Terrain.Wall,
-                        Terrain.WallDamaged0,
-                        Terrain.WallDamaged1,
-                        Terrain.WallDamaged2,
-                        Terrain.WallDamaged3,
+                        TerrainTile.Wall,
+                        TerrainTile.WallDamaged0,
+                        TerrainTile.WallDamaged1,
+                        TerrainTile.WallDamaged2,
+                        TerrainTile.WallDamaged3,
                         -> true
 
-                        Terrain.River -> true
-                        Terrain.Sea,
-                        Terrain.SeaMined,
+                        TerrainTile.River -> true
+                        TerrainTile.Sea,
+                        TerrainTile.SeaMined,
                         -> true
 
-                        Terrain.Swamp0,
-                        Terrain.Swamp1,
-                        Terrain.Swamp2,
-                        Terrain.Swamp3,
-                        Terrain.Crater,
-                        Terrain.Road,
-                        Terrain.Tree,
-                        Terrain.Rubble0,
-                        Terrain.Rubble1,
-                        Terrain.Rubble2,
-                        Terrain.Rubble3,
-                        Terrain.Grass0,
-                        Terrain.Grass1,
-                        Terrain.Grass2,
-                        Terrain.Grass3,
-                        Terrain.Boat,
-                        Terrain.SwampMined,
-                        Terrain.CraterMined,
-                        Terrain.RoadMined,
-                        Terrain.ForestMined,
-                        Terrain.RubbleMined,
-                        Terrain.GrassMined,
+                        TerrainTile.Swamp0,
+                        TerrainTile.Swamp1,
+                        TerrainTile.Swamp2,
+                        TerrainTile.Swamp3,
+                        TerrainTile.Crater,
+                        TerrainTile.Road,
+                        TerrainTile.Tree,
+                        TerrainTile.Rubble0,
+                        TerrainTile.Rubble1,
+                        TerrainTile.Rubble2,
+                        TerrainTile.Rubble3,
+                        TerrainTile.Grass0,
+                        TerrainTile.Grass1,
+                        TerrainTile.Grass2,
+                        TerrainTile.Grass3,
+                        TerrainTile.Boat,
+                        TerrainTile.SwampMined,
+                        TerrainTile.CraterMined,
+                        TerrainTile.RoadMined,
+                        TerrainTile.ForestMined,
+                        TerrainTile.RubbleMined,
+                        TerrainTile.GrassMined,
                         -> false
                     }
             }
@@ -153,7 +153,7 @@ class BuilderImpl(
                     is BuilderMission.HarvestTree -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, Terrain.Grass3) { success ->
+                        buildTerrain(targetX, targetY, TerrainTile.Grass3) { success ->
                             if (success) {
                                 material += 4
                             }
@@ -168,7 +168,7 @@ class BuilderImpl(
                     is BuilderMission.BuildWall -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, Terrain.Wall) { success ->
+                        buildTerrain(targetX, targetY, TerrainTile.Wall) { success ->
                             if (success) {
                                 material -= 2
                             }
@@ -183,7 +183,7 @@ class BuilderImpl(
                     is BuilderMission.BuildRoad -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, Terrain.Road) { success ->
+                        buildTerrain(targetX, targetY, TerrainTile.Road) { success ->
                             if (success) {
                                 material -= 2
                             }
@@ -198,7 +198,7 @@ class BuilderImpl(
                     is BuilderMission.BuildBoat -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, Terrain.Wall) { success ->
+                        buildTerrain(targetX, targetY, TerrainTile.Wall) { success ->
                             if (success) {
                                 material -= 4
                             }

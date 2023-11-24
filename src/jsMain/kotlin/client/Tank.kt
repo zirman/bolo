@@ -4,7 +4,7 @@ package client
 
 import bmap.Entity
 import bmap.StartInfo
-import bmap.Terrain
+import bmap.TerrainTile
 import bmap.isSolid
 import bmap.worldHeight
 import frame.FrameClient
@@ -131,7 +131,7 @@ class TankImpl(
 
                 launchTank()
                 false
-            } else if (!onBoat && onTerrain == Terrain.Sea) {
+            } else if (!onBoat && onTerrain == TerrainTile.Sea) {
                 var time = 0f
                 isVisible = false
                 // drop pills
@@ -156,7 +156,7 @@ class TankImpl(
 
                 launchTank()
                 false
-            } else if (onTerrain == Terrain.SeaMined) {
+            } else if (onTerrain == TerrainTile.SeaMined) {
                 var time = 0f
                 isVisible = false
                 // boom
@@ -298,13 +298,13 @@ class TankImpl(
                         if (isDrivable(bmap[x, y])) {
                             onBoat = false
 
-                            if (onTerrain == Terrain.River) {
-                                buildTerrain(onX, onY, Terrain.Boat) {}
+                            if (onTerrain == TerrainTile.River) {
+                                buildTerrain(onX, onY, TerrainTile.Boat) {}
                             }
-                        } else if (bmap[x, y] == Terrain.Boat) {
+                        } else if (bmap[x, y] == TerrainTile.Boat) {
                             terrainDamage(x, y)
                         }
-                    } else if (bmap[x, y] == Terrain.Boat) {
+                    } else if (bmap[x, y] == TerrainTile.Boat) {
                         onBoat = true
                         terrainDamage(x, y)
                     }

@@ -186,7 +186,7 @@ enum class Sprite(val int: Int) {
 
 data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
 
-typealias TileProgram = (clipMatrix: M4, tileArray: TileArray) -> Unit
+typealias TileProgram = (clipMatrix: M4, tileArray: ImageTileArray) -> Unit
 
 fun WebGLRenderingContext.createTileProgram(
     coroutineScope: CoroutineScope,
@@ -374,7 +374,7 @@ fun WebGLRenderingContext.createTileProgram(
         STATIC_DRAW,
     )
 
-    fun(clipMatrix: M4, tileArray: TileArray) {
+    fun(clipMatrix: M4, tileArray: ImageTileArray) {
         useProgram(program)
         disable(BLEND)
 
@@ -391,7 +391,7 @@ fun WebGLRenderingContext.createTileProgram(
             border = 0,
             format = ALPHA,
             type = UNSIGNED_BYTE,
-            pixels = tileArray.tiles,
+            pixels = tileArray.imageTiles,
         )
 
         setTextureParameters()

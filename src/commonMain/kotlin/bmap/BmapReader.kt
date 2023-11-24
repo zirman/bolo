@@ -19,7 +19,7 @@ const val worldWidth: Int = 256
 const val worldHeight: Int = 256
 const val border: Int = 16
 
-enum class Terrain {
+enum class TerrainTile {
     Sea,
     Boat,
     Wall,
@@ -68,11 +68,11 @@ class Bmap(
             }
         }
 
-    operator fun get(x: Int, y: Int): Terrain =
-        if (x < border || x >= worldWidth || y < 0 || y >= worldHeight) Terrain.SeaMined
-        else Terrain.entries[terrain[ind(x, y)].toInt()]
+    operator fun get(x: Int, y: Int): TerrainTile =
+        if (x < border || x >= worldWidth || y < 0 || y >= worldHeight) TerrainTile.SeaMined
+        else TerrainTile.entries[terrain[ind(x, y)].toInt()]
 
-    operator fun set(x: Int, y: Int, t: Terrain) {
+    operator fun set(x: Int, y: Int, t: TerrainTile) {
         if (x >= border && x < worldWidth - border && y >= border && y < worldHeight - border) {
             terrain[ind(x, y)] = t.ordinal.toUByte()
         }
@@ -138,38 +138,38 @@ fun Entity.isSolid(owner: Int): Boolean =
         is Entity.Base -> isSolid(owner)
         is Entity.Terrain ->
             when (terrain) {
-                Terrain.Wall,
-                Terrain.WallDamaged0,
-                Terrain.WallDamaged1,
-                Terrain.WallDamaged2,
-                Terrain.WallDamaged3,
+                TerrainTile.Wall,
+                TerrainTile.WallDamaged0,
+                TerrainTile.WallDamaged1,
+                TerrainTile.WallDamaged2,
+                TerrainTile.WallDamaged3,
                 -> true
 
-                Terrain.Sea,
-                Terrain.River,
-                Terrain.Swamp0,
-                Terrain.Swamp1,
-                Terrain.Swamp2,
-                Terrain.Swamp3,
-                Terrain.Crater,
-                Terrain.Road,
-                Terrain.Tree,
-                Terrain.Rubble0,
-                Terrain.Rubble1,
-                Terrain.Rubble2,
-                Terrain.Rubble3,
-                Terrain.Grass0,
-                Terrain.Grass1,
-                Terrain.Grass2,
-                Terrain.Grass3,
-                Terrain.Boat,
-                Terrain.SeaMined,
-                Terrain.SwampMined,
-                Terrain.CraterMined,
-                Terrain.RoadMined,
-                Terrain.ForestMined,
-                Terrain.RubbleMined,
-                Terrain.GrassMined,
+                TerrainTile.Sea,
+                TerrainTile.River,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Crater,
+                TerrainTile.Road,
+                TerrainTile.Tree,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.Boat,
+                TerrainTile.SeaMined,
+                TerrainTile.SwampMined,
+                TerrainTile.CraterMined,
+                TerrainTile.RoadMined,
+                TerrainTile.ForestMined,
+                TerrainTile.RubbleMined,
+                TerrainTile.GrassMined,
                 -> false
             }
     }
@@ -177,7 +177,7 @@ fun Entity.isSolid(owner: Int): Boolean =
 sealed interface Entity {
     data class Pill(val ref: bmap.Pill) : Entity
     data class Base(val ref: bmap.Base) : Entity
-    data class Terrain(val terrain: bmap.Terrain) : Entity
+    data class Terrain(val terrain: TerrainTile) : Entity
 }
 
 data class Pill(
@@ -286,7 +286,7 @@ class BmapReader(
                 } else if (nib in 8..15) { // sequence of the same terrain
                     val endX: Int = x + nib - 6
                     endX.assertLessThanOrEqual(run.endX)
-                    val t: Terrain = nibbleToTerrain(run.data.readNibble())
+                    val t: TerrainTile = nibbleToTerrain(run.data.readNibble())
 
                     while (x < endX) {
                         bmap[x, run.y] = t
@@ -384,30 +384,30 @@ class BmapReader(
     }
 }
 
-fun nibbleToTerrain(nibble: Int): Terrain =
+fun nibbleToTerrain(nibble: Int): TerrainTile =
     when (nibble) {
-        0 -> Terrain.Wall
-        1 -> Terrain.River
-        2 -> Terrain.Swamp3
-        3 -> Terrain.Crater
-        4 -> Terrain.Road
-        5 -> Terrain.Tree
-        6 -> Terrain.Rubble3
-        7 -> Terrain.Grass3
-        8 -> Terrain.WallDamaged3
-        9 -> Terrain.Boat
-        10 -> Terrain.SwampMined
-        11 -> Terrain.CraterMined
-        12 -> Terrain.RoadMined
-        13 -> Terrain.ForestMined
-        14 -> Terrain.RubbleMined
-        15 -> Terrain.GrassMined
+        0 -> TerrainTile.Wall
+        1 -> TerrainTile.River
+        2 -> TerrainTile.Swamp3
+        3 -> TerrainTile.Crater
+        4 -> TerrainTile.Road
+        5 -> TerrainTile.Tree
+        6 -> TerrainTile.Rubble3
+        7 -> TerrainTile.Grass3
+        8 -> TerrainTile.WallDamaged3
+        9 -> TerrainTile.Boat
+        10 -> TerrainTile.SwampMined
+        11 -> TerrainTile.CraterMined
+        12 -> TerrainTile.RoadMined
+        13 -> TerrainTile.ForestMined
+        14 -> TerrainTile.RubbleMined
+        15 -> TerrainTile.GrassMined
         else -> throw IllegalStateException("invalid nibble")
     }
 
-fun defaultTerrain(x: Int, y: Int): Terrain =
-    if (x < border || y < border || x >= worldWidth - border || y >= worldHeight - border) Terrain.SeaMined
-    else Terrain.Sea
+fun defaultTerrain(x: Int, y: Int): TerrainTile =
+    if (x < border || y < border || x >= worldWidth - border || y >= worldHeight - border) TerrainTile.SeaMined
+    else TerrainTile.Sea
 
 class BmapCode {
     private val code = UByteArray(worldWidth * worldHeight)
@@ -426,34 +426,34 @@ class BmapCode {
     }
 }
 
-private fun terrainDamage(terrain: Terrain): Terrain =
+private fun terrainDamage(terrain: TerrainTile): TerrainTile =
     when (terrain) {
-        Terrain.Wall -> Terrain.WallDamaged3
-        Terrain.Swamp0 -> Terrain.River
-        Terrain.Swamp1 -> Terrain.Swamp0
-        Terrain.Swamp2 -> Terrain.Swamp1
-        Terrain.Swamp3 -> Terrain.Swamp2
-        Terrain.Crater -> Terrain.Crater
-        Terrain.Road -> Terrain.River
-        Terrain.Tree -> Terrain.Grass3
-        Terrain.Rubble0 -> Terrain.River
-        Terrain.Rubble1 -> Terrain.Rubble0
-        Terrain.Rubble2 -> Terrain.Rubble1
-        Terrain.Rubble3 -> Terrain.Rubble2
-        Terrain.Grass0 -> Terrain.Swamp3
-        Terrain.Grass1 -> Terrain.Grass0
-        Terrain.Grass2 -> Terrain.Grass1
-        Terrain.Grass3 -> Terrain.Grass2
-        Terrain.WallDamaged0 -> Terrain.Rubble3
-        Terrain.WallDamaged1 -> Terrain.WallDamaged0
-        Terrain.WallDamaged2 -> Terrain.WallDamaged1
-        Terrain.WallDamaged3 -> Terrain.WallDamaged2
-        Terrain.Boat -> Terrain.River
-        Terrain.SwampMined -> Terrain.Crater
-        Terrain.CraterMined -> Terrain.Crater
-        Terrain.RoadMined -> Terrain.Crater
-        Terrain.ForestMined -> Terrain.Crater
-        Terrain.RubbleMined -> Terrain.Crater
-        Terrain.GrassMined -> Terrain.Crater
+        TerrainTile.Wall -> TerrainTile.WallDamaged3
+        TerrainTile.Swamp0 -> TerrainTile.River
+        TerrainTile.Swamp1 -> TerrainTile.Swamp0
+        TerrainTile.Swamp2 -> TerrainTile.Swamp1
+        TerrainTile.Swamp3 -> TerrainTile.Swamp2
+        TerrainTile.Crater -> TerrainTile.Crater
+        TerrainTile.Road -> TerrainTile.River
+        TerrainTile.Tree -> TerrainTile.Grass3
+        TerrainTile.Rubble0 -> TerrainTile.River
+        TerrainTile.Rubble1 -> TerrainTile.Rubble0
+        TerrainTile.Rubble2 -> TerrainTile.Rubble1
+        TerrainTile.Rubble3 -> TerrainTile.Rubble2
+        TerrainTile.Grass0 -> TerrainTile.Swamp3
+        TerrainTile.Grass1 -> TerrainTile.Grass0
+        TerrainTile.Grass2 -> TerrainTile.Grass1
+        TerrainTile.Grass3 -> TerrainTile.Grass2
+        TerrainTile.WallDamaged0 -> TerrainTile.Rubble3
+        TerrainTile.WallDamaged1 -> TerrainTile.WallDamaged0
+        TerrainTile.WallDamaged2 -> TerrainTile.WallDamaged1
+        TerrainTile.WallDamaged3 -> TerrainTile.WallDamaged2
+        TerrainTile.Boat -> TerrainTile.River
+        TerrainTile.SwampMined -> TerrainTile.Crater
+        TerrainTile.CraterMined -> TerrainTile.Crater
+        TerrainTile.RoadMined -> TerrainTile.Crater
+        TerrainTile.ForestMined -> TerrainTile.Crater
+        TerrainTile.RubbleMined -> TerrainTile.Crater
+        TerrainTile.GrassMined -> TerrainTile.Crater
         else -> throw IllegalStateException("damageTerrain(): invalid terrain")
     }

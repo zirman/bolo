@@ -2,67 +2,67 @@
 
 package bmap
 
-fun getDamageLevel(terrain: Terrain): Int =
+fun getDamageLevel(terrain: TerrainTile): Int =
     when (terrain) {
-        Terrain.Swamp0,
-        Terrain.Rubble0,
-        Terrain.Grass0,
-        Terrain.WallDamaged0,
+        TerrainTile.Swamp0,
+        TerrainTile.Rubble0,
+        TerrainTile.Grass0,
+        TerrainTile.WallDamaged0,
         -> 3
 
-        Terrain.Swamp1,
-        Terrain.Rubble1,
-        Terrain.Grass1,
-        Terrain.WallDamaged1,
+        TerrainTile.Swamp1,
+        TerrainTile.Rubble1,
+        TerrainTile.Grass1,
+        TerrainTile.WallDamaged1,
         -> 2
 
-        Terrain.Swamp2,
-        Terrain.Rubble2,
-        Terrain.Grass2,
-        Terrain.WallDamaged2,
+        TerrainTile.Swamp2,
+        TerrainTile.Rubble2,
+        TerrainTile.Grass2,
+        TerrainTile.WallDamaged2,
         -> 1
 
         else -> 0
     }
 
-fun terrainToNibble(t: Terrain): Int =
+fun terrainToNibble(t: TerrainTile): Int =
     when (t) {
-        Terrain.Wall -> 0
-        Terrain.River -> 1
-        Terrain.Swamp0,
-        Terrain.Swamp1,
-        Terrain.Swamp2,
-        Terrain.Swamp3,
+        TerrainTile.Wall -> 0
+        TerrainTile.River -> 1
+        TerrainTile.Swamp0,
+        TerrainTile.Swamp1,
+        TerrainTile.Swamp2,
+        TerrainTile.Swamp3,
         -> 2
 
-        Terrain.Crater -> 3
-        Terrain.Road -> 4
-        Terrain.Tree -> 5
-        Terrain.Rubble0,
-        Terrain.Rubble1,
-        Terrain.Rubble2,
-        Terrain.Rubble3,
+        TerrainTile.Crater -> 3
+        TerrainTile.Road -> 4
+        TerrainTile.Tree -> 5
+        TerrainTile.Rubble0,
+        TerrainTile.Rubble1,
+        TerrainTile.Rubble2,
+        TerrainTile.Rubble3,
         -> 6
 
-        Terrain.Grass0,
-        Terrain.Grass1,
-        Terrain.Grass2,
-        Terrain.Grass3,
+        TerrainTile.Grass0,
+        TerrainTile.Grass1,
+        TerrainTile.Grass2,
+        TerrainTile.Grass3,
         -> 7
 
-        Terrain.WallDamaged0,
-        Terrain.WallDamaged1,
-        Terrain.WallDamaged2,
-        Terrain.WallDamaged3,
+        TerrainTile.WallDamaged0,
+        TerrainTile.WallDamaged1,
+        TerrainTile.WallDamaged2,
+        TerrainTile.WallDamaged3,
         -> 8
 
-        Terrain.Boat -> 9
-        Terrain.SwampMined -> 10
-        Terrain.CraterMined -> 11
-        Terrain.RoadMined -> 12
-        Terrain.ForestMined -> 13
-        Terrain.RubbleMined -> 14
-        Terrain.GrassMined -> 15
+        TerrainTile.Boat -> 9
+        TerrainTile.SwampMined -> 10
+        TerrainTile.CraterMined -> 11
+        TerrainTile.RoadMined -> 12
+        TerrainTile.ForestMined -> 13
+        TerrainTile.RubbleMined -> 14
+        TerrainTile.GrassMined -> 15
         else -> throw IllegalStateException()
     }
 

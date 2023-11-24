@@ -4,7 +4,7 @@ package me.robch.application
 
 import bmap.Bmap
 import bmap.BmapCode
-import bmap.Terrain
+import bmap.TerrainTile
 import bmap.toByteArray
 import bmap.toExtra
 import bmap.writeBmap
@@ -137,10 +137,10 @@ class BoloServer(
     private suspend fun DefaultWebSocketServerSession.handleTerrainBuild(frameClient: FrameClient.TerrainBuild) {
         val isSuccessful =
             when (frameClient.terrain) {
-                Terrain.Grass3 -> bmap[frameClient.x, frameClient.y] == Terrain.Tree
-                Terrain.Boat -> bmap[frameClient.x, frameClient.y] == Terrain.River
-                Terrain.Wall,
-                Terrain.Road,
+                TerrainTile.Grass3 -> bmap[frameClient.x, frameClient.y] == TerrainTile.Tree
+                TerrainTile.Boat -> bmap[frameClient.x, frameClient.y] == TerrainTile.River
+                TerrainTile.Wall,
+                TerrainTile.Road,
                 -> isBuildable(bmap[frameClient.x, frameClient.y])
 
                 else -> false

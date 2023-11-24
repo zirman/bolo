@@ -5,7 +5,7 @@ package client
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
-import bmap.Terrain
+import bmap.TerrainTile
 import bmap.border
 import bmap.isSolid
 import bmap.worldHeight
@@ -65,7 +65,7 @@ data class Tick(
 
 sealed interface BuildOp {
     data class Terrain(
-        val terrain: bmap.Terrain,
+        val terrain: bmap.TerrainTile,
         val x: Int,
         val y: Int,
         val result: (Boolean) -> Unit,
@@ -89,7 +89,7 @@ interface Game {
     fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
     fun launchBuilder(startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
-    suspend fun buildTerrain(x: Int, y: Int, t: Terrain, result: (Boolean) -> Unit)
+    suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
     val tank: Tank?
@@ -118,7 +118,7 @@ class GameImpl(
 
     private val frameRegulator: MutableSet<Double> = mutableSetOf()
 
-    private val tileArray: TileArray = TileArray(bmap, owner)
+    private val tileArray: ImageTileArray = ImageTileArray(bmap, owner)
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
 
     private val zoomLevel: Float = 2f
@@ -153,7 +153,7 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override suspend fun buildTerrain(x: Int, y: Int, t: Terrain, result: (Boolean) -> Unit) {
+    override suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit) {
         buildQueue.add(BuildOp.Terrain(t, x, y, result))
 
         FrameClient
@@ -463,7 +463,7 @@ class GameImpl(
                 ) {
                     when (tick.control.builderMode) {
                         is BuilderMode.Tree -> {
-                            if (bmap[sqrX, sqrY] == Terrain.Tree) {
+                            if (bmap[sqrX, sqrY] == TerrainTile.Tree) {
                                 tank?.let { tank ->
                                     launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
                                     isBuilderInTank = false
@@ -473,7 +473,7 @@ class GameImpl(
 
                         is BuilderMode.Road -> {
                             // TODO: proper check
-                            if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                            if (bmap[sqrX, sqrY] == TerrainTile.Grass3) {
                                 tank?.let { tank ->
                                     launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
                                     isBuilderInTank = false
@@ -482,7 +482,7 @@ class GameImpl(
                         }
 
                         is BuilderMode.Wall -> {
-                            if (bmap[sqrX, sqrY] == Terrain.Grass3) {
+                            if (bmap[sqrX, sqrY] == TerrainTile.Grass3) {
                                 tank?.let { tank ->
                                     launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)
                                     isBuilderInTank = false
@@ -845,38 +845,38 @@ fun Entity.isShore(owner: Int): Boolean =
         is Entity.Base -> isSolid(owner)
         is Entity.Terrain ->
             when (terrain) {
-                Terrain.Sea,
-                Terrain.River,
-                Terrain.SeaMined,
+                TerrainTile.Sea,
+                TerrainTile.River,
+                TerrainTile.SeaMined,
                 -> false
 
-                Terrain.Boat,
-                Terrain.Wall,
-                Terrain.Swamp0,
-                Terrain.Swamp1,
-                Terrain.Swamp2,
-                Terrain.Swamp3,
-                Terrain.Crater,
-                Terrain.Road,
-                Terrain.Tree,
-                Terrain.Rubble0,
-                Terrain.Rubble1,
-                Terrain.Rubble2,
-                Terrain.Rubble3,
-                Terrain.Grass0,
-                Terrain.Grass1,
-                Terrain.Grass2,
-                Terrain.Grass3,
-                Terrain.WallDamaged0,
-                Terrain.WallDamaged1,
-                Terrain.WallDamaged2,
-                Terrain.WallDamaged3,
-                Terrain.SwampMined,
-                Terrain.CraterMined,
-                Terrain.RoadMined,
-                Terrain.ForestMined,
-                Terrain.RubbleMined,
-                Terrain.GrassMined,
+                TerrainTile.Boat,
+                TerrainTile.Wall,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Crater,
+                TerrainTile.Road,
+                TerrainTile.Tree,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.WallDamaged0,
+                TerrainTile.WallDamaged1,
+                TerrainTile.WallDamaged2,
+                TerrainTile.WallDamaged3,
+                TerrainTile.SwampMined,
+                TerrainTile.CraterMined,
+                TerrainTile.RoadMined,
+                TerrainTile.ForestMined,
+                TerrainTile.RubbleMined,
+                TerrainTile.GrassMined,
                 -> true
             }
     }
@@ -887,38 +887,38 @@ fun Entity.isShellable(owner: Int): Boolean =
         is Entity.Base -> isSolid(owner)
         is Entity.Terrain ->
             when (terrain) {
-                Terrain.Sea,
-                Terrain.River,
-                Terrain.SeaMined,
-                Terrain.Boat,
-                Terrain.Swamp0,
-                Terrain.Swamp1,
-                Terrain.Swamp2,
-                Terrain.Swamp3,
-                Terrain.Crater,
-                Terrain.Road,
-                Terrain.Rubble0,
-                Terrain.Rubble1,
-                Terrain.Rubble2,
-                Terrain.Rubble3,
-                Terrain.Grass0,
-                Terrain.Grass1,
-                Terrain.Grass2,
-                Terrain.Grass3,
-                Terrain.SwampMined,
-                Terrain.CraterMined,
-                Terrain.RoadMined,
-                Terrain.RubbleMined,
-                Terrain.GrassMined,
+                TerrainTile.Sea,
+                TerrainTile.River,
+                TerrainTile.SeaMined,
+                TerrainTile.Boat,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Crater,
+                TerrainTile.Road,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.SwampMined,
+                TerrainTile.CraterMined,
+                TerrainTile.RoadMined,
+                TerrainTile.RubbleMined,
+                TerrainTile.GrassMined,
                 -> false
 
-                Terrain.Wall,
-                Terrain.Tree,
-                Terrain.WallDamaged0,
-                Terrain.WallDamaged1,
-                Terrain.WallDamaged2,
-                Terrain.WallDamaged3,
-                Terrain.ForestMined,
+                TerrainTile.Wall,
+                TerrainTile.Tree,
+                TerrainTile.WallDamaged0,
+                TerrainTile.WallDamaged1,
+                TerrainTile.WallDamaged2,
+                TerrainTile.WallDamaged3,
+                TerrainTile.ForestMined,
                 -> true
             }
     }

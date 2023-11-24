@@ -1,6 +1,6 @@
 package frame
 
-import bmap.Terrain
+import bmap.TerrainTile
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,7 +22,7 @@ sealed interface FrameClient {
 
     @Serializable
     data class TerrainBuild(
-        val terrain: Terrain,
+        val terrain: TerrainTile,
         val x: Int,
         val y: Int,
     ) : FrameClient
