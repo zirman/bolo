@@ -22,7 +22,7 @@ class BmapCodeReader(
         while (true) {
             val run = readRun()
 
-            if (run.dataLen == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
+            if (run.dataLength == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
                 break
             }
 
@@ -78,19 +78,19 @@ class BmapCodeReader(
         return x
     }
 
-    private fun getNibbleReader(datalen: Int): NibbleReader {
-        (offset + datalen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + datalen))
-        offset += datalen
+    private fun getNibbleReader(dataLength: Int): NibbleReader {
+        (offset + dataLength).assertLessThanOrEqual(buffer.size)
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLength))
+        offset += dataLength
         return nibbleReader
     }
 
     private fun readRun(): Run {
-        val datalen: Int = readUByte().toInt()
+        val dataLength: Int = readUByte().toInt()
         val y: Int = readUByte().toInt()
-        val startx: Int = readUByte().toInt()
-        val endx: Int = readUByte().toInt()
-        val data = getNibbleReader(datalen - 4)
-        return Run(datalen, y, startx, endx, data)
+        val startX: Int = readUByte().toInt()
+        val endX: Int = readUByte().toInt()
+        val data = getNibbleReader(dataLength - 4)
+        return Run(dataLength, y, startX, endX, data)
     }
 }

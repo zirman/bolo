@@ -280,7 +280,32 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 5, 7, 10, 11, 13, 14, 15 -> ImageTile.ForestMined9
                 else -> throw IllegalStateException("Impossible")
             }
-            TypeTile.Crater -> ImageTile.Crater
+
+            TypeTile.Crater -> when (
+                getTypeTile(x - 1, y).isCraterLikeTile()
+                    .or(getTypeTile(x, y - 1).isCraterLikeTile().shl(1))
+                    .or(getTypeTile(x + 1, y).isCraterLikeTile().shl(2))
+                    .or(getTypeTile(x, y + 1).isCraterLikeTile().shl(3))
+            ) {
+                12 -> ImageTile.Crater0
+                13 -> ImageTile.Crater1
+                9 -> ImageTile.Crater2
+                14 -> ImageTile.Crater3
+                15 -> ImageTile.Crater4
+                11 -> ImageTile.Crater5
+                6 -> ImageTile.Crater6
+                7 -> ImageTile.Crater7
+                3 -> ImageTile.Crater8
+                4 -> ImageTile.Crater9
+                5 -> ImageTile.Crater10
+                1 -> ImageTile.Crater11
+                8 -> ImageTile.Crater12
+                10 -> ImageTile.Crater13
+                2 -> ImageTile.Crater14
+                0 -> ImageTile.Crater15
+                else -> throw IllegalStateException("Impossible")
+            }
+
             TypeTile.CraterMined -> ImageTile.CraterMined
             TypeTile.Road -> ImageTile.Road
             TypeTile.RoadMined -> ImageTile.RoadMined

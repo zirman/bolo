@@ -311,11 +311,15 @@ class TankImpl(
                 }
 
                 // shooting
-
                 if (control.shootButton && tankShells > 0 && reload >= RELOAD_SEC) {
                     launchShell(bearing, onBoat, position, sightRange)
                     reload = 0f
                     tankShells--
+                }
+
+                // mine laying
+                if (control.layMineButton && tankMines > 0 && bmap[x, y].isMinedTerrain().not()) {
+                    mineTerrain(x, y)
                 }
 
                 reload += tick.delta

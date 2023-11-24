@@ -79,7 +79,13 @@ class Bmap(
     }
 
     fun damage(x: Int, y: Int) {
-        this[x, y] = terrainDamage(this[x, y])
+        this[x, y] = this[x, y].toTerrainDamage()
+    }
+
+    fun mine(x: Int, y: Int) {
+        this[x, y].toMinedTerrain()?.let {
+            this[x, y] = it
+        }
     }
 
     fun findPill(x: Int, y: Int): Pill? {
@@ -209,7 +215,7 @@ data class StartInfo(
 )
 
 data class Run(
-    val dataLen: Int,  // length of the data for this run
+    val dataLength: Int,  // length of the data for this run
     // INCLUDING this 4 byte header
     val y: Int,        // y co-ordinate of this run.
     val startX: Int,   // first square of the run
@@ -266,7 +272,7 @@ class BmapReader(
         while (true) {
             val run = readRun()
 
-            if (run.dataLen == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
+            if (run.dataLength == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
                 break
             }
 
@@ -380,7 +386,7 @@ class BmapReader(
         val startX = readUByte().toInt()
         val endX = readUByte().toInt()
         val data = getNibbleReader(dataLen - 4)
-        return Run(dataLen = dataLen, y = y, startX = startX, endX = endX, data = data)
+        return Run(dataLength = dataLen, y = y, startX = startX, endX = endX, data = data)
     }
 }
 
@@ -426,8 +432,8 @@ class BmapCode {
     }
 }
 
-private fun terrainDamage(terrain: TerrainTile): TerrainTile =
-    when (terrain) {
+private fun TerrainTile.toTerrainDamage(): TerrainTile {
+    return when (this) {
         TerrainTile.Wall -> TerrainTile.WallDamaged3
         TerrainTile.Swamp0 -> TerrainTile.River
         TerrainTile.Swamp1 -> TerrainTile.Swamp0
@@ -455,5 +461,34 @@ private fun terrainDamage(terrain: TerrainTile): TerrainTile =
         TerrainTile.ForestMined -> TerrainTile.Crater
         TerrainTile.RubbleMined -> TerrainTile.Crater
         TerrainTile.GrassMined -> TerrainTile.Crater
-        else -> throw IllegalStateException("damageTerrain(): invalid terrain")
+        else -> throw IllegalStateException("toTerrainDamage(): Invalid terrain")
     }
+}
+
+fun TerrainTile.toMinedTerrain(): TerrainTile? {
+    return when (this) {
+        TerrainTile.Swamp0,
+        TerrainTile.Swamp1,
+        TerrainTile.Swamp2,
+        TerrainTile.Swamp3,
+        -> TerrainTile.SwampMined
+
+        TerrainTile.Crater -> TerrainTile.CraterMined
+        TerrainTile.Road -> TerrainTile.RoadMined
+        TerrainTile.Tree -> TerrainTile.ForestMined
+
+        TerrainTile.Rubble0,
+        TerrainTile.Rubble1,
+        TerrainTile.Rubble2,
+        TerrainTile.Rubble3,
+        -> TerrainTile.RubbleMined
+
+        TerrainTile.Grass0,
+        TerrainTile.Grass1,
+        TerrainTile.Grass2,
+        TerrainTile.Grass3,
+        -> TerrainTile.GrassMined
+
+        else -> null
+    }
+}

@@ -35,6 +35,12 @@ sealed interface FrameClient {
     ) : FrameClient
 
     @Serializable
+    data class TerrainMine(
+        val x: Int,
+        val y: Int,
+    ) : FrameClient
+
+    @Serializable
     data class BaseDamage(
         val index: Int,
         val code: Int,

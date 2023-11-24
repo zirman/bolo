@@ -46,6 +46,12 @@ sealed interface FrameServer {
     ) : FrameServer
 
     @Serializable
+    data class TerrainMine(
+        val x: Int,
+        val y: Int,
+    ) : FrameServer
+
+    @Serializable
     data class BaseTake(
         val index: Int,
         val owner: Int,

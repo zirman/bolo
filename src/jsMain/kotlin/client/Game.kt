@@ -65,7 +65,7 @@ data class Tick(
 
 sealed interface BuildOp {
     data class Terrain(
-        val terrain: bmap.TerrainTile,
+        val terrain: TerrainTile,
         val x: Int,
         val y: Int,
         val result: (Boolean) -> Unit,
@@ -90,6 +90,7 @@ interface Game {
     fun launchBuilder(startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
     suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
+    suspend fun mineTerrain(x: Int, y: Int)
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
     val tank: Tank?
@@ -159,6 +160,19 @@ class GameImpl(
         FrameClient
             .TerrainBuild(
                 terrain = t,
+                x = x,
+                y = y,
+            )
+            .toFrame()
+            .let { sendChannel.send(it) }
+    }
+
+    override suspend fun mineTerrain(x: Int, y: Int) {
+        bmap.mine(x, y)
+        tileArray.update(x, y)
+
+        FrameClient
+            .TerrainMine(
                 x = x,
                 y = y,
             )
@@ -620,6 +634,12 @@ class GameImpl(
                     is FrameServer.TerrainDamage -> {
                         // damage from other players
                         bmap.damage(frameServer.x, frameServer.y)
+                        tileArray.update(frameServer.x, frameServer.y)
+                    }
+
+                    is FrameServer.TerrainMine -> {
+                        // mines from other players
+                        bmap.mine(frameServer.x, frameServer.y)
                         tileArray.update(frameServer.x, frameServer.y)
                     }
 

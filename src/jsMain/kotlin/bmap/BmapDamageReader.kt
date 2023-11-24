@@ -21,7 +21,7 @@ class BmapDamageReader(
         while (true) {
             val run = readRun()
 
-            if (run.dataLen == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
+            if (run.dataLength == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
                 break
             }
 

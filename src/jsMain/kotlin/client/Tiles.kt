@@ -1,5 +1,7 @@
 package client
 
+import bmap.TerrainTile
+
 fun TypeTile.isForestLikeTile(): Int {
     return when (this) {
         TypeTile.Forest,
@@ -10,16 +12,16 @@ fun TypeTile.isForestLikeTile(): Int {
     }
 }
 
-fun TypeTile.isCraterLikeTile(): Boolean {
+fun TypeTile.isCraterLikeTile(): Int {
     return when (this) {
         TypeTile.Crater,
         TypeTile.CraterMined,
         TypeTile.River,
         TypeTile.Sea,
         TypeTile.SeaMined,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 
@@ -153,15 +155,15 @@ fun TypeTile.isSeaLikeTile(): Int {
     }
 }
 
-fun TypeTile.isMinedTile(): Boolean {
+fun TerrainTile.isMinedTerrain(): Boolean {
     return when (this) {
-        TypeTile.SwampMined,
-        TypeTile.CraterMined,
-        TypeTile.RoadMined,
-        TypeTile.ForestMined,
-        TypeTile.RubbleMined,
-        TypeTile.GrassMined,
-        TypeTile.SeaMined,
+        TerrainTile.SwampMined,
+        TerrainTile.CraterMined,
+        TerrainTile.RoadMined,
+        TerrainTile.ForestMined,
+        TerrainTile.RubbleMined,
+        TerrainTile.GrassMined,
+        TerrainTile.SeaMined,
         -> true
 
         else -> false

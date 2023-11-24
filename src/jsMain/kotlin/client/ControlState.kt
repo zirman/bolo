@@ -32,6 +32,7 @@ data class ControlState(
     val directionHorizontal: DirectionHorizontal,
     val directionVertical: DirectionVertical,
     val shootButton: Boolean,
+    val layMineButton: Boolean,
     val mouse: Mouse?,
 )
 
@@ -55,6 +56,8 @@ object Control {
 
     private val shootButton: Boolean get() = keySpace
 
+    private val layMineButton: Boolean get() = keyShift
+
     private val mouse: Mouse?
         get() =
             when {
@@ -65,11 +68,12 @@ object Control {
 
     fun getControlState(): ControlState {
         val controlState = ControlState(
-            builderMode,
-            directionHorizontal,
-            directionVertical,
-            shootButton,
-            mouse,
+            builderMode = builderMode,
+            directionHorizontal = directionHorizontal,
+            directionVertical = directionVertical,
+            shootButton = shootButton,
+            layMineButton = layMineButton,
+            mouse = mouse,
         )
 
         mouseUp = false
@@ -88,6 +92,7 @@ object Control {
     private var keyDown: Boolean = false
     private var keyRight: Boolean = false
     private var keySpace: Boolean = false
+    private var keyShift: Boolean = false
     private var mouseDown = false
     private var mouseX: Int = 0
     private var mouseY: Int = 0
@@ -101,6 +106,7 @@ object Control {
             var preventDefault = true
 
             when (event.which) {
+                16 -> keyShift = true
                 32 -> keySpace = true
                 37 -> keyLeft = true
                 38 -> keyUp = true
@@ -127,6 +133,7 @@ object Control {
             var preventDefault = true
 
             when (event.which) {
+                16 -> keyShift = false
                 32 -> keySpace = false
                 37 -> keyLeft = false
                 38 -> keyUp = false
@@ -173,7 +180,7 @@ object Control {
         }
 
         window.addEventListener("gamepadconnect", {
-            // TODO
+            // TODO: gamepad support
         })
     }
 }

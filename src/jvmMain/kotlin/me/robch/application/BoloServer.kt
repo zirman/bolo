@@ -89,6 +89,10 @@ class BoloServer(
                 handleTerrainDamage(frameClient)
             }
 
+            is FrameClient.TerrainMine -> {
+                handleTerrainMine(frameClient)
+            }
+
             is FrameClient.BaseDamage -> {
                 handleBaseDamage(frameClient)
             }
@@ -205,15 +209,30 @@ class BoloServer(
             )
             .toByteArray()
 
-        clients
-            .let { clients ->
-                if (codeMatches) {
-                    clients.filter { (_, client) -> client != this }
-                } else {
-                    clients
-                }
+        run {
+            if (codeMatches) {
+                clients.filter { (_, client) -> client != this }
+            } else {
+                clients
             }
-            .forEach { (_, client) -> client.send(serverFrame) }
+        }.forEach { (_, client) -> client.send(serverFrame) }
+    }
+
+    private suspend fun DefaultWebSocketServerSession.handleTerrainMine(frameClient: FrameClient.TerrainMine) {
+        bmap.mine(frameClient.x, frameClient.y)
+
+        val serverFrame = FrameServer
+            .TerrainMine(
+                x = frameClient.x,
+                y = frameClient.y,
+            )
+            .toByteArray()
+
+        clients.forEach { (_, client) ->
+            if (client != this) {
+                client.send(serverFrame)
+            }
+        }
     }
 
     private suspend fun DefaultWebSocketServerSession.handleBaseDamage(frameClient: FrameClient.BaseDamage) {
