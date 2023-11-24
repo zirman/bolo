@@ -68,19 +68,19 @@ fun TypeTile.isRoadLikeTile(): Boolean {
     }
 }
 
-fun TypeTile.isWaterLikeToLandTile(): Boolean {
+fun TypeTile.isWaterLikeToLandTile(): Int {
     return when (this) {
         TypeTile.River,
         TypeTile.Boat,
         TypeTile.Sea,
         TypeTile.SeaMined,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 
-fun TypeTile.isWaterLikeToWaterTile(): Boolean {
+fun TypeTile.isWaterLikeToWaterTile(): Int {
     return when (this) {
         TypeTile.Road,
         TypeTile.RoadMined,
@@ -125,9 +125,9 @@ fun TypeTile.isWaterLikeToWaterTile(): Boolean {
         TypeTile.PillHostile13,
         TypeTile.PillHostile14,
         TypeTile.PillHostile15,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 
