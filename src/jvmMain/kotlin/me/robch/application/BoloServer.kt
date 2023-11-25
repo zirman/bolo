@@ -33,8 +33,8 @@ class BoloServer(
     private val bmap: Bmap,
     private val bmapCode: BmapCode,
 ) {
-    val nextOwnerId = AtomicInteger()
-    val clients: MutableMap<Owner, DefaultWebSocketServerSession> = ConcurrentHashMap()
+    private val nextOwnerId = AtomicInteger()
+    private val clients: MutableMap<Owner, DefaultWebSocketServerSession> = ConcurrentHashMap()
 
     suspend fun handleWebSocket(session: DefaultWebSocketServerSession) {
         if (clients.size >= 16) {

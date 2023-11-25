@@ -12,9 +12,7 @@ import kotlin.math.sin
 
 value class Q4(val array: Float32Array)
 
-fun q4(x: Float, y: Float, z: Float, w: Float): Q4 = arrayOf(x, y, z, w)
-    .let { Float32Array(it) }
-    .let { Q4(it) }
+fun q4(x: Float, y: Float, z: Float, w: Float): Q4 = Q4(Float32Array(arrayOf(x, y, z, w)))
 
 inline var Q4.x: Float
     get() = array[0]
