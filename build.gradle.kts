@@ -42,54 +42,46 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(project.dependencies.platform(libs.koinBom))
-                implementation(libs.koinCore)
-                implementation(libs.kotlinxSerializationProtobuf)
-                implementation(libs.kotlinxCoroutinesCore)
-            }
+        commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.koinBom))
+            implementation(libs.koinCore)
+            implementation(libs.kotlinxSerializationProtobuf)
+            implementation(libs.kotlinxCoroutinesCore)
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(project.dependencies.platform(libs.koinBom))
-                implementation(libs.koinCore)
-                implementation(libs.kotlinTest)
-                implementation(libs.kotlinTestCommon)
-                implementation(libs.kotlinTestAnnotationsCommon)
-            }
+        commonTest.dependencies {
+            implementation(project.dependencies.platform(libs.koinBom))
+            implementation(libs.koinCore)
+            implementation(libs.kotlinTest)
+            implementation(libs.kotlinTestCommon)
+            implementation(libs.kotlinTestAnnotationsCommon)
         }
 
-        val jvmMain by getting {
-            dependencies {
-                implementation(project.dependencies.platform(libs.koinBom))
-                implementation(libs.koinCore)
-                implementation(libs.koinKtor)
-                implementation(libs.koinLoggerSlf4j)
-                implementation(libs.ktorServerCore)
-                implementation(libs.ktorServerNetty)
-                implementation(libs.ktorServerHtmlBuilder)
-                implementation(libs.ktorServerContentNegotiation)
-                implementation(libs.ktorServerCompression)
-                implementation(libs.ktorServerWebsockets)
-                implementation(libs.ktorSerialization)
-                implementation(libs.ktorSerializationKotlinxJson)
-                implementation(libs.ktorWebsockets)
-                implementation(libs.logbackClassic)
-            }
+        jvmMain.dependencies {
+            implementation(project.dependencies.platform(libs.koinBom))
+            implementation(libs.koinCore)
+            implementation(libs.koinKtor)
+            implementation(libs.koinLoggerSlf4j)
+            implementation(libs.ktorServerCore)
+            implementation(libs.ktorServerNetty)
+            implementation(libs.ktorServerHtmlBuilder)
+            implementation(libs.ktorServerContentNegotiation)
+            implementation(libs.ktorServerCompression)
+            implementation(libs.ktorServerWebsockets)
+            implementation(libs.ktorSerialization)
+            implementation(libs.ktorSerializationKotlinxJson)
+            implementation(libs.ktorWebsockets)
+            implementation(libs.logbackClassic)
         }
 
-        val jsMain by getting {
-            dependencies {
-                implementation(project.dependencies.platform(libs.koinBom))
-                implementation(libs.koinCore)
-                implementation(libs.ktorClientJs)
-                implementation(libs.ktorClientJsonJs)
-                implementation(libs.ktorClientSerializationJs)
-                implementation(libs.kotlinxCoroutinesCore)
-                implementation(libs.kotlinxCoroutinesCoreJs)
-            }
+        jsMain.dependencies {
+            implementation(project.dependencies.platform(libs.koinBom))
+            implementation(libs.koinCore)
+            implementation(libs.ktorClientJs)
+            implementation(libs.ktorClientJsonJs)
+            implementation(libs.ktorClientSerializationJs)
+            implementation(libs.kotlinxCoroutinesCore)
+            implementation(libs.kotlinxCoroutinesCoreJs)
         }
     }
 }

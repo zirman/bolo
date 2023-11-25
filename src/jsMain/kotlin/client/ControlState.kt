@@ -39,32 +39,29 @@ data class ControlState(
 object Control {
     private var builderMode: BuilderMode = BuilderMode.Tree
     private val directionHorizontal: DirectionHorizontal
-        get() =
-            when {
-                keyA || keyLeft && (keyD || keyRight).not() -> DirectionHorizontal.Left
-                keyD || keyRight && (keyA || keyLeft).not() -> DirectionHorizontal.Right
-                else -> DirectionHorizontal.Center
-            }
+        get() = when {
+            keyA || keyLeft && (keyD || keyRight).not() -> DirectionHorizontal.Left
+            keyD || keyRight && (keyA || keyLeft).not() -> DirectionHorizontal.Right
+            else -> DirectionHorizontal.Center
+        }
 
     private val directionVertical: DirectionVertical
-        get() =
-            when {
-                keyW || keyUp && (keyS || keyDown).not() -> DirectionVertical.Up
-                keyS || keyDown && (keyW || keyUp).not() -> DirectionVertical.Down
-                else -> DirectionVertical.Center
-            }
+        get() = when {
+            keyW || keyUp && (keyS || keyDown).not() -> DirectionVertical.Up
+            keyS || keyDown && (keyW || keyUp).not() -> DirectionVertical.Down
+            else -> DirectionVertical.Center
+        }
 
     private val shootButton: Boolean get() = keySpace
 
     private val layMineButton: Boolean get() = keyShift
 
     private val mouse: Mouse?
-        get() =
-            when {
-                mouseUp -> Mouse.Up(mouseX, mouseY)
-                mouseDrag -> Mouse.Drag(mouseDragX, mouseDragY)
-                else -> null
-            }
+        get() = when {
+            mouseUp -> Mouse.Up(mouseX, mouseY)
+            mouseDrag -> Mouse.Drag(mouseDragX, mouseDragY)
+            else -> null
+        }
 
     fun getControlState(): ControlState {
         val controlState = ControlState(
