@@ -26,7 +26,7 @@ fun TypeTile.isCraterLikeTile(): Int {
     }
 }
 
-fun TypeTile.isRoadLikeTile(): Boolean {
+fun TypeTile.isRoadLikeTile(): Int {
     return when (this) {
         TypeTile.Road,
         TypeTile.RoadMined,
@@ -65,9 +65,9 @@ fun TypeTile.isRoadLikeTile(): Boolean {
         TypeTile.PillHostile13,
         TypeTile.PillHostile14,
         TypeTile.PillHostile15,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 
