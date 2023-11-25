@@ -116,7 +116,7 @@ fun TerrainTile.toTypeTile(): TypeTile =
     }
 
 class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
-    val tiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
+    private val tiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
         .also { tiles ->
             for (y in 0..<worldHeight) {
                 for (x in 0..<worldWidth) {
@@ -153,23 +153,8 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
         if (x < 0 || x >= worldWidth || y < 0 || y >= worldHeight) TypeTile.SeaMined
         else TypeTile.entries[tiles[ind(x, y)].toInt()]
 
-    fun getImageTile(x: Int, y: Int): ImageTile =
-        if (x < 0 || x >= worldWidth || y < 0 || y >= worldHeight) ImageTile.SeaMined
-        else ImageTile.entries[imageTiles[ind(x, y)].toInt()]
-
     fun update(x: Int, y: Int) {
         run {
-            for (base in bmap.bases) {
-                if (base.x == x && base.y == y) {
-                    tiles[ind(base.x, base.y)] = when (base.owner) {
-                        0xff -> TypeTile.BaseNeutral
-                        owner.int -> TypeTile.BaseFriendly
-                        else -> TypeTile.BaseHostile
-                    }.ordinal.toByte()
-                    return@run
-                }
-            }
-
             for (pill in bmap.pills) {
                 if (pill.isPlaced && pill.x == x && pill.y == y) {
                     tiles[ind(pill.x, pill.y)] = run {
@@ -182,14 +167,25 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 }
             }
 
+            for (base in bmap.bases) {
+                if (base.x == x && base.y == y) {
+                    tiles[ind(base.x, base.y)] = when (base.owner) {
+                        0xff -> TypeTile.BaseNeutral
+                        owner.int -> TypeTile.BaseFriendly
+                        else -> TypeTile.BaseHostile
+                    }.ordinal.toByte()
+                    return@run
+                }
+            }
+
             if (x >= border && x < worldWidth - border && y >= border && y < worldHeight - border) {
                 tiles[ind(x, y)] = bmap[x, y].toTypeTile().ordinal.toByte()
             }
         }
 
-        for (yy in y - 1..y + 1) {
-            for (xx in x - 1..x + 1) {
-                imageTiles[ind(xx, yy)] = mapImage(xx, yy).index.toByte()
+        for (yi in y - 1..y + 1) {
+            for (xi in x - 1..x + 1) {
+                imageTiles[ind(xi, yi)] = mapImage(xi, yi).index.toByte()
             }
         }
     }
@@ -197,12 +193,7 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
 
     private fun mapImage(x: Int, y: Int): ImageTile {
         return when (getTypeTile(x, y)) {
-            TypeTile.Sea -> when (
-                getTypeTile(x - 1, y).isSeaLikeTile()
-                    .or(getTypeTile(x, y - 1).isSeaLikeTile().shl(1))
-                    .or(getTypeTile(x + 1, y).isSeaLikeTile().shl(2))
-                    .or(getTypeTile(x, y + 1).isSeaLikeTile().shl(3))
-            ) {
+            TypeTile.Sea -> when (isLikeBits(x, y) { isSeaLikeTile() }) {
                 0, 5, 10, 15 -> ImageTile.Sea0
                 4, 14 -> ImageTile.Sea1
                 1, 11 -> ImageTile.Sea2
@@ -212,18 +203,13 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 2, 7 -> ImageTile.Sea6
                 6 -> ImageTile.Sea7
                 3 -> ImageTile.Sea8
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
             TypeTile.SeaMined -> ImageTile.SeaMined
             TypeTile.Swamp -> ImageTile.Swamp
             TypeTile.SwampMined -> ImageTile.SwampMined
-            TypeTile.River -> when (
-                getTypeTile(x - 1, y).isWaterLikeToWaterTile()
-                    .or(getTypeTile(x, y - 1).isWaterLikeToWaterTile().shl(1))
-                    .or(getTypeTile(x + 1, y).isWaterLikeToWaterTile().shl(2))
-                    .or(getTypeTile(x, y + 1).isWaterLikeToWaterTile().shl(3))
-            ) {
+            TypeTile.River -> when (isLikeBits(x, y) { isWaterLikeToWaterTile() }) {
                 0 -> ImageTile.River0
                 4 -> ImageTile.River1
                 5 -> ImageTile.River2
@@ -240,16 +226,12 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 6 -> ImageTile.River13
                 7 -> ImageTile.River14
                 3 -> ImageTile.River15
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
             TypeTile.Grass -> ImageTile.Grass
             TypeTile.GrassMined -> ImageTile.GrassMined
-            TypeTile.Tree -> when (getTypeTile(x - 1, y).isTreeLikeTile()
-                .or(getTypeTile(x, y - 1).isTreeLikeTile().shl(1))
-                .or(getTypeTile(x + 1, y).isTreeLikeTile().shl(2))
-                .or(getTypeTile(x, y + 1).isTreeLikeTile().shl(3))
-            ) {
+            TypeTile.Tree -> when (isLikeBits(x, y) { isTreeLikeTile() }) {
                 0 -> ImageTile.Tree0
                 4 -> ImageTile.Tree1
                 1 -> ImageTile.Tree2
@@ -260,14 +242,10 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 6 -> ImageTile.Tree7
                 3 -> ImageTile.Tree8
                 5, 7, 10, 11, 13, 14, 15 -> ImageTile.Tree9
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
-            TypeTile.TreeMined -> when (getTypeTile(x - 1, y).isTreeLikeTile()
-                .or(getTypeTile(x, y - 1).isTreeLikeTile().shl(1))
-                .or(getTypeTile(x + 1, y).isTreeLikeTile().shl(2))
-                .or(getTypeTile(x, y + 1).isTreeLikeTile().shl(3))
-            ) {
+            TypeTile.TreeMined -> when (isLikeBits(x, y) { isTreeLikeTile() }) {
                 0 -> ImageTile.TreeMined0
                 4 -> ImageTile.TreeMined1
                 1 -> ImageTile.TreeMined2
@@ -278,15 +256,10 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 6 -> ImageTile.TreeMined7
                 3 -> ImageTile.TreeMined8
                 5, 7, 10, 11, 13, 14, 15 -> ImageTile.TreeMined9
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
-            TypeTile.Crater -> when (
-                getTypeTile(x - 1, y).isCraterLikeTile()
-                    .or(getTypeTile(x, y - 1).isCraterLikeTile().shl(1))
-                    .or(getTypeTile(x + 1, y).isCraterLikeTile().shl(2))
-                    .or(getTypeTile(x, y + 1).isCraterLikeTile().shl(3))
-            ) {
+            TypeTile.Crater -> when (isLikeBits(x, y) { isCraterLikeTile() }) {
                 0 -> ImageTile.Crater0
                 4 -> ImageTile.Crater1
                 5 -> ImageTile.Crater2
@@ -303,15 +276,10 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 6 -> ImageTile.Crater13
                 7 -> ImageTile.Crater14
                 3 -> ImageTile.Crater15
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
-            TypeTile.CraterMined -> when (
-                getTypeTile(x - 1, y).isCraterLikeTile()
-                    .or(getTypeTile(x, y - 1).isCraterLikeTile().shl(1))
-                    .or(getTypeTile(x + 1, y).isCraterLikeTile().shl(2))
-                    .or(getTypeTile(x, y + 1).isCraterLikeTile().shl(3))
-            ) {
+            TypeTile.CraterMined -> when (isLikeBits(x, y) { isCraterLikeTile() }) {
                 0 -> ImageTile.CraterMined0
                 4 -> ImageTile.CraterMined1
                 5 -> ImageTile.CraterMined2
@@ -328,7 +296,7 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                 6 -> ImageTile.CraterMined13
                 7 -> ImageTile.CraterMined14
                 3 -> ImageTile.CraterMined15
-                else -> throw IllegalStateException("Impossible")
+                else -> never()
             }
 
             TypeTile.Road -> ImageTile.Road
@@ -336,8 +304,115 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
             TypeTile.Rubble -> ImageTile.Rubble
             TypeTile.RubbleMined -> ImageTile.RubbleMined
             TypeTile.DamagedWall -> ImageTile.DamagedWall
-            TypeTile.Wall -> ImageTile.Wall
-            TypeTile.Boat -> ImageTile.Boat
+            TypeTile.Wall -> when (isLikeBits(x, y) { isWallLikeTile() }) {
+                0 -> ImageTile.Wall46
+                4 -> ImageTile.Wall17
+                2 -> ImageTile.Wall22
+                6 ->
+                    when (getTypeTile(x + 1, y - 1).isWallLikeTile()) {
+                        1 -> ImageTile.Wall12
+                        else -> ImageTile.Wall4
+                    }
+
+                1 -> ImageTile.Wall20
+                5 -> ImageTile.Wall1
+                3 ->
+                    when (getTypeTile(x - 1, y - 1).isWallLikeTile()) {
+                        1 -> ImageTile.Wall14
+                        else -> ImageTile.Wall5
+                    }
+
+                7 -> when (
+                    getTypeTile(x - 1, y - 1).isWallLikeTile()
+                        .or(getTypeTile(x + 1, y - 1).isWallLikeTile().shl(1))
+                ) {
+                    0 -> ImageTile.Wall16
+                    1 -> ImageTile.Wall38
+                    2 -> ImageTile.Wall37
+                    3 -> ImageTile.Wall13
+                    else -> never()
+                }
+
+                8 -> ImageTile.Wall15
+                12 -> when (getTypeTile(x + 1, y + 1).isWallLikeTile()) {
+                    1 -> ImageTile.Wall6
+                    else -> ImageTile.Wall0
+                }
+
+                10 -> ImageTile.Wall3
+                14 -> when (
+                    getTypeTile(x + 1, y - 1).isWallLikeTile()
+                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
+                ) {
+                    0 -> ImageTile.Wall19
+                    1 -> ImageTile.Wall33
+                    2 -> ImageTile.Wall31
+                    3 -> ImageTile.Wall9
+                    else -> never()
+                }
+
+                9 -> when (getTypeTile(x - 1, y + 1).isWallLikeTile()) {
+                    1 -> ImageTile.Wall8
+                    else -> ImageTile.Wall2
+                }
+
+                13 -> when (
+                    getTypeTile(x - 1, y + 1).isWallLikeTile()
+                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
+                ) {
+                    0 -> ImageTile.Wall21
+                    1 -> ImageTile.Wall36
+                    2 -> ImageTile.Wall35
+                    3 -> ImageTile.Wall7
+                    else -> never()
+                }
+
+                11 -> when (
+                    getTypeTile(x - 1, y - 1).isWallLikeTile()
+                        .or(getTypeTile(x - 1, y + 1).isWallLikeTile().shl(1))
+                ) {
+                    0 -> ImageTile.Wall18
+                    1 -> ImageTile.Wall34
+                    2 -> ImageTile.Wall32
+                    3 -> ImageTile.Wall11
+                    else -> never()
+                }
+
+                15 -> when (isLikeBits(x, y) { isWallLikeTile() }) {
+                    0 -> ImageTile.Wall45
+                    1 -> ImageTile.Wall29
+                    2 -> ImageTile.Wall30
+                    3 -> ImageTile.Wall26
+                    4 -> ImageTile.Wall27
+                    5 -> ImageTile.Wall25
+                    6 -> ImageTile.Wall44
+                    7 -> ImageTile.Wall42
+                    8 -> ImageTile.Wall28
+                    9 -> ImageTile.Wall43
+                    10 -> ImageTile.Wall24
+                    11 -> ImageTile.Wall41
+                    12 -> ImageTile.Wall23
+                    13 -> ImageTile.Wall40
+                    14 -> ImageTile.Wall39
+                    15 -> ImageTile.Wall10
+                    else -> never()
+                }
+
+                else -> never()
+            }
+
+            TypeTile.Boat -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
+                0, 6, 15 -> ImageTile.Boat0
+                2, 7, 10 -> ImageTile.Boat1
+                3 -> ImageTile.Boat2
+                1, 11 -> ImageTile.Boat3
+                9 -> ImageTile.Boat4
+                8, 13 -> ImageTile.Boat5
+                12 -> ImageTile.Boat6
+                4, 5, 14 -> ImageTile.Boat7
+                else -> never()
+            }
+
             TypeTile.BaseFriendly -> ImageTile.BaseFriendly
             TypeTile.PillFriendly0 -> ImageTile.PillFriendly0
             TypeTile.PillFriendly1 -> ImageTile.PillFriendly1
@@ -375,4 +450,15 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
             TypeTile.BaseNeutral -> ImageTile.BaseNeutral
         }
     }
+
+    private inline fun isLikeBits(x: Int, y: Int, f: TypeTile.() -> Int): Int {
+        return getTypeTile(x - 1, y).f()
+            .or(getTypeTile(x, y - 1).f().shl(1))
+            .or(getTypeTile(x + 1, y).f().shl(2))
+            .or(getTypeTile(x, y + 1).f().shl(3))
+    }
+}
+
+fun never(): Nothing {
+    throw IllegalStateException("Impossible")
 }

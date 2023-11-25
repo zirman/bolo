@@ -19,6 +19,7 @@ fun TypeTile.isCraterLikeTile(): Int {
         TypeTile.River,
         TypeTile.Sea,
         TypeTile.SeaMined,
+        TypeTile.Boat,
         -> 1
 
         else -> 0
@@ -133,15 +134,15 @@ fun TypeTile.isWaterLikeToWaterTile(): Int {
     }
 }
 
-fun TypeTile.isWallLikeTile(): Boolean {
+fun TypeTile.isWallLikeTile(): Int {
     return when (this) {
         TypeTile.Rubble,
         TypeTile.RubbleMined,
         TypeTile.Wall,
         TypeTile.DamagedWall,
-        -> true
+        -> 1
 
-        else -> false
+        else -> 0
     }
 }
 
