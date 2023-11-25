@@ -287,26 +287,50 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                     .or(getTypeTile(x + 1, y).isCraterLikeTile().shl(2))
                     .or(getTypeTile(x, y + 1).isCraterLikeTile().shl(3))
             ) {
-                12 -> ImageTile.Crater0
-                13 -> ImageTile.Crater1
-                9 -> ImageTile.Crater2
-                14 -> ImageTile.Crater3
-                15 -> ImageTile.Crater4
-                11 -> ImageTile.Crater5
-                6 -> ImageTile.Crater6
-                7 -> ImageTile.Crater7
-                3 -> ImageTile.Crater8
-                4 -> ImageTile.Crater9
-                5 -> ImageTile.Crater10
-                1 -> ImageTile.Crater11
-                8 -> ImageTile.Crater12
-                10 -> ImageTile.Crater13
-                2 -> ImageTile.Crater14
-                0 -> ImageTile.Crater15
+                0 -> ImageTile.Crater0
+                4 -> ImageTile.Crater1
+                5 -> ImageTile.Crater2
+                1 -> ImageTile.Crater3
+                8 -> ImageTile.Crater4
+                12 -> ImageTile.Crater5
+                13 -> ImageTile.Crater6
+                9 -> ImageTile.Crater7
+                10 -> ImageTile.Crater8
+                14 -> ImageTile.Crater9
+                15 -> ImageTile.Crater10
+                11 -> ImageTile.Crater11
+                2 -> ImageTile.Crater12
+                6 -> ImageTile.Crater13
+                7 -> ImageTile.Crater14
+                3 -> ImageTile.Crater15
                 else -> throw IllegalStateException("Impossible")
             }
 
-            TypeTile.CraterMined -> ImageTile.CraterMined
+            TypeTile.CraterMined -> when (
+                getTypeTile(x - 1, y).isCraterLikeTile()
+                    .or(getTypeTile(x, y - 1).isCraterLikeTile().shl(1))
+                    .or(getTypeTile(x + 1, y).isCraterLikeTile().shl(2))
+                    .or(getTypeTile(x, y + 1).isCraterLikeTile().shl(3))
+            ) {
+                0 -> ImageTile.CraterMined0
+                4 -> ImageTile.CraterMined1
+                5 -> ImageTile.CraterMined2
+                1 -> ImageTile.CraterMined3
+                8 -> ImageTile.CraterMined4
+                12 -> ImageTile.CraterMined5
+                13 -> ImageTile.CraterMined6
+                9 -> ImageTile.CraterMined7
+                10 -> ImageTile.CraterMined8
+                14 -> ImageTile.CraterMined9
+                15 -> ImageTile.CraterMined10
+                11 -> ImageTile.CraterMined11
+                2 -> ImageTile.CraterMined12
+                6 -> ImageTile.CraterMined13
+                7 -> ImageTile.CraterMined14
+                3 -> ImageTile.CraterMined15
+                else -> throw IllegalStateException("Impossible")
+            }
+
             TypeTile.Road -> ImageTile.Road
             TypeTile.RoadMined -> ImageTile.RoadMined
             TypeTile.Rubble -> ImageTile.Rubble
