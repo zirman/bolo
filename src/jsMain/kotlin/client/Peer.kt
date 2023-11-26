@@ -3,8 +3,8 @@ package client
 import kotlinx.serialization.Serializable
 
 data class Peer(
-    val peerConnection: dynamic,
-    val dataChannel: dynamic,
+    val peerConnection: Any,
+    val dataChannel: Any,
     var tank: PeerTank? = null,
     var shells: List<PeerShell> = emptyList(),
     var builder: PeerBuilder? = null,

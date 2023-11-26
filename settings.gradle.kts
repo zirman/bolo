@@ -14,7 +14,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            val kotlin = "1.9.21"
+            val kotlin = "2.0.0-Beta1"
 
             version(
                 /* alias = */ "kotlin",

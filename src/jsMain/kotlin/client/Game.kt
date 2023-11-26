@@ -307,8 +307,8 @@ class GameImpl(
             if (peers.isNotEmpty()) {
                 val dataChannel = peers.values.toList()[frameCount % peers.size].dataChannel
 
-                if (dataChannel.readyState == "open") {
-                    dataChannel.send(
+                if (dataChannel.asDynamic().readyState == "open") {
+                    dataChannel.asDynamic().send(
                         PeerUpdate(
                             tank = tank?.let { tank ->
                                 PeerTank(
@@ -571,16 +571,19 @@ class GameImpl(
 
                             is FrameServer.Signal.Offer -> {
                                 peerConnection
+                                    .asDynamic()
                                     .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
                                     .unsafeCast<Promise<Any?>>().await()
 
-                                peerConnection.createAnswer()
+                                peerConnection
+                                    .asDynamic()
+                                    .createAnswer()
                                     .unsafeCast<Promise<Any?>>().await()
-                                    .let { peerConnection.setLocalDescription(it) }
+                                    .let { peerConnection.asDynamic().setLocalDescription(it) }
                                     .unsafeCast<Promise<Any?>>().await()
 
                                 run {
-                                    peerConnection.localDescription.unsafeCast<Any?>()
+                                    peerConnection.asDynamic().localDescription.unsafeCast<Any?>()
                                         ?: throw IllegalStateException("localDescription == null")
                                 }
                                     .let { answer ->
@@ -595,12 +598,14 @@ class GameImpl(
 
                             is FrameServer.Signal.Answer -> {
                                 peerConnection
+                                    .asDynamic()
                                     .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
                                     .unsafeCast<Promise<Any?>>().await()
                             }
 
                             is FrameServer.Signal.IceCandidate -> {
                                 peerConnection
+                                    .asDynamic()
                                     .addIceCandidate(JSON.parse(frameServer.iceCandidate))
                                     .unsafeCast<Promise<Any?>>().await()
                             }
