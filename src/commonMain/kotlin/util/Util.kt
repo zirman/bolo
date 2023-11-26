@@ -235,17 +235,13 @@ fun getMaxAngularVelocity(terrain: TerrainTile): Float =
 fun isBuildable(terrain: TerrainTile): Boolean =
     when (terrain) {
         TerrainTile.Sea,
-        TerrainTile.River,
         TerrainTile.SeaMined,
         TerrainTile.Boat,
         TerrainTile.Wall,
-        TerrainTile.WallDamaged0,
-        TerrainTile.WallDamaged1,
-        TerrainTile.WallDamaged2,
-        TerrainTile.WallDamaged3,
         TerrainTile.Tree,
         -> false
 
+        TerrainTile.River,
         TerrainTile.Swamp0,
         TerrainTile.Swamp1,
         TerrainTile.Swamp2,
@@ -266,5 +262,9 @@ fun isBuildable(terrain: TerrainTile): Boolean =
         TerrainTile.TreeMined,
         TerrainTile.RubbleMined,
         TerrainTile.GrassMined,
+        TerrainTile.WallDamaged0,
+        TerrainTile.WallDamaged1,
+        TerrainTile.WallDamaged2,
+        TerrainTile.WallDamaged3,
         -> true
     }

@@ -55,8 +55,8 @@ class BmapCodeReader(
         }
     }
 
-    private fun matchString(str: String) {
-        val bytes = str.encodeToByteArray()
+    private fun matchString(string: String) {
+        val bytes = string.encodeToByteArray()
 
         for (byte in bytes) {
             offset.assertLessThan(buffer.size)
@@ -65,9 +65,9 @@ class BmapCodeReader(
         }
     }
 
-    private fun matchUByte(c: UByte) {
+    private fun matchUByte(uByte: UByte) {
         offset.assertLessThan(buffer.size)
-        buffer[offset].assertEqual(c)
+        buffer[offset].assertEqual(uByte)
         offset++
     }
 

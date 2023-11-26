@@ -61,8 +61,8 @@ class BmapDamageReader(
         }
     }
 
-    private fun matchString(str: String) {
-        val bytes = str.encodeToByteArray().toUByteArray()
+    private fun matchString(string: String) {
+        val bytes = string.encodeToByteArray().toUByteArray()
 
         for (byte in bytes) {
             offset.assertLessThan(buffer.size)
@@ -71,9 +71,9 @@ class BmapDamageReader(
         }
     }
 
-    private fun matchUByte(c: UByte) {
+    private fun matchUByte(uByte: UByte) {
         offset.assertLessThan(buffer.size)
-        buffer[offset].assertEqual(c)
+        buffer[offset].assertEqual(uByte)
         offset++
     }
 
@@ -84,19 +84,19 @@ class BmapDamageReader(
         return x
     }
 
-    private fun getNibbleReader(dataLen: Int): NibbleReader {
-        (offset + dataLen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLen))
-        offset += dataLen
+    private fun getNibbleReader(dataLength: Int): NibbleReader {
+        (offset + dataLength).assertLessThanOrEqual(buffer.size)
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLength))
+        offset += dataLength
         return nibbleReader
     }
 
     private fun readRun(): Run {
-        val dataLen: Int = readUByte().toInt()
+        val dataLength: Int = readUByte().toInt()
         val y: Int = readUByte().toInt()
         val startX: Int = readUByte().toInt()
         val endX: Int = readUByte().toInt()
-        val data = getNibbleReader(dataLen - 4)
-        return Run(dataLen, y, startX, endX, data)
+        val data = getNibbleReader(dataLength - 4)
+        return Run(dataLength, y, startX, endX, data)
     }
 }

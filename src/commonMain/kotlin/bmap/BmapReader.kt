@@ -138,8 +138,8 @@ fun Entity.Pill.isSolid(): Boolean =
 fun Entity.Base.isSolid(owner: Int): Boolean =
     ref.armor > 0 && (ref.owner == 0xff || ref.owner == owner).not()
 
-fun Entity.isSolid(owner: Int): Boolean =
-    when (this) {
+fun Entity.isSolid(owner: Int): Boolean {
+    return when (this) {
         is Entity.Pill -> isSolid()
         is Entity.Base -> isSolid(owner)
         is Entity.Terrain ->
@@ -179,6 +179,7 @@ fun Entity.isSolid(owner: Int): Boolean =
                 -> false
             }
     }
+}
 
 sealed interface Entity {
     data class Pill(val ref: bmap.Pill) : Entity
@@ -211,7 +212,7 @@ data class Base(
 data class StartInfo(
     val x: Int,
     val y: Int,
-    val dir: Int,
+    val direction: Int,
 )
 
 data class Run(
@@ -305,8 +306,8 @@ class BmapReader(
         }
     }
 
-    private fun matchString(str: String) {
-        val bytes = str.encodeToByteArray()
+    private fun matchString(string: String) {
+        val bytes = string.encodeToByteArray()
 
         for (byte in bytes) {
             offset.assertLessThan(buffer.size)
@@ -315,9 +316,9 @@ class BmapReader(
         }
     }
 
-    private fun matchUByte(c: UByte) {
+    private fun matchUByte(uByte: UByte) {
         offset.assertLessThan(buffer.size)
-        buffer[offset].assertEqual(c)
+        buffer[offset].assertEqual(uByte)
         offset++
     }
 
@@ -346,10 +347,10 @@ class BmapReader(
         return a
     }
 
-    private fun getNibbleReader(dataLen: Int): NibbleReader {
-        (offset + dataLen).assertLessThanOrEqual(buffer.size)
-        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLen))
-        offset += dataLen
+    private fun getNibbleReader(dataLength: Int): NibbleReader {
+        (offset + dataLength).assertLessThanOrEqual(buffer.size)
+        val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLength))
+        offset += dataLength
         return nibbleReader
     }
 
@@ -377,16 +378,16 @@ class BmapReader(
         val x = readUByte().toInt()
         val y = readUByte().toInt()
         val dir = readMaxUByte(15.toUByte()).toInt()
-        return StartInfo(x = x, y = y, dir = dir)
+        return StartInfo(x = x, y = y, direction = dir)
     }
 
     private fun readRun(): Run {
-        val dataLen = readUByte().toInt()
+        val dataLength = readUByte().toInt()
         val y = readUByte().toInt()
         val startX = readUByte().toInt()
         val endX = readUByte().toInt()
-        val data = getNibbleReader(dataLen - 4)
-        return Run(dataLength = dataLen, y = y, startX = startX, endX = endX, data = data)
+        val data = getNibbleReader(dataLength - 4)
+        return Run(dataLength = dataLength, y = y, startX = startX, endX = endX, data = data)
     }
 }
 

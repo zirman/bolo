@@ -67,19 +67,19 @@ fun terrainToNibble(t: TerrainTile): Int =
     }
 
 fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
-    fun writeString(str: String) {
-        for (c in str.encodeToByteArray().toUByteArray()) {
-            add(c)
+    fun writeString(string: String) {
+        for (uByte in string.encodeToByteArray().toUByteArray()) {
+            add(uByte)
         }
     }
 
-    fun writeUByte(n: UByte) {
-        add(n)
+    fun writeUByte(uByte: UByte) {
+        add(uByte)
     }
 
-    fun writeBuffer(buf: List<UByte>) {
-        for (byte in buf) {
-            add(byte)
+    fun writeBuffer(buffer: List<UByte>) {
+        for (uByte in buffer) {
+            add(uByte)
         }
     }
 
@@ -109,7 +109,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     fun writeStart(start: StartInfo) {
         writeUByte(start.x.toUByte())
         writeUByte(start.y.toUByte())
-        writeUByte(start.dir.toUByte())
+        writeUByte(start.direction.toUByte())
     }
 
     writeString("BMAPBOLO")
@@ -183,19 +183,19 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
 }
 
 fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
-    fun writeString(str: String) {
-        for (c in str.encodeToByteArray().toUByteArray()) {
-            add(c)
+    fun writeString(string: String) {
+        for (uByte in string.encodeToByteArray().toUByteArray()) {
+            add(uByte)
         }
     }
 
-    fun writeUByte(n: UByte) {
-        add(n)
+    fun writeUByte(uByte: UByte) {
+        add(uByte)
     }
 
-    fun writeBuffer(buf: List<UByte>) {
-        for (byte in buf) {
-            add(byte)
+    fun writeBuffer(buffer: List<UByte>) {
+        for (uByte in buffer) {
+            add(uByte)
         }
     }
 
@@ -266,19 +266,19 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
 }
 
 fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
-    fun writeString(str: String) {
-        for (c in str.encodeToByteArray().toUByteArray()) {
-            add(c)
+    fun writeString(string: String) {
+        for (uByte in string.encodeToByteArray().toUByteArray()) {
+            add(uByte)
         }
     }
 
-    fun writeUByte(n: UByte) {
-        add(n)
+    fun writeUByte(uByte: UByte) {
+        add(uByte)
     }
 
-    fun writeBuffer(buf: List<UByte>) {
-        for (byte in buf) {
-            add(byte)
+    fun writeBuffer(buffer: List<UByte>) {
+        for (uByte in buffer) {
+            add(uByte)
         }
     }
 

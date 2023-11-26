@@ -74,7 +74,7 @@ class TankImpl(
     override var position: V2 = v2(x = start.x.toFloat() + (1f / 2f), y = start.y.toFloat() + (1f / 2f))
         private set
 
-    override var bearing: Float = start.dir.toFloat() * (Float.pi / 8f)
+    override var bearing: Float = start.direction.toFloat() * (Float.pi / 8f)
         private set
 
     override var sightRange: Float = 6f

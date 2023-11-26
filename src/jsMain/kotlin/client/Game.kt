@@ -545,6 +545,10 @@ class GameImpl(
                                 TerrainTile.Rubble1,
                                 TerrainTile.Rubble2,
                                 TerrainTile.Rubble3,
+                                TerrainTile.WallDamaged0,
+                                TerrainTile.WallDamaged1,
+                                TerrainTile.WallDamaged2,
+                                TerrainTile.WallDamaged3,
                                 -> tank?.let { tank ->
                                     if (tank.hasBuilder) {
                                         launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)

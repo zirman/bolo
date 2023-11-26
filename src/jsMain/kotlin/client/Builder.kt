@@ -41,101 +41,95 @@ class BuilderImpl(
 
         private fun Entity.builderSpeed(owner: Int): Float =
             when (this) {
-                is Entity.Pill ->
-                    if (ref.armor > 0) 0f else MAX_SPEED
+                is Entity.Pill -> if (ref.armor > 0) 0f else MAX_SPEED
+                is Entity.Base -> if (ref.owner != 0xff && ref.owner != owner && ref.armor >= 5) 0f else MAX_SPEED
+                is Entity.Terrain -> when (terrain) {
+                    TerrainTile.Swamp0,
+                    TerrainTile.Swamp1,
+                    TerrainTile.Swamp2,
+                    TerrainTile.Swamp3,
+                    TerrainTile.Crater,
+                    TerrainTile.Rubble0,
+                    TerrainTile.Rubble1,
+                    TerrainTile.Rubble2,
+                    TerrainTile.Rubble3,
+                    TerrainTile.SwampMined,
+                    TerrainTile.CraterMined,
+                    TerrainTile.RubbleMined,
+                    -> MAX_SPEED / 4f
 
-                is Entity.Base ->
-                    if (ref.owner != 0xff && ref.owner != owner && ref.armor >= 5) 0f else MAX_SPEED
+                    TerrainTile.Tree,
+                    TerrainTile.TreeMined,
+                    -> MAX_SPEED / 2f
 
-                is Entity.Terrain ->
-                    when (terrain) {
-                        TerrainTile.Swamp0,
-                        TerrainTile.Swamp1,
-                        TerrainTile.Swamp2,
-                        TerrainTile.Swamp3,
-                        TerrainTile.Crater,
-                        TerrainTile.Rubble0,
-                        TerrainTile.Rubble1,
-                        TerrainTile.Rubble2,
-                        TerrainTile.Rubble3,
-                        TerrainTile.SwampMined,
-                        TerrainTile.CraterMined,
-                        TerrainTile.RubbleMined,
-                        -> MAX_SPEED / 4f
+                    TerrainTile.Grass0,
+                    TerrainTile.Grass1,
+                    TerrainTile.Grass2,
+                    TerrainTile.Grass3,
+                    TerrainTile.GrassMined,
+                    TerrainTile.Road,
+                    TerrainTile.Boat,
+                    TerrainTile.RoadMined,
+                    -> MAX_SPEED
 
-                        TerrainTile.Tree,
-                        TerrainTile.TreeMined,
-                        -> MAX_SPEED / 2f
+                    TerrainTile.River,
+                    TerrainTile.Sea,
+                    TerrainTile.Wall,
+                    TerrainTile.WallDamaged0,
+                    TerrainTile.WallDamaged1,
+                    TerrainTile.WallDamaged2,
+                    TerrainTile.WallDamaged3,
+                    TerrainTile.SeaMined,
+                    -> {
 
-                        TerrainTile.Grass0,
-                        TerrainTile.Grass1,
-                        TerrainTile.Grass2,
-                        TerrainTile.Grass3,
-                        TerrainTile.GrassMined,
-                        TerrainTile.Road,
-                        TerrainTile.Boat,
-                        TerrainTile.RoadMined,
-                        -> MAX_SPEED
-
-                        TerrainTile.River,
-                        TerrainTile.Sea,
-                        TerrainTile.Wall,
-                        TerrainTile.WallDamaged0,
-                        TerrainTile.WallDamaged1,
-                        TerrainTile.WallDamaged2,
-                        TerrainTile.WallDamaged3,
-                        TerrainTile.SeaMined,
-                        -> 0f
+                        0f
                     }
+                }
             }
 
-        private fun Entity.isSolid(owner: Int): Boolean =
-            when (this) {
-                is Entity.Pill ->
-                    ref.armor > 0
+        private fun Entity.isSolid(owner: Int): Boolean {
+            return when (this) {
+                is Entity.Pill -> ref.armor > 0
+                is Entity.Base -> ref.owner != 0xff && ref.owner != owner && ref.armor >= 5
+                is Entity.Terrain -> when (terrain) {
+                    TerrainTile.Wall,
+                    TerrainTile.WallDamaged0,
+                    TerrainTile.WallDamaged1,
+                    TerrainTile.WallDamaged2,
+                    TerrainTile.WallDamaged3,
+                    -> true
 
-                is Entity.Base ->
-                    ref.owner != 0xff && ref.owner != owner && ref.armor >= 5
+                    TerrainTile.River -> true
+                    TerrainTile.Sea,
+                    TerrainTile.SeaMined,
+                    -> true
 
-                is Entity.Terrain ->
-                    when (terrain) {
-                        TerrainTile.Wall,
-                        TerrainTile.WallDamaged0,
-                        TerrainTile.WallDamaged1,
-                        TerrainTile.WallDamaged2,
-                        TerrainTile.WallDamaged3,
-                        -> true
-
-                        TerrainTile.River -> true
-                        TerrainTile.Sea,
-                        TerrainTile.SeaMined,
-                        -> true
-
-                        TerrainTile.Swamp0,
-                        TerrainTile.Swamp1,
-                        TerrainTile.Swamp2,
-                        TerrainTile.Swamp3,
-                        TerrainTile.Crater,
-                        TerrainTile.Road,
-                        TerrainTile.Tree,
-                        TerrainTile.Rubble0,
-                        TerrainTile.Rubble1,
-                        TerrainTile.Rubble2,
-                        TerrainTile.Rubble3,
-                        TerrainTile.Grass0,
-                        TerrainTile.Grass1,
-                        TerrainTile.Grass2,
-                        TerrainTile.Grass3,
-                        TerrainTile.Boat,
-                        TerrainTile.SwampMined,
-                        TerrainTile.CraterMined,
-                        TerrainTile.RoadMined,
-                        TerrainTile.TreeMined,
-                        TerrainTile.RubbleMined,
-                        TerrainTile.GrassMined,
-                        -> false
-                    }
+                    TerrainTile.Swamp0,
+                    TerrainTile.Swamp1,
+                    TerrainTile.Swamp2,
+                    TerrainTile.Swamp3,
+                    TerrainTile.Crater,
+                    TerrainTile.Road,
+                    TerrainTile.Tree,
+                    TerrainTile.Rubble0,
+                    TerrainTile.Rubble1,
+                    TerrainTile.Rubble2,
+                    TerrainTile.Rubble3,
+                    TerrainTile.Grass0,
+                    TerrainTile.Grass1,
+                    TerrainTile.Grass2,
+                    TerrainTile.Grass3,
+                    TerrainTile.Boat,
+                    TerrainTile.SwampMined,
+                    TerrainTile.CraterMined,
+                    TerrainTile.RoadMined,
+                    TerrainTile.TreeMined,
+                    TerrainTile.RubbleMined,
+                    TerrainTile.GrassMined,
+                    -> false
+                }
             }
+        }
     }
 
     override var position: V2 = startPosition
@@ -198,7 +192,7 @@ class BuilderImpl(
                     is BuilderMission.BuildBoat -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, TerrainTile.Wall) { success ->
+                        buildTerrain(targetX, targetY, TerrainTile.Boat) { success ->
                             if (success) {
                                 material -= 4
                             }
@@ -247,7 +241,15 @@ class BuilderImpl(
     private fun moveTo(delta: Float, targetPosition: V2): Boolean {
         val diff = targetPosition.sub(position)
         val mag = diff.mag()
-        val speed = this[position.x.toInt(), position.y.toInt()].builderSpeed(owner.int)
+        val x = position.x.toInt()
+        val y = position.y.toInt()
+        val speed = this[x, y].builderSpeed(owner.int).let {
+            if (it == 0.0f && x == targetX && y == targetY) {
+                MAX_SPEED
+            } else {
+                it
+            }
+        }
         val move = speed * delta
 
         return if (mag >= move) {
@@ -268,31 +270,36 @@ class BuilderImpl(
         val ly: Float = y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        val lxc: Boolean = lx < BUILDER_RADIUS && bmap.getEntity(fx - 1, fy).isSolid(owner.int)
-        val hxc: Boolean = hx < BUILDER_RADIUS && bmap.getEntity(fx + 1, fy).isSolid(owner.int)
-        val lyc: Boolean = ly < BUILDER_RADIUS && bmap.getEntity(fx, fy - 1).isSolid(owner.int)
-        val hyc: Boolean = hy < BUILDER_RADIUS && bmap.getEntity(fx, fy + 1).isSolid(owner.int)
+        fun isSolid(x: Int, y: Int): Boolean {
+            return (x != targetX ||
+                    y != targetY) && bmap.getEntity(x, y).isSolid(owner.int)
+        }
+
+        val lxc: Boolean = lx < BUILDER_RADIUS && isSolid(fx - 1, fy)
+        val hxc: Boolean = hx < BUILDER_RADIUS && isSolid(fx + 1, fy)
+        val lyc: Boolean = ly < BUILDER_RADIUS && isSolid(fx, fy - 1)
+        val hyc: Boolean = hy < BUILDER_RADIUS && isSolid(fx, fy + 1)
 
         var sqr: Float = lx * lx + ly * ly
-        if (!lxc && !lyc && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner.int)) {
+        if (!lxc && !lyc && sqr < rr && isSolid(fx - 1, fy - 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
-        if (!hxc && !lyc && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner.int)) {
+        if (!hxc && !lyc && sqr < rr && isSolid(fx + 1, fy - 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
-        if (!lxc && !hyc && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner.int)) {
+        if (!lxc && !hyc && sqr < rr && isSolid(fx - 1, fy + 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
-        if (!hxc && !hyc && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner.int)) {
+        if (!hxc && !hyc && sqr < rr && isSolid(fx + 1, fy + 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
             return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }
