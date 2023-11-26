@@ -93,7 +93,7 @@ interface Game {
     suspend fun mineTerrain(x: Int, y: Int)
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
-    val tank: Tank?
+    var tank: Tank?
     val builder: Builder?
     var isBuilderInTank: Boolean
     operator fun get(x: Int, y: Int): Entity
@@ -123,7 +123,7 @@ class GameImpl(
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
 
     private val zoomLevel: Float = 2f
-    private val tanks = mutableListOf<Tank>()
+    override var tank: Tank? = null
     private val shells = mutableListOf<Shell>()
     private val builders = mutableListOf<Builder>()
 
@@ -135,7 +135,6 @@ class GameImpl(
         scope.launch { launchTank() }
     }
 
-    override val tank get() = tanks.firstOrNull { it.isVisible }
     override val builder get() = builders.firstOrNull()
 
 //    private suspend fun treeHarvest(x: Int, y: Int) {
@@ -275,22 +274,20 @@ class GameImpl(
                 }
             }
 
-            for (tank in tanks) {
-                if (tank.isVisible) {
-                    SpriteInstance(
-                        x = tank.position.x,
-                        y = tank.position.y,
-                        sprite = (if (tank.onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(tank.bearing),
-                    ).let { sprites.add(it) }
+            tank?.run {
+                SpriteInstance(
+                    x = position.x,
+                    y = position.y,
+                    sprite = (if (onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(bearing),
+                ).let { sprites.add(it) }
 
-                    val reticulePosition = tank.position.add(dirToVec(tank.bearing).scale(tank.sightRange))
+                val reticulePosition = position.add(dirToVec(bearing).scale(sightRange))
 
-                    SpriteInstance(
-                        x = reticulePosition.x,
-                        y = reticulePosition.y,
-                        sprite = Sprite.Reticule,
-                    ).let { sprites.add(it) }
-                }
+                SpriteInstance(
+                    x = reticulePosition.x,
+                    y = reticulePosition.y,
+                    sprite = Sprite.Reticule,
+                ).let { sprites.add(it) }
             }
 
             for (shell in shells) {
@@ -433,10 +430,12 @@ class GameImpl(
 
         handleMouseEvents(tick)
 
-        tanks.removeAll { it.job.isCompleted }
-
-        for (tank in tanks) {
-            tank.resumeWith(tick)
+        tank?.run {
+            if (job.isCompleted) {
+                tank = null
+            } else {
+                resumeWith(tick)
+            }
         }
 
         shells.removeAll { it.job.isCompleted }
@@ -835,7 +834,9 @@ class GameImpl(
     }
 
     override fun launchTank() {
-        tanks.add(getKoin().get())
+        if (tank == null) {
+            tank = getKoin().get()
+        }
     }
 
     override fun launchShell(
