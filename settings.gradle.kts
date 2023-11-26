@@ -28,7 +28,7 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "kotlinxSerialization",
-                /* version = */ "1.6.0"
+                /* version = */ "1.6.1"
             )
 
             version(
@@ -49,7 +49,7 @@ dependencyResolutionManagement {
             plugin(
                 /* alias = */ "versions",
                 /* id = */ "com.github.ben-manes.versions"
-            ).version("0.47.0")
+            ).version("0.50.0")
 
             library(
                 /* alias = */ "koinBom",
