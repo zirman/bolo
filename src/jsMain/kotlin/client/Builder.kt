@@ -233,7 +233,7 @@ class BuilderImpl(
             if (tank != null) {
                 if (moveTo(tick.delta, tank.position)) {
                     tank.material += material
-                    isBuilderInTank = true
+                    tank.hasBuilder = true
                     false
                 } else {
                     true

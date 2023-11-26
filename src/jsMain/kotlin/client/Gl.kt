@@ -174,7 +174,7 @@ enum class Sprite(val int: Int) {
     Explosion3(spriteInd(x = 3, y = 7)),
     Explosion4(spriteInd(x = 4, y = 7)),
     Explosion5(spriteInd(x = 5, y = 7)),
-    Lgm0(spriteInd(x = 7, y = 7)),
+    Lgm0(spriteInd(x = 6, y = 7)),
     Lgm1(spriteInd(x = 7, y = 7)),
     Parachute(spriteInd(x = 8, y = 7)),
     Reticule(spriteInd(x = 9, y = 7)),

@@ -10,6 +10,7 @@ import bmap.worldHeight
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import math.clampCycle
 import math.clampRange
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -49,13 +50,14 @@ interface Tank : GeneratorLoop<Tick> {
     val sightRange: Float
     val onBoat: Boolean
     var material: Int
-    val isVisible: Boolean
+    var hasBuilder: Boolean
 }
 
 @Suppress("NAME_SHADOWING")
 class TankImpl(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     game: Game,
+    override var hasBuilder: Boolean,
 ) : GeneratorLoopImpl<Tick>(scope), Tank, Game by game {
     companion object {
         private const val TANK_RADIUS: Float = 3f / 8f
@@ -82,9 +84,6 @@ class TankImpl(
         private set
 
     override var material: Int = 0
-
-    override var isVisible: Boolean = true
-        private set
 
     init {
         center = v2(x = start.x.toFloat() + (1f / 2f), y = worldHeight - (start.y.toFloat() + (1f / 2f)))
@@ -120,7 +119,6 @@ class TankImpl(
             // check for destruction
             if (bmap.getEntity(onX, onY).isSolid(owner.int)) {
                 var time = 0f
-                isVisible = false
                 // super boom
                 // drop pills
 
@@ -129,11 +127,10 @@ class TankImpl(
                     time < 5f
                 }
 
-                launchTank()
+                scope.launch { launchTank(hasBuilder) }
                 false
             } else if (!onBoat && onTerrain == TerrainTile.Sea) {
                 var time = 0f
-                isVisible = false
                 // drop pills
 
                 doWhile { tick ->
@@ -141,11 +138,10 @@ class TankImpl(
                     time < 5f
                 }
 
-                launchTank()
+                scope.launch { launchTank(hasBuilder) }
                 false
             } else if (tankArmor <= 0) {
                 var time = 0f
-                isVisible = false
                 // fireball
                 // drop pills
 
@@ -154,11 +150,10 @@ class TankImpl(
                     time < 5f
                 }
 
-                launchTank()
+                scope.launch { launchTank(hasBuilder) }
                 false
             } else if (onTerrain == TerrainTile.SeaMined) {
                 var time = 0f
-                isVisible = false
                 // boom
                 // drop pills
 

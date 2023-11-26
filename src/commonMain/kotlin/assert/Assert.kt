@@ -4,6 +4,10 @@ package assert
 
 inline fun <reified B : Any> Any?.assert(message: String): B = (this as? B) ?: throw IllegalStateException(message)
 
+inline fun <reified A : Any> A?.assertNull(message: String? = null) {
+    if (this != null) throw IllegalStateException(message ?: "Expected null")
+}
+
 inline fun <reified A : Any> A?.assertNotNull(message: String): A = this ?: throw IllegalStateException(message)
 
 fun Int.assertLessThan(max: Int): Int = if (this < max) this else throw IllegalStateException("assertion failed $this < $max")

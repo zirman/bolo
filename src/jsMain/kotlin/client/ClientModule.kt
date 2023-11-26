@@ -115,10 +115,11 @@ val clientModule = module {
         )
     }
 
-    factory<Tank> {
+    factory<Tank> { (hasBuilder: Boolean) ->
         TankImpl(
             scope = get(),
             game = get(),
+            hasBuilder = hasBuilder,
         )
     }
 

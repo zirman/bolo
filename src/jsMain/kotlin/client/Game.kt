@@ -2,6 +2,7 @@
 
 package client
 
+import assert.assertNull
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
@@ -85,7 +86,7 @@ interface Game {
     val owner: Owner
     val sendChannel: SendChannel<Frame>
     var center: V2
-    fun launchTank()
+    fun launchTank(hasBuilder: Boolean)
     fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
     fun launchBuilder(startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
@@ -93,9 +94,8 @@ interface Game {
     suspend fun mineTerrain(x: Int, y: Int)
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
-    var tank: Tank?
+    val tank: Tank?
     val builder: Builder?
-    var isBuilderInTank: Boolean
     operator fun get(x: Int, y: Int): Entity
 }
 
@@ -113,7 +113,6 @@ class GameImpl(
 ) : Game, KoinComponent {
     override val random = Random(Date.now().toInt())
     override var center: V2 = v2Origin
-    override var isBuilderInTank: Boolean = true
 
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
 
@@ -123,19 +122,22 @@ class GameImpl(
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
 
     private val zoomLevel: Float = 2f
+
     override var tank: Tank? = null
+        private set
+
+    override var builder: Builder? = null
+        private set
+
     private val shells = mutableListOf<Shell>()
-    private val builders = mutableListOf<Builder>()
 
     init {
         launchReceiverFlow(scope)
         launchServerFlow(scope)
         launchGameLoop(scope)
         // allow Game to finish instantiating before injecting game into Tank
-        scope.launch { launchTank() }
+        scope.launch { launchTank(hasBuilder = true) }
     }
-
-    override val builder get() = builders.firstOrNull()
 
 //    private suspend fun treeHarvest(x: Int, y: Int) {
 //        buildQueue.add(BuildOp.Terrain(Terrain.Grass3, x, y))
@@ -215,7 +217,7 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    private fun render(frameCount: Int, tileProgram: TileProgram, spriteProgram: SpriteProgram) {
+    private fun render(frameCount: Int, ticksPerSec: Float, tileProgram: TileProgram, spriteProgram: SpriteProgram) {
         gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
         gl.disable(DEPTH_TEST)
 
@@ -235,12 +237,16 @@ class GameImpl(
 
             val sprites = mutableListOf<SpriteInstance>()
 
-            for (builder in builders) {
+            builder?.run {
                 SpriteInstance(
-                    x = builder.position.x,
-                    y = builder.position.y,
-                    sprite = Sprite.Lgm0,
-                ).let { sprites.add(it) }
+                    x = position.x,
+                    y = position.y,
+                    sprite = when (((2 * frameCount) / ticksPerSec.toInt()) % 2) {
+                        0 -> Sprite.Lgm0
+                        1 -> Sprite.Lgm1
+                        else -> never()
+                    },
+                ).run { sprites.add(this) }
             }
 
             for ((_, peer) in peers) {
@@ -438,19 +444,21 @@ class GameImpl(
             }
         }
 
+        builder?.run {
+            if (job.isCompleted) {
+                builder = null
+            } else {
+                resumeWith(tick)
+            }
+        }
+
         shells.removeAll { it.job.isCompleted }
 
         for (shell in shells) {
             shell.resumeWith(tick)
         }
 
-        builders.removeAll { it.job.isCompleted }
-
-        for (builder in builders) {
-            builder.resumeWith(tick)
-        }
-
-        render(frameCount, tileProgram.await(), spriteProgram.await())
+        render(frameCount, ticksPerSec, tileProgram.await(), spriteProgram.await())
     }
 
     private fun handleMouseEvents(tick: Tick) {
@@ -470,7 +478,7 @@ class GameImpl(
                 val sqrY: Int =
                     (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
-                if (isBuilderInTank &&
+                if (tank?.hasBuilder == true &&
                     sqrX in border..<(worldWidth - border) &&
                     sqrY in border..<(worldHeight - border)
                 ) {
@@ -478,27 +486,87 @@ class GameImpl(
                         is BuilderMode.Tree -> {
                             if (bmap[sqrX, sqrY] == TerrainTile.Tree) {
                                 tank?.let { tank ->
-                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                    isBuilderInTank = false
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                        tank.hasBuilder = false
+                                    }
                                 }
                             }
                         }
 
                         is BuilderMode.Road -> {
-                            // TODO: proper check
-                            if (bmap[sqrX, sqrY] == TerrainTile.Grass3) {
-                                tank?.let { tank ->
-                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
-                                    isBuilderInTank = false
+                            when (bmap[sqrX, sqrY]) {
+                                TerrainTile.Grass0,
+                                TerrainTile.Grass1,
+                                TerrainTile.Grass2,
+                                TerrainTile.Grass3,
+                                TerrainTile.Swamp0,
+                                TerrainTile.Swamp1,
+                                TerrainTile.Swamp2,
+                                TerrainTile.Swamp3,
+                                TerrainTile.Road,
+                                TerrainTile.Crater,
+                                TerrainTile.Rubble0,
+                                TerrainTile.Rubble1,
+                                TerrainTile.Rubble2,
+                                TerrainTile.Rubble3,
+                                -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                TerrainTile.Tree -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                else -> {
                                 }
                             }
                         }
 
                         is BuilderMode.Wall -> {
-                            if (bmap[sqrX, sqrY] == TerrainTile.Grass3) {
-                                tank?.let { tank ->
-                                    launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)
-                                    isBuilderInTank = false
+                            when (bmap[sqrX, sqrY]) {
+                                TerrainTile.Grass0,
+                                TerrainTile.Grass1,
+                                TerrainTile.Grass2,
+                                TerrainTile.Grass3,
+                                TerrainTile.Swamp0,
+                                TerrainTile.Swamp1,
+                                TerrainTile.Swamp2,
+                                TerrainTile.Swamp3,
+                                TerrainTile.Road,
+                                TerrainTile.Crater,
+                                TerrainTile.Rubble0,
+                                TerrainTile.Rubble1,
+                                TerrainTile.Rubble2,
+                                TerrainTile.Rubble3,
+                                -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                TerrainTile.Tree -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                TerrainTile.River -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildBoat)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                else -> {
                                 }
                             }
                         }
@@ -527,6 +595,32 @@ class GameImpl(
                         }
 
                         is BuilderMode.Mine -> {
+                            when (bmap[sqrX, sqrY]) {
+                                TerrainTile.Tree,
+                                TerrainTile.Grass0,
+                                TerrainTile.Grass1,
+                                TerrainTile.Grass2,
+                                TerrainTile.Grass3,
+                                TerrainTile.Swamp0,
+                                TerrainTile.Swamp1,
+                                TerrainTile.Swamp2,
+                                TerrainTile.Swamp3,
+                                TerrainTile.Road,
+                                TerrainTile.Crater,
+                                TerrainTile.Rubble0,
+                                TerrainTile.Rubble1,
+                                TerrainTile.Rubble2,
+                                TerrainTile.Rubble3,
+                                -> tank?.let { tank ->
+                                    if (tank.hasBuilder) {
+                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.PlaceMine)
+                                        tank.hasBuilder = false
+                                    }
+                                }
+
+                                else -> {
+                                }
+                            }
                         }
                     }
                 }
@@ -833,10 +927,18 @@ class GameImpl(
         }
     }
 
-    override fun launchTank() {
-        if (tank == null) {
-            tank = getKoin().get()
-        }
+    override fun launchTank(hasBuilder: Boolean) {
+        tank = getKoin().get { parametersOf(hasBuilder) }
+    }
+
+    override fun launchBuilder(
+        startPosition: V2,
+        targetX: Int,
+        targetY: Int,
+        buildOp: BuilderMission,
+    ) {
+        builder.assertNull()
+        builder = getKoin().get { parametersOf(startPosition, targetX, targetY, buildOp) }
     }
 
     override fun launchShell(
@@ -846,15 +948,6 @@ class GameImpl(
         sightRange: Float,
     ) {
         shells.add(getKoin().get { parametersOf(startPosition, bearing, onBoat, sightRange) })
-    }
-
-    override fun launchBuilder(
-        startPosition: V2,
-        targetX: Int,
-        targetY: Int,
-        buildOp: BuilderMission,
-    ) {
-        builders.add(getKoin().get { parametersOf(startPosition, targetX, targetY, buildOp) })
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
