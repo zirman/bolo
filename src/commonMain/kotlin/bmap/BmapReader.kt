@@ -14,6 +14,7 @@ import util.pillArmorMax
 import util.pillSpeedMax
 import util.pillsMax
 import util.startsMax
+import kotlin.math.min
 
 const val worldWidth: Int = 256
 const val worldHeight: Int = 256
@@ -333,8 +334,8 @@ class BmapReader(
         offset.assertLessThan(buffer.size)
         val x: UByte = buffer[offset]
         offset++
-        x.assertLessThanOrEqual(max)
-        return x
+        // x.assertLessThanOrEqual(max)
+        return min(x.toInt(), max.toInt()).toUByte()
     }
 
     private fun <T> readMulti(n: Int, read: () -> T): List<T> {

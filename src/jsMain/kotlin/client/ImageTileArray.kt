@@ -302,36 +302,36 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
             TypeTile.Road -> {
                 when (isLikeBits(x, y) { isRoadLikeTile() }) {
                     0 -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
-                        15 -> ImageTile.Road30
-                        5 -> ImageTile.Road23
-                        10 -> ImageTile.Road21
-                        else -> ImageTile.Road10
+                        5 -> ImageTile.Road10
+                        15 -> ImageTile.Road28
+                        10 -> ImageTile.Road29
+                        else -> ImageTile.Road7
                     }
 
                     1, 4, 5 -> when (
                         getTypeTile(x, y - 1).isWaterLikeToLandTile()
                             .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road21
-                        else -> ImageTile.Road1
+                        3 -> ImageTile.Road29
+                        else -> ImageTile.Road23
                     }
 
                     2, 8, 10 -> when (
                         getTypeTile(x - 1, y).isWaterLikeToLandTile()
                             .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road23
-                        else -> ImageTile.Road3
+                        3 -> ImageTile.Road10
+                        else -> ImageTile.Road22
                     }
 
                     6 -> when (
                         getTypeTile(x - 1, y).isWaterLikeToLandTile()
                             .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road24
+                        3 -> ImageTile.Road15
                         else -> when (getTypeTile(x + 1, y - 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road12
-                            else -> ImageTile.Road4
+                            else -> ImageTile.Road24
                         }
                     }
 
@@ -339,20 +339,20 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                         getTypeTile(x + 1, y).isWaterLikeToLandTile()
                             .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road25
+                        3 -> ImageTile.Road17
                         else -> when (getTypeTile(x - 1, y - 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road14
-                            else -> ImageTile.Road5
+                            else -> ImageTile.Road25
                         }
                     }
 
                     7 -> when (getTypeTile(x, y + 1).isWaterLikeToLandTile()) {
-                        1 -> ImageTile.Road29
+                        1 -> ImageTile.Road16
                         else -> when (
                             getTypeTile(x - 1, y - 1).isRoadLikeTile()
                                 .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
                         ) {
-                            0 -> ImageTile.Road18
+                            0 -> ImageTile.Road27
                             else -> ImageTile.Road13
                         }
                     }
@@ -361,21 +361,21 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                         getTypeTile(x - 1, y).isWaterLikeToLandTile()
                             .or(getTypeTile(x, y - 1).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road20
+                        3 -> ImageTile.Road3
                         else -> when (getTypeTile(x + 1, y + 1).isRoadLikeTile()) {
-                            1 -> ImageTile.Road6
-                            else -> ImageTile.Road0
+                            1 -> ImageTile.Road0
+                            else -> ImageTile.Road18
                         }
                     }
 
                     14 -> when (getTypeTile(x - 1, y).isWaterLikeToLandTile()) {
-                        1 -> ImageTile.Road27
+                        1 -> ImageTile.Road9
                         else -> when (
                             getTypeTile(x + 1, y - 1).isRoadLikeTile()
                                 .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
                         ) {
-                            0 -> ImageTile.Road15
-                            else -> ImageTile.Road9
+                            0 -> ImageTile.Road26
+                            else -> ImageTile.Road6
                         }
                     }
 
@@ -383,45 +383,50 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                         getTypeTile(x, y - 1).isWaterLikeToLandTile()
                             .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
                     ) {
-                        3 -> ImageTile.Road22
+                        3 -> ImageTile.Road5
                         else -> when (getTypeTile(x - 1, y + 1).isRoadLikeTile()) {
-                            1 -> ImageTile.Road8
-                            else -> ImageTile.Road2
+                            1 -> ImageTile.Road2
+                            else -> ImageTile.Road19
                         }
                     }
 
                     13 -> when (getTypeTile(x, y - 1).isWaterLikeToLandTile()) {
-                        1 -> ImageTile.Road26
+                        1 -> ImageTile.Road4
                         else -> when (
                             getTypeTile(x - 1, y + 1).isRoadLikeTile()
                                 .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
                         ) {
-                            0 -> ImageTile.Road17
-                            else -> ImageTile.Road7
+                            0 -> ImageTile.Road20
+                            else -> ImageTile.Road1
                         }
                     }
 
                     11 -> when (getTypeTile(x + 1, y).isWaterLikeToLandTile()) {
-                        1 -> ImageTile.Road28
+                        1 -> ImageTile.Road11
                         else -> when (
                             getTypeTile(x - 1, y - 1).isRoadLikeTile()
                                 .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(1))
                         ) {
-                            0 -> ImageTile.Road16
-                            else -> ImageTile.Road11
+                            0 -> ImageTile.Road21
+                            else -> ImageTile.Road8
                         }
                     }
 
-                    15 -> when (isLikeBits(x, y) { isRoadLikeTile() }) {
-                        0 -> ImageTile.Road19
-                        else -> ImageTile.Road10
+                    15 -> when (
+                        getTypeTile(x - 1, y - 1).isRoadLikeTile()
+                            .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
+                            .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(2))
+                            .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(3))
+                    ) {
+                        0 -> ImageTile.Road30
+                        else -> ImageTile.Road7
                     }
 
                     else -> never()
                 }
             }
 
-            TypeTile.RoadMined -> ImageTile.RoadMined
+            TypeTile.RoadMined -> ImageTile.RoadMined0
             TypeTile.Rubble -> ImageTile.Rubble
             TypeTile.RubbleMined -> ImageTile.RubbleMined
             TypeTile.DamagedWall -> ImageTile.DamagedWall
