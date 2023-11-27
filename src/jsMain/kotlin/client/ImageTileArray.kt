@@ -426,65 +426,65 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
             TypeTile.RubbleMined -> ImageTile.RubbleMined
             TypeTile.DamagedWall -> ImageTile.DamagedWall
             TypeTile.Wall -> when (isLikeBits(x, y) { isWallLikeTile() }) {
-                0 -> ImageTile.Wall46
-                4 -> ImageTile.Wall17
-                2 -> ImageTile.Wall22
+                0 -> ImageTile.Wall0
+                4 -> ImageTile.Wall1
+                2 -> ImageTile.Wall12
                 6 ->
                     when (getTypeTile(x + 1, y - 1).isWallLikeTile()) {
-                        1 -> ImageTile.Wall12
-                        else -> ImageTile.Wall4
+                        1 -> ImageTile.Wall13
+                        else -> ImageTile.Wall28
                     }
 
-                1 -> ImageTile.Wall20
-                5 -> ImageTile.Wall1
+                5 -> ImageTile.Wall2
+                1 -> ImageTile.Wall3
                 3 ->
                     when (getTypeTile(x - 1, y - 1).isWallLikeTile()) {
-                        1 -> ImageTile.Wall14
-                        else -> ImageTile.Wall5
+                        1 -> ImageTile.Wall15
+                        else -> ImageTile.Wall29
                     }
 
                 7 -> when (
                     getTypeTile(x - 1, y - 1).isWallLikeTile()
                         .or(getTypeTile(x + 1, y - 1).isWallLikeTile().shl(1))
                 ) {
-                    0 -> ImageTile.Wall16
-                    1 -> ImageTile.Wall38
-                    2 -> ImageTile.Wall37
-                    3 -> ImageTile.Wall13
+                    3 -> ImageTile.Wall14
+                    0 -> ImageTile.Wall23
+                    2 -> ImageTile.Wall33
+                    1 -> ImageTile.Wall40
                     else -> never()
                 }
 
-                8 -> ImageTile.Wall15
+                8 -> ImageTile.Wall4
                 12 -> when (getTypeTile(x + 1, y + 1).isWallLikeTile()) {
-                    1 -> ImageTile.Wall6
-                    else -> ImageTile.Wall0
+                    1 -> ImageTile.Wall5
+                    else -> ImageTile.Wall24
                 }
 
-                10 -> ImageTile.Wall3
+                10 -> ImageTile.Wall8
                 14 -> when (
                     getTypeTile(x + 1, y - 1).isWallLikeTile()
                         .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
                 ) {
-                    0 -> ImageTile.Wall19
-                    1 -> ImageTile.Wall33
-                    2 -> ImageTile.Wall31
                     3 -> ImageTile.Wall9
+                    0 -> ImageTile.Wall22
+                    2 -> ImageTile.Wall32
+                    1 -> ImageTile.Wall36
                     else -> never()
                 }
 
                 9 -> when (getTypeTile(x - 1, y + 1).isWallLikeTile()) {
-                    1 -> ImageTile.Wall8
-                    else -> ImageTile.Wall2
+                    1 -> ImageTile.Wall7
+                    else -> ImageTile.Wall25
                 }
 
                 13 -> when (
                     getTypeTile(x - 1, y + 1).isWallLikeTile()
                         .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
                 ) {
-                    0 -> ImageTile.Wall21
-                    1 -> ImageTile.Wall36
-                    2 -> ImageTile.Wall35
-                    3 -> ImageTile.Wall7
+                    3 -> ImageTile.Wall6
+                    0 -> ImageTile.Wall18
+                    2 -> ImageTile.Wall37
+                    1 -> ImageTile.Wall44
                     else -> never()
                 }
 
@@ -492,30 +492,35 @@ class ImageTileArray(private val bmap: Bmap, private val owner: Owner) {
                     getTypeTile(x - 1, y - 1).isWallLikeTile()
                         .or(getTypeTile(x - 1, y + 1).isWallLikeTile().shl(1))
                 ) {
-                    0 -> ImageTile.Wall18
-                    1 -> ImageTile.Wall34
-                    2 -> ImageTile.Wall32
                     3 -> ImageTile.Wall11
+                    0 -> ImageTile.Wall19
+                    2 -> ImageTile.Wall41
+                    1 -> ImageTile.Wall45
                     else -> never()
                 }
 
-                15 -> when (isLikeBits(x, y) { isWallLikeTile() }) {
-                    0 -> ImageTile.Wall45
-                    1 -> ImageTile.Wall29
-                    2 -> ImageTile.Wall30
-                    3 -> ImageTile.Wall26
-                    4 -> ImageTile.Wall27
-                    5 -> ImageTile.Wall25
-                    6 -> ImageTile.Wall44
-                    7 -> ImageTile.Wall42
-                    8 -> ImageTile.Wall28
-                    9 -> ImageTile.Wall43
-                    10 -> ImageTile.Wall24
-                    11 -> ImageTile.Wall41
-                    12 -> ImageTile.Wall23
-                    13 -> ImageTile.Wall40
-                    14 -> ImageTile.Wall39
+                15 -> when (
+                    getTypeTile(x - 1, y - 1).isWallLikeTile()
+                        .or(getTypeTile(x + 1, y - 1).isWallLikeTile().shl(1))
+                        .or(getTypeTile(x - 1, y + 1).isWallLikeTile().shl(2))
+                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(3))
+                ) {
                     15 -> ImageTile.Wall10
+                    7 -> ImageTile.Wall16
+                    11 -> ImageTile.Wall17
+                    13 -> ImageTile.Wall20
+                    14 -> ImageTile.Wall21
+                    1 -> ImageTile.Wall26
+                    2 -> ImageTile.Wall27
+                    4 -> ImageTile.Wall30
+                    8 -> ImageTile.Wall31
+                    6 -> ImageTile.Wall34
+                    9 -> ImageTile.Wall35
+                    10 -> ImageTile.Wall38
+                    5 -> ImageTile.Wall39
+                    12 -> ImageTile.Wall42
+                    3 -> ImageTile.Wall43
+                    0 -> ImageTile.Wall46
                     else -> never()
                 }
 

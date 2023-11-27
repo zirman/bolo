@@ -14,13 +14,16 @@ import math.y
 import kotlin.math.sqrt
 
 sealed interface BuilderMission {
-    data object HarvestTree : BuilderMission
-    data object BuildWall : BuilderMission
-    data object BuildRoad : BuilderMission
-    data object BuildBoat : BuilderMission
-    data object PlaceMine : BuilderMission
-    data class PlacePill(val index: Int, val material: Int) : BuilderMission
-    data class RepairPill(val index: Int, val material: Int) : BuilderMission
+    val x: Int
+    val y: Int
+
+    data class HarvestTree(override val x: Int, override val y: Int) : BuilderMission
+    data class BuildWall(override val x: Int, override val y: Int) : BuilderMission
+    data class BuildRoad(override val x: Int, override val y: Int) : BuilderMission
+    data class BuildBoat(override val x: Int, override val y: Int) : BuilderMission
+    data class PlaceMine(override val x: Int, override val y: Int) : BuilderMission
+    data class PlacePill(override val x: Int, override val y: Int, val index: Int, val material: Int) : BuilderMission
+    data class RepairPill(override val x: Int, override val y: Int, val index: Int, val material: Int) : BuilderMission
 }
 
 interface Builder : GeneratorLoop<Tick> {
@@ -31,9 +34,7 @@ class BuilderImpl(
     scope: CoroutineScope,
     game: Game,
     startPosition: V2,
-    private val targetX: Int,
-    private val targetY: Int,
-    private val buildOp: BuilderMission,
+    private val buildMission: BuilderMission,
 ) : GeneratorLoopImpl<Tick>(scope), Builder, Game by game {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
@@ -140,14 +141,14 @@ class BuilderImpl(
     override suspend fun launch() {
         doWhile { tick ->
             val oldPosition = position
-            val arrived = moveTo(tick.delta, v2(targetX + 0.5f, targetY + 0.5f))
+            val arrived = moveTo(tick.delta, v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
 
             if (arrived) {
-                when (buildOp) {
+                when (buildMission) {
                     is BuilderMission.HarvestTree -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, TerrainTile.Grass3) { success ->
+                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Grass3) { success ->
                             if (success) {
                                 material += 4
                             }
@@ -162,7 +163,7 @@ class BuilderImpl(
                     is BuilderMission.BuildWall -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, TerrainTile.Wall) { success ->
+                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Wall) { success ->
                             if (success) {
                                 material -= 2
                             }
@@ -177,7 +178,7 @@ class BuilderImpl(
                     is BuilderMission.BuildRoad -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, TerrainTile.Road) { success ->
+                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Road) { success ->
                             if (success) {
                                 material -= 2
                             }
@@ -192,7 +193,7 @@ class BuilderImpl(
                     is BuilderMission.BuildBoat -> {
                         var waiting = true
 
-                        buildTerrain(targetX, targetY, TerrainTile.Boat) { success ->
+                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Boat) { success ->
                             if (success) {
                                 material -= 4
                             }
@@ -222,19 +223,19 @@ class BuilderImpl(
         }
 
         doWhile { tick ->
-            val tank = tank
-
-            if (tank != null) {
-                if (moveTo(tick.delta, tank.position)) {
-                    tank.material += material
-                    tank.hasBuilder = true
+            tank?.run {
+                if (moveTo(tick.delta, position)) {
+                    material += material
+                    hasBuilder = true
+                    nextBuilderMission?.run {
+                        launchBuilder(position, this)
+                        nextBuilderMission = null
+                    }
                     false
                 } else {
                     true
                 }
-            } else {
-                true
-            }
+            } ?: true
         }
     }
 
@@ -244,7 +245,7 @@ class BuilderImpl(
         val x = position.x.toInt()
         val y = position.y.toInt()
         val speed = this[x, y].builderSpeed(owner.int).let {
-            if (it == 0.0f && x == targetX && y == targetY) {
+            if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
                 MAX_SPEED
             } else {
                 it
@@ -271,8 +272,8 @@ class BuilderImpl(
         val hy: Float = 1f - ly
 
         fun isSolid(x: Int, y: Int): Boolean {
-            return (x != targetX ||
-                    y != targetY) && bmap.getEntity(x, y).isSolid(owner.int)
+            return (x != buildMission.x ||
+                    y != buildMission.y) && bmap.getEntity(x, y).isSolid(owner.int)
         }
 
         val lxc: Boolean = lx < BUILDER_RADIUS && isSolid(fx - 1, fy)

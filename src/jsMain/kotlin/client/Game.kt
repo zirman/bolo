@@ -2,7 +2,6 @@
 
 package client
 
-import assert.assertNull
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
@@ -88,7 +87,7 @@ interface Game {
     var center: V2
     fun launchTank(hasBuilder: Boolean)
     fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
-    fun launchBuilder(startPosition: V2, targetX: Int, targetY: Int, buildOp: BuilderMission)
+    fun launchBuilder(startPosition: V2, builderMission: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
     suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
     suspend fun mineTerrain(x: Int, y: Int)
@@ -478,24 +477,17 @@ class GameImpl(
                 val sqrY: Int =
                     (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
-                if (tank?.hasBuilder == true &&
-                    sqrX in border..<(worldWidth - border) &&
-                    sqrY in border..<(worldHeight - border)
-                ) {
-                    when (tick.control.builderMode) {
-                        is BuilderMode.Tree -> {
-                            if (bmap[sqrX, sqrY] == TerrainTile.Tree) {
-                                tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                        tank.hasBuilder = false
-                                    }
-                                }
+                tank?.run {
+                    if (sqrX in border..<(worldWidth - border) &&
+                        sqrY in border..<(worldHeight - border)
+                    ) {
+                        when (tick.control.builderMode) {
+                            is BuilderMode.Tree -> when (bmap[sqrX, sqrY]) {
+                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
+                                else -> null
                             }
-                        }
 
-                        is BuilderMode.Road -> {
-                            when (bmap[sqrX, sqrY]) {
+                            is BuilderMode.Road -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
                                 TerrainTile.Grass2,
@@ -510,27 +502,13 @@ class GameImpl(
                                 TerrainTile.Rubble1,
                                 TerrainTile.Rubble2,
                                 TerrainTile.Rubble3,
-                                -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildRoad)
-                                        tank.hasBuilder = false
-                                    }
-                                }
+                                -> BuilderMission.BuildRoad(sqrX, sqrY)
 
-                                TerrainTile.Tree -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                        tank.hasBuilder = false
-                                    }
-                                }
-
-                                else -> {
-                                }
+                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
+                                else -> null
                             }
-                        }
 
-                        is BuilderMode.Wall -> {
-                            when (bmap[sqrX, sqrY]) {
+                            is BuilderMode.Wall -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
                                 TerrainTile.Grass2,
@@ -549,33 +527,15 @@ class GameImpl(
                                 TerrainTile.WallDamaged1,
                                 TerrainTile.WallDamaged2,
                                 TerrainTile.WallDamaged3,
-                                -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildWall)
-                                        tank.hasBuilder = false
-                                    }
-                                }
+                                -> BuilderMission.BuildWall(sqrX, sqrY)
 
-                                TerrainTile.Tree -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.HarvestTree)
-                                        tank.hasBuilder = false
-                                    }
-                                }
-
-                                TerrainTile.River -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.BuildBoat)
-                                        tank.hasBuilder = false
-                                    }
-                                }
-
-                                else -> {
-                                }
+                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
+                                TerrainTile.River -> BuilderMission.BuildBoat(sqrX, sqrY)
+                                else -> null
                             }
-                        }
 
-                        is BuilderMode.Pill -> {
+                            is BuilderMode.Pill -> {
+                                null
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -596,10 +556,9 @@ class GameImpl(
 ////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
 //                                    }
 //                                }
-                        }
+                            }
 
-                        is BuilderMode.Mine -> {
-                            when (bmap[sqrX, sqrY]) {
+                            is BuilderMode.Mine -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Tree,
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
@@ -615,15 +574,16 @@ class GameImpl(
                                 TerrainTile.Rubble1,
                                 TerrainTile.Rubble2,
                                 TerrainTile.Rubble3,
-                                -> tank?.let { tank ->
-                                    if (tank.hasBuilder) {
-                                        launchBuilder(tank.position, sqrX, sqrY, BuilderMission.PlaceMine)
-                                        tank.hasBuilder = false
-                                    }
-                                }
+                                -> BuilderMission.PlaceMine(sqrX, sqrY)
 
-                                else -> {
-                                }
+                                else -> null
+                            }
+                        }?.run {
+                            if (hasBuilder) {
+                                launchBuilder(position, this)
+                                hasBuilder = false
+                            } else {
+                                nextBuilderMission = this
                             }
                         }
                     }
@@ -932,17 +892,16 @@ class GameImpl(
     }
 
     override fun launchTank(hasBuilder: Boolean) {
+        tank?.job?.cancel()
         tank = getKoin().get { parametersOf(hasBuilder) }
     }
 
     override fun launchBuilder(
         startPosition: V2,
-        targetX: Int,
-        targetY: Int,
-        buildOp: BuilderMission,
+        builderMission: BuilderMission,
     ) {
-        builder.assertNull()
-        builder = getKoin().get { parametersOf(startPosition, targetX, targetY, buildOp) }
+        builder?.job?.cancel()
+        builder = getKoin().get { parametersOf(startPosition, builderMission) }
     }
 
     override fun launchShell(

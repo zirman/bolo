@@ -51,6 +51,7 @@ interface Tank : GeneratorLoop<Tick> {
     val onBoat: Boolean
     var material: Int
     var hasBuilder: Boolean
+    var nextBuilderMission: BuilderMission?
 }
 
 @Suppress("NAME_SHADOWING")
@@ -84,6 +85,8 @@ class TankImpl(
         private set
 
     override var material: Int = 0
+
+    override var nextBuilderMission: BuilderMission? = null
 
     init {
         center = v2(x = start.x.toFloat() + (1f / 2f), y = worldHeight - (start.y.toFloat() + (1f / 2f)))

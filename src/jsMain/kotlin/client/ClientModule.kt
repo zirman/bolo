@@ -144,8 +144,6 @@ val clientModule = module {
     factory<Builder> {
             (
                 startPosition: V2,
-                targetX: Int,
-                targetY: Int,
                 buildOp: BuilderMission,
             ),
         ->
@@ -153,9 +151,7 @@ val clientModule = module {
             scope = get(),
             game = get(),
             startPosition = startPosition,
-            targetX = targetX,
-            targetY = targetY,
-            buildOp = buildOp,
+            buildMission = buildOp,
         )
     }
 }
