@@ -23,7 +23,7 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "kotlinxCoroutines",
-                /* version = */ "1.7.3"
+                /* version = */ "1.8.0-RC"
             )
 
             version(
@@ -33,7 +33,7 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "ktor",
-                /* version = */ "2.3.4"
+                /* version = */ "2.3.4" // 3.0.0-beta-1
             )
 
             plugin(
@@ -205,7 +205,7 @@ dependencyResolutionManagement {
                 /* alias = */ "logbackClassic",
                 /* group = */ "ch.qos.logback",
                 /* artifact = */ "logback-classic"
-            ).version("1.4.11")
+            ).version("1.4.14")
 
             library(
                 /* alias = */ "ktorClientJs",
