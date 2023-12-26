@@ -14,7 +14,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            val kotlin = "2.0.0-Beta1"
+            val kotlin = "2.0.0-Beta2"
 
             version(
                 /* alias = */ "kotlin",
@@ -23,17 +23,17 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "kotlinxCoroutines",
-                /* version = */ "1.8.0-RC"
+                /* version = */ "1.8.0-RC2"
             )
 
             version(
                 /* alias = */ "kotlinxSerialization",
-                /* version = */ "1.6.1"
+                /* version = */ "1.6.2"
             )
 
             version(
                 /* alias = */ "ktor",
-                /* version = */ "2.3.4" // 3.0.0-beta-1
+                /* version = */ "2.3.7"
             )
 
             plugin(
@@ -55,7 +55,7 @@ dependencyResolutionManagement {
                 /* alias = */ "koinBom",
                 /* group = */ "io.insert-koin",
                 /* artifact = */ "koin-bom"
-            ).version("3.5.2-RC1")
+            ).version("3.5.3")
 
             library(
                 /* alias = */ "koinCore",
