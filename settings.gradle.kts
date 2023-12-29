@@ -70,18 +70,6 @@ dependencyResolutionManagement {
             ).withoutVersion()
 
             library(
-                /* alias = */ "koinTest",
-                /* group = */ "io.insert-koin",
-                /* artifact = */ "koin-test"
-            ).withoutVersion()
-
-            library(
-                /* alias = */ "koinTestJunit5",
-                /* group = */ "io.insert-koin",
-                /* artifact = */ "koin-test-junit5"
-            ).withoutVersion()
-
-            library(
                 /* alias = */ "koinTestJunit5",
                 /* group = */ "io.insert-koin",
                 /* artifact = */ "koin-test-junit5"
