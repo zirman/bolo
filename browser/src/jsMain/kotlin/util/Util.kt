@@ -11,34 +11,33 @@ import kotlin.coroutines.resumeWithException
 import kotlin.math.cos
 import kotlin.math.sin
 
-suspend fun loadImage(src: String): Image =
-    suspendCancellableCoroutine { continuation ->
-        val image = Image()
-        image.src = src
+suspend fun loadImage(src: String): Image = suspendCancellableCoroutine { continuation ->
+    val image = Image()
+    image.src = src
 
-        val handler =
-            object : EventListener {
-                override fun handleEvent(event: Event) {
-                    image.removeEventListener("load", this)
-                    image.removeEventListener("error", this)
+    val handler =
+        object : EventListener {
+            override fun handleEvent(event: Event) {
+                image.removeEventListener("load", this)
+                image.removeEventListener("error", this)
 
-                    when (event.type) {
-                        "load" ->
-                            continuation.resume(image)
+                when (event.type) {
+                    "load" ->
+                        continuation.resume(image)
 
-                        "error" ->
-                            continuation.resumeWithException(IllegalStateException("error loading image"))
-                    }
+                    "error" ->
+                        continuation.resumeWithException(IllegalStateException("error loading image"))
                 }
             }
-
-        image.addEventListener("load", handler)
-        image.addEventListener("error", handler)
-
-        continuation.invokeOnCancellation {
-            image.removeEventListener("load", handler)
-            image.removeEventListener("error", handler)
         }
+
+    image.addEventListener("load", handler)
+    image.addEventListener("error", handler)
+
+    continuation.invokeOnCancellation {
+        image.removeEventListener("load", handler)
+        image.removeEventListener("error", handler)
     }
+}
 
 fun dirToVec(bearing: Float): V2 = v2(cos(bearing), -sin(bearing))
