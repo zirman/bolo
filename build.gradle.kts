@@ -1,107 +1,27 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.versions)
-    application
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinxSerialization) apply false
+    alias(libs.plugins.versions) apply true
 }
 
-group = "dev.robch"
-version = "1.0-SNAPSHOT"
+tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
+    checkForGradleUpdate = true
+    outputFormatter = "json"
+    outputDir = "build/dependencyUpdates"
+    reportfileName = "report"
+}
 
-kotlin {
-    jvm {
-        jvmToolchain(jdkVersion = 17)
-
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-
-        withJava()
-
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
-    js(IR) {
-        useEsModules() // Enables ES6 modules
-
-        binaries.executable()
-
-        browser {
-        }
-    }
-
-    dependencies {
-        implementation(project.dependencies.platform(libs.koinBom))
-        compileOnly(libs.koinCore)
-    }
-
-    sourceSets {
-        commonMain.dependencies {
-            implementation(project.dependencies.platform(libs.koinBom))
-            implementation(libs.koinCore)
-            implementation(libs.kotlinxSerializationProtobuf)
-            implementation(libs.kotlinxCoroutinesCore)
-        }
-
-        commonTest.dependencies {
-            implementation(project.dependencies.platform(libs.koinBom))
-            implementation(libs.koinCore)
-            implementation(libs.kotlinTest)
-            implementation(libs.kotlinTestCommon)
-            implementation(libs.kotlinTestAnnotationsCommon)
-        }
-
-        jvmMain.dependencies {
-            implementation(project.dependencies.platform(libs.koinBom))
-            implementation(libs.koinCore)
-            implementation(libs.koinKtor)
-            implementation(libs.koinLoggerSlf4j)
-            implementation(libs.ktorServerCore)
-            implementation(libs.ktorServerNetty)
-            implementation(libs.ktorServerHtmlBuilder)
-            implementation(libs.ktorServerContentNegotiation)
-            implementation(libs.ktorServerCompression)
-            implementation(libs.ktorServerWebsockets)
-            implementation(libs.ktorSerialization)
-            implementation(libs.ktorSerializationKotlinxJson)
-            implementation(libs.ktorWebsockets)
-            implementation(libs.logbackClassic)
-        }
-
-        jsMain.dependencies {
-            implementation(project.dependencies.platform(libs.koinBom))
-            implementation(libs.koinCore)
-            implementation(libs.ktorClientJs)
-            implementation(libs.ktorClientJsonJs)
-            implementation(libs.ktorClientSerializationJs)
-            implementation(libs.kotlinxCoroutinesCore)
-            implementation(libs.kotlinxCoroutinesCoreJs)
-        }
+tasks.withType<DependencyUpdatesTask> {
+    rejectVersionIf {
+        isNonStable(candidate.version)
     }
 }
 
-application {
-    mainClass.set("me.robch.application.ServerKt")
-}
-
-tasks.named<Copy>("jvmProcessResources") {
-    from(tasks.named("jsBrowserDistribution"))
-}
-
-tasks.named<JavaExec>("run") {
-    dependsOn(tasks.named<Jar>("jvmJar"))
-    classpath(tasks.named<Jar>("jvmJar"))
-}
-
-// Enables ES6 classes generation
-tasks.withType<KotlinJsCompile>().configureEach {
-    kotlinOptions {
-        useEsClasses = true
-    }
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA", "BETA", "RC").any { version.uppercase().contains(it) }
+    val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+    val isStable = stableKeyword || regex.matches(version)
+    return isStable.not()
 }

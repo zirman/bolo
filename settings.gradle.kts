@@ -259,3 +259,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "bolo"
+
+include(":browser")

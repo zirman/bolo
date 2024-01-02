@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUnsignedTypes::class)
-
 package bmap
 
 fun getDamageLevel(terrain: TerrainTile): Int =
