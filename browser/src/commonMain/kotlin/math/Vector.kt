@@ -2,22 +2,13 @@
 
 package math
 
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.get
-import org.khronos.webgl.set
 import kotlin.math.sqrt
 
-value class V2(val array: Float32Array)
-value class V2A(val array: Float32Array)
-value class V3(val array: Float32Array)
-value class V3A(val array: Float32Array)
-value class V4A(val array: Float32Array)
-
 fun v2(x: Float, y: Float): V2 =
-    V2(Float32Array(arrayOf(x, y)))
+    V2(floatArrayOf(x, y))
 
 fun v3(x: Float, y: Float, z: Float): V3 =
-    V3(Float32Array(arrayOf(x, y, z)))
+    V3(floatArrayOf(x, y, z))
 
 inline var V2.x: Float
     get() = array[0]
@@ -90,39 +81,39 @@ inline var V3.z: Float
         array[2] = z
     }
 
-const val dimenV2A: Int = 2
-inline val V2A.dimen: Int get() = dimenV2A
-//fun math.V2A.count(): Int = floatArray.size / math.getDimen
+const val dimensionV2A: Int = 2
+inline val V2A.dimension: Int get() = dimensionV2A
+//fun math.V2A.count(): Int = floatArray.size / math.getDimension
 //inline val math.V2A.indices: IntRange get() = IntRange(0, count() - 1)
 
 fun V2A.set(i: Int, x: Float, y: Float) {
-    array[(i * dimen) + 0] = x
-    array[(i * dimen) + 1] = y
+    array[(i * dimension) + 0] = x
+    array[(i * dimension) + 1] = y
 }
 
-const val dimenV3A: Int = 3
-inline val V3A.dimen: Int get() = dimenV3A
+const val dimensionV3A: Int = 3
+inline val V3A.dimension: Int get() = dimensionV3A
 
 fun V3A.set(i: Int, x: Float, y: Float, z: Float) {
-    array[(i * dimen) + 0] = x
-    array[(i * dimen) + 1] = y
-    array[(i * dimen) + 2] = z
+    array[(i * dimension) + 0] = x
+    array[(i * dimension) + 1] = y
+    array[(i * dimension) + 2] = z
 }
 
-const val dimenV4A: Int = 4
-inline val V4A.dimen: Int get() = dimenV4A
-//fun math.V4A.count(): Int = floatArray.size / math.getDimen
+const val dimensionV4A: Int = 4
+inline val V4A.dimension: Int get() = dimensionV4A
+//fun math.V4A.count(): Int = floatArray.size / math.getDimension
 
-fun V4A.getX(i: Int): Float = array[(i * dimen) + 0]
-fun V4A.getY(i: Int): Float = array[(i * dimen) + 1]
-fun V4A.getZ(i: Int): Float = array[(i * dimen) + 2]
-fun V4A.getW(i: Int): Float = array[(i * dimen) + 3]
+fun V4A.getX(i: Int): Float = array[(i * dimension) + 0]
+fun V4A.getY(i: Int): Float = array[(i * dimension) + 1]
+fun V4A.getZ(i: Int): Float = array[(i * dimension) + 2]
+fun V4A.getW(i: Int): Float = array[(i * dimension) + 3]
 
 fun V4A.set(i: Int, x: Float, y: Float, z: Float, w: Float) {
-    array[(i * dimen) + 0] = x
-    array[(i * dimen) + 1] = y
-    array[(i * dimen) + 2] = z
-    array[(i * dimen) + 3] = w
+    array[(i * dimension) + 0] = x
+    array[(i * dimension) + 1] = y
+    array[(i * dimension) + 2] = z
+    array[(i * dimension) + 3] = w
 }
 
 fun V3.dot(v: V3): Float =

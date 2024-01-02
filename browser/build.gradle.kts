@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+@file:OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
 
 plugins {
     application
@@ -31,19 +31,35 @@ kotlin {
     }
 
     js(IR) {
-        moduleName = "client"
+        moduleName = "jsClient"
         useEsModules()
+
+        compilations.all {
+            kotlinOptions {
+                useEsClasses = true
+            }
+        }
+
         browser {
             commonWebpackConfig {
                 outputFileName = "bolo.js"
             }
         }
+
         binaries.executable()
     }
 
     wasmJs {
-        moduleName = "client"
-        browser()
+        moduleName = "wasmClient"
+
+        browser {
+            browser {
+                commonWebpackConfig {
+                    outputFileName = "boloWasm.js"
+                }
+            }
+        }
+
         binaries.executable()
     }
 
@@ -87,6 +103,11 @@ kotlin {
             }
         }
 
+        val wasmJsMain by getting {
+            dependencies {
+            }
+        }
+
         val jsMain by getting {
             dependencies {
                 implementation(libs.kotlinxCoroutinesCoreJs)
@@ -96,21 +117,10 @@ kotlin {
                 implementation(libs.ktorClientSerializationJs)
             }
         }
-
-        val wasmJsMain by getting {
-            dependencies {
-            }
-        }
     }
 }
 
 tasks.named<Copy>("jvmProcessResources") {
     from(tasks.named<Copy>("jsBrowserDistribution"))
-}
-
-// Enables ES6 classes generation
-tasks.withType<KotlinJsCompile>().configureEach {
-    kotlinOptions {
-        useEsClasses = true
-    }
+    from(tasks.named<Copy>("wasmJsBrowserDistribution"))
 }

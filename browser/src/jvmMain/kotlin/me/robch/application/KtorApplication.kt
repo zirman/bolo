@@ -60,8 +60,8 @@ fun Application.ktorModule() {
     }
 
     routing {
-        staticResources("/static", null)
-        staticResources("/static", "files")
+        staticResources("/", null)
+        staticResources("/", "files")
 
         get("/") {
             call.respondHtml {
@@ -98,7 +98,8 @@ fun Application.ktorModule() {
 
                 body {
                     canvas { id = canvasId }
-                    script { src = "/static/bolo.js" }
+                    script { src = "/bolo.js" }
+                    script { src = "/boloWasm.js" }
                 }
             }
         }

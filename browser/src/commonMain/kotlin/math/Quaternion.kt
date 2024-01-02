@@ -2,17 +2,12 @@
 
 package math
 
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.get
-import org.khronos.webgl.set
 import kotlin.math.acos
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.sin
 
-value class Q4(val array: Float32Array)
-
-fun q4(x: Float, y: Float, z: Float, w: Float): Q4 = Q4(Float32Array(arrayOf(x, y, z, w)))
+fun q4(x: Float, y: Float, z: Float, w: Float): Q4 = Q4(floatArrayOf(x, y, z, w))
 
 inline var Q4.x: Float
     get() = array[0]

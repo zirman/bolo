@@ -1,5 +1,3 @@
-@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-
 package bmap
 
 import kotlinx.serialization.protobuf.ProtoBuf

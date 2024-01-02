@@ -1,9 +1,3 @@
-@file:OptIn(
-    ExperimentalUnsignedTypes::class,
-    kotlinx.coroutines.DelicateCoroutinesApi::class,
-    kotlinx.serialization.ExperimentalSerializationApi::class
-)
-
 package client
 
 import bmap.BmapCodeReader

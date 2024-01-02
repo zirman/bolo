@@ -8,6 +8,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import load.loadImage
 import math.M4
 import math.clampCycle
 import math.pi
@@ -42,7 +43,6 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.VERTEX_SHADER
 import org.khronos.webgl.WebGLTexture
 import org.khronos.webgl.WebGLUniformLocation
 import org.khronos.webgl.set
-import util.loadImage
 import kotlin.math.floor
 
 const val tilePixelWidth = 16
@@ -261,19 +261,18 @@ fun WebGLRenderingContext.createTileProgram(
 
     val uScale = getUniformLocation(program, "uScale").assertNotNull("uScale location not found")
 
+
     // initialize texture coordinate array buffer
     val coordBuffer = createBuffer().assertNotNull("createBuffer() failed")
     bindBuffer(ARRAY_BUFFER, coordBuffer)
-
     bufferData(
         ARRAY_BUFFER,
-        arrayOf(
+        float32ArrayOf(
             0f, 1f,
             1f, 1f,
             1f, 0f,
             0f, 0f,
-        )
-            .let { Float32Array(it) },
+        ),
         STATIC_DRAW,
     )
 
@@ -283,7 +282,7 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ELEMENT_ARRAY_BUFFER,
-        arrayOf<Short>(0, 1, 2, 3).let { Uint16Array(it) },
+        uint16ArrayOf(0, 1, 2, 3),
         STATIC_DRAW,
     )
 
@@ -364,13 +363,12 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ARRAY_BUFFER,
-        arrayOf(
+        float32ArrayOf(
             0f, 0f,
             worldWidth.toFloat(), 0f,
             worldWidth.toFloat(), worldHeight.toFloat(),
             0f, worldHeight.toFloat(),
-        )
-            .let { Float32Array(it) },
+        ),
         STATIC_DRAW,
     )
 
@@ -397,7 +395,7 @@ fun WebGLRenderingContext.createTileProgram(
         setTextureParameters()
 
         // update uniforms
-        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toTypedArray())
+        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toJsArray())
 
         setTextureUniform(location = uTiles, texture = tilesTexture, unit = TEXTURE0, x = 0)
         setTextureUniform(location = uTileMap, texture = tileMapTexture, unit = TEXTURE0, x = 1)
@@ -412,7 +410,7 @@ fun WebGLRenderingContext.createTileProgram(
         uniformMatrix2fv(
             location = uScale,
             transpose = false,
-            arrayOf(
+            float32ArrayOf(
                 (worldWidth.toFloat() / tileSheetWidth.toFloat()), 0f,
                 0f, (worldHeight.toFloat() / tileSheetHeight.toFloat()),
             ),
@@ -505,7 +503,7 @@ fun WebGLRenderingContext.createSpriteProgram(
 
     linkProgram(program)
 
-    if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
+    if ((getProgramParameter(program, LINK_STATUS)?.unsafeCast<JsBoolean>()?.toBoolean() == true).not()) {
         window.alert("linkProgram() failed: ${getProgramInfoLog(program)}")
         throw IllegalStateException()
     }
@@ -549,7 +547,7 @@ fun WebGLRenderingContext.createSpriteProgram(
         enable(BLEND)
 
         // set uniforms
-        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toTypedArray())
+        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toJsArray())
         setTextureUniform(location = uTexture, texture = texture, unit = TEXTURE0, x = 0)
 
         bindBuffer(ARRAY_BUFFER, vertexBuffer)
@@ -617,7 +615,7 @@ private fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int,
     shaderSource(vertexShader, source)
     compileShader(vertexShader)
 
-    if ((getShaderParameter(vertexShader, WebGLRenderingContext.COMPILE_STATUS) as Boolean).not()) {
+    if ((getShaderParameter(vertexShader, WebGLRenderingContext.COMPILE_STATUS)?.unsafeCast<JsBoolean>()?.toBoolean() == true).not()) {
         throw IllegalStateException(getShaderInfoLog(vertexShader))
     }
 
@@ -679,4 +677,22 @@ fun WebGLRenderingContext.setTextureUniform(location: WebGLUniformLocation, text
     activeTexture(unit + x)
     bindTexture(TEXTURE_2D, texture)
     uniform1i(location, x)
+}
+
+fun float32ArrayOf(vararg fs: Float) = Float32Array(fs.size).apply {
+    fs.forEachIndexed { index, fl ->
+        this[index] = fl
+    }
+}
+
+fun uint16ArrayOf(vararg ss: Short) = Uint16Array(ss.size).apply {
+    ss.forEachIndexed { index, fl ->
+        this[index] = fl
+    }
+}
+
+fun FloatArray.toJsArray() = JsArray<JsNumber>().also {
+    forEachIndexed { index, fl ->
+        it[index] = fl.toDouble().toJsNumber()
+    }
 }
