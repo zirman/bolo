@@ -1,42 +1,8 @@
 package client
 
-import kotlinx.browser.window
+import org.w3c.dom.Window
 
-sealed interface DirectionVertical {
-    data object Up : DirectionVertical
-    data object Center : DirectionVertical
-    data object Down : DirectionVertical
-}
-
-sealed interface DirectionHorizontal {
-    data object Left : DirectionHorizontal
-    data object Center : DirectionHorizontal
-    data object Right : DirectionHorizontal
-}
-
-sealed interface Mouse {
-    data class Drag(val x: Int, val y: Int) : Mouse
-    data class Up(val x: Int, val y: Int) : Mouse
-}
-
-sealed interface BuilderMode {
-    data object Tree : BuilderMode
-    data object Road : BuilderMode
-    data object Wall : BuilderMode
-    data object Pill : BuilderMode
-    data object Mine : BuilderMode
-}
-
-data class ControlState(
-    val builderMode: BuilderMode,
-    val directionHorizontal: DirectionHorizontal,
-    val directionVertical: DirectionVertical,
-    val shootButton: Boolean,
-    val layMineButton: Boolean,
-    val mouse: Mouse?,
-)
-
-object Control {
+class Control(window: Window) {
     private var builderMode: BuilderMode = BuilderMode.Tree
     private val directionHorizontal: DirectionHorizontal
         get() = when {

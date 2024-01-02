@@ -39,3 +39,7 @@ fun Float.assertEqual(x: Float): Float = if (this == x) this else throw IllegalS
 fun Double.assertEqual(x: Double): Double = if (this == x) this else throw IllegalStateException("assertion failed $this == $x")
 
 fun <A> A.assertEqualObject(x: A): A = if (this == x) this else throw IllegalStateException("assertion failed $this == $x")
+
+fun never(): Nothing {
+    throw IllegalStateException("Impossible")
+}

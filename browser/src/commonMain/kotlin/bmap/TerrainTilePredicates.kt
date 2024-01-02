@@ -1,6 +1,5 @@
-package client
+package bmap
 
-import bmap.TerrainTile
 import bmap.TerrainTile.*
 
 fun TerrainTile.isMinedTerrain(): Boolean = when (this) {

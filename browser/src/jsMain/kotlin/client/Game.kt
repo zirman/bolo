@@ -1,5 +1,6 @@
 package client
 
+import assert.never
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
@@ -55,12 +56,6 @@ import kotlin.js.json
 import kotlin.math.max
 import kotlin.random.Random
 
-data class Tick(
-    val control: ControlState,
-    val ticksPerSec: Float,
-    val delta: Float,
-)
-
 sealed interface BuildOp {
     data class Terrain(
         val terrain: TerrainTile,
@@ -98,6 +93,7 @@ interface Game {
 
 class GameImpl(
     private val scope: CoroutineScope,
+    private val control: Control,
     private val gl: WebGLRenderingContext,
     private val canvas: HTMLCanvasElement,
     private val tileProgram: Deferred<TileProgram>,
@@ -115,7 +111,7 @@ class GameImpl(
 
     private val frameRegulator: MutableSet<Double> = mutableSetOf()
 
-    private val tileArray: ImageTileArray = ImageTileArray(bmap, owner)
+    private val tileArray: ImageTileArrayImpl = ImageTileArrayImpl(bmap, owner)
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
 
     private val zoomLevel: Float = 2f
@@ -426,7 +422,7 @@ class GameImpl(
         val ticksPerSec = max(1, frameRegulator.size).toFloat()
 
         val tick = Tick(
-            control = Control.getControlState(),
+            control = control.getControlState(),
             ticksPerSec = ticksPerSec,
             delta = 1f / ticksPerSec,
         )
@@ -480,12 +476,12 @@ class GameImpl(
                         sqrY in border..<(worldHeight - border)
                     ) {
                         when (tick.control.builderMode) {
-                            is BuilderMode.Tree -> when (bmap[sqrX, sqrY]) {
+                            BuilderMode.Tree -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
                                 else -> null
                             }
 
-                            is BuilderMode.Road -> when (bmap[sqrX, sqrY]) {
+                            BuilderMode.Road -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
                                 TerrainTile.Grass2,
@@ -506,7 +502,7 @@ class GameImpl(
                                 else -> null
                             }
 
-                            is BuilderMode.Wall -> when (bmap[sqrX, sqrY]) {
+                            BuilderMode.Wall -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
                                 TerrainTile.Grass2,
@@ -532,7 +528,7 @@ class GameImpl(
                                 else -> null
                             }
 
-                            is BuilderMode.Pill -> {
+                            BuilderMode.Pill -> {
                                 null
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
@@ -556,7 +552,7 @@ class GameImpl(
 //                                }
                             }
 
-                            is BuilderMode.Mine -> when (bmap[sqrX, sqrY]) {
+                            BuilderMode.Mine -> when (bmap[sqrX, sqrY]) {
                                 TerrainTile.Tree,
                                 TerrainTile.Grass0,
                                 TerrainTile.Grass1,
@@ -883,8 +879,8 @@ class GameImpl(
             }
 
             Peer(
-                peerConnection = peerConnection,
-                dataChannel = dataChannel,
+                peerConnection = peerConnection.unsafeCast<Any>(),
+                dataChannel = dataChannel.unsafeCast<Any>(),
             )
         }
     }

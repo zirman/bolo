@@ -92,6 +92,8 @@ val clientModule = module {
 
     single<HttpClient> { HttpClient { install(WebSockets) } }
 
+    single<Control> { Control(window) }
+
     single<Game> {
             (
                 sendChannel: SendChannel<Frame>,
@@ -103,6 +105,7 @@ val clientModule = module {
         ->
         GameImpl(
             scope = get(),
+            control = get(),
             gl = get(named(Element.WebGL)),
             canvas = get(named(Element.Canvas)),
             tileProgram = get(named(WebGlProgram.Tile)),

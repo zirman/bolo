@@ -2,6 +2,10 @@ package client
 
 import assert.assertNotNull
 import bmap.ind
+import bmap.tileInd
+import bmap.tileSheetHeight
+import bmap.tileSheetWidth
+import bmap.tilesCount
 import bmap.worldHeight
 import bmap.worldWidth
 import kotlinx.browser.window
@@ -9,8 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import math.M4
-import math.clampCycle
-import math.pi
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.WebGLProgram
@@ -45,148 +47,7 @@ import org.khronos.webgl.set
 import util.loadImage
 import kotlin.math.floor
 
-const val tilePixelWidth = 16
-const val tilePixelHeight = 16
-
-const val tileSheetSrc = "tile_sheet.png"
-
-const val spriteSheetWidth = 16
-const val spriteSheetHeight = 16
-
-const val spriteSheetSrc = "sprite_sheet.png"
-
-enum class Sprite(val int: Int) {
-    TankBoat0(spriteInd(x = 0, y = 0)),
-    TankBoat1(spriteInd(x = 1, y = 0)),
-    TankBoat2(spriteInd(x = 2, y = 0)),
-    TankBoat3(spriteInd(x = 3, y = 0)),
-    TankBoat4(spriteInd(x = 4, y = 0)),
-    TankBoat5(spriteInd(x = 5, y = 0)),
-    TankBoat6(spriteInd(x = 6, y = 0)),
-    TankBoat7(spriteInd(x = 7, y = 0)),
-    TankBoat8(spriteInd(x = 8, y = 0)),
-    TankBoat9(spriteInd(x = 9, y = 0)),
-    TankBoat10(spriteInd(x = 10, y = 0)),
-    TankBoat11(spriteInd(x = 11, y = 0)),
-    TankBoat12(spriteInd(x = 12, y = 0)),
-    TankBoat13(spriteInd(x = 13, y = 0)),
-    TankBoat14(spriteInd(x = 14, y = 0)),
-    TankBoat15(spriteInd(x = 15, y = 0)),
-    Tank0(spriteInd(x = 0, y = 1)),
-    Tank1(spriteInd(x = 1, y = 1)),
-    Tank2(spriteInd(x = 2, y = 1)),
-    Tank3(spriteInd(x = 3, y = 1)),
-    Tank4(spriteInd(x = 4, y = 1)),
-    Tank5(spriteInd(x = 5, y = 1)),
-    Tank6(spriteInd(x = 6, y = 1)),
-    Tank7(spriteInd(x = 7, y = 1)),
-    Tank8(spriteInd(x = 8, y = 1)),
-    Tank9(spriteInd(x = 9, y = 1)),
-    Tank10(spriteInd(x = 10, y = 1)),
-    Tank11(spriteInd(x = 11, y = 1)),
-    Tank12(spriteInd(x = 12, y = 1)),
-    Tank13(spriteInd(x = 13, y = 1)),
-    Tank14(spriteInd(x = 14, y = 1)),
-    Tank15(spriteInd(x = 15, y = 1)),
-    TankFriendlyBoat0(spriteInd(x = 0, y = 2)),
-    TankFriendlyBoat1(spriteInd(x = 1, y = 2)),
-    TankFriendlyBoat2(spriteInd(x = 2, y = 2)),
-    TankFriendlyBoat3(spriteInd(x = 3, y = 2)),
-    TankFriendlyBoat4(spriteInd(x = 4, y = 2)),
-    TankFriendlyBoat5(spriteInd(x = 5, y = 2)),
-    TankFriendlyBoat6(spriteInd(x = 6, y = 2)),
-    TankFriendlyBoat7(spriteInd(x = 7, y = 2)),
-    TankFriendlyBoat8(spriteInd(x = 8, y = 2)),
-    TankFriendlyBoat9(spriteInd(x = 9, y = 2)),
-    TankFriendlyBoat10(spriteInd(x = 10, y = 2)),
-    TankFriendlyBoat11(spriteInd(x = 11, y = 2)),
-    TankFriendlyBoat12(spriteInd(x = 12, y = 2)),
-    TankFriendlyBoat13(spriteInd(x = 13, y = 2)),
-    TankFriendlyBoat14(spriteInd(x = 14, y = 2)),
-    TankFriendlyBoat15(spriteInd(x = 15, y = 2)),
-    TankFriendly0(spriteInd(x = 0, y = 3)),
-    TankFriendly1(spriteInd(x = 1, y = 3)),
-    TankFriendly2(spriteInd(x = 2, y = 3)),
-    TankFriendly3(spriteInd(x = 3, y = 3)),
-    TankFriendly4(spriteInd(x = 4, y = 3)),
-    TankFriendly5(spriteInd(x = 5, y = 3)),
-    TankFriendly6(spriteInd(x = 6, y = 3)),
-    TankFriendly7(spriteInd(x = 7, y = 3)),
-    TankFriendly8(spriteInd(x = 8, y = 3)),
-    TankFriendly9(spriteInd(x = 9, y = 3)),
-    TankFriendly10(spriteInd(x = 10, y = 3)),
-    TankFriendly11(spriteInd(x = 11, y = 3)),
-    TankFriendly12(spriteInd(x = 12, y = 3)),
-    TankFriendly13(spriteInd(x = 13, y = 3)),
-    TankFriendly14(spriteInd(x = 14, y = 3)),
-    TankFriendly15(spriteInd(x = 15, y = 3)),
-    TankEnemyBoat0(spriteInd(x = 0, y = 4)),
-    TankEnemyBoat1(spriteInd(x = 1, y = 4)),
-    TankEnemyBoat2(spriteInd(x = 2, y = 4)),
-    TankEnemyBoat3(spriteInd(x = 3, y = 4)),
-    TankEnemyBoat4(spriteInd(x = 4, y = 4)),
-    TankEnemyBoat5(spriteInd(x = 5, y = 4)),
-    TankEnemyBoat6(spriteInd(x = 6, y = 4)),
-    TankEnemyBoat7(spriteInd(x = 7, y = 4)),
-    TankEnemyBoat8(spriteInd(x = 8, y = 4)),
-    TankEnemyBoat9(spriteInd(x = 9, y = 4)),
-    TankEnemyBoat10(spriteInd(x = 10, y = 4)),
-    TankEnemyBoat11(spriteInd(x = 11, y = 4)),
-    TankEnemyBoat12(spriteInd(x = 12, y = 4)),
-    TankEnemyBoat13(spriteInd(x = 13, y = 4)),
-    TankEnemyBoat14(spriteInd(x = 14, y = 4)),
-    TankEnemyBoat15(spriteInd(x = 15, y = 4)),
-    TankEnemy0(spriteInd(x = 0, y = 5)),
-    TankEnemy1(spriteInd(x = 1, y = 5)),
-    TankEnemy2(spriteInd(x = 2, y = 5)),
-    TankEnemy3(spriteInd(x = 3, y = 5)),
-    TankEnemy4(spriteInd(x = 4, y = 5)),
-    TankEnemy5(spriteInd(x = 5, y = 5)),
-    TankEnemy6(spriteInd(x = 6, y = 5)),
-    TankEnemy7(spriteInd(x = 7, y = 5)),
-    TankEnemy8(spriteInd(x = 8, y = 5)),
-    TankEnemy9(spriteInd(x = 9, y = 5)),
-    TankEnemy10(spriteInd(x = 10, y = 5)),
-    TankEnemy11(spriteInd(x = 11, y = 5)),
-    TankEnemy12(spriteInd(x = 12, y = 5)),
-    TankEnemy13(spriteInd(x = 13, y = 5)),
-    TankEnemy14(spriteInd(x = 14, y = 5)),
-    TankEnemy15(spriteInd(x = 15, y = 5)),
-    Shell0(spriteInd(x = 0, y = 6)),
-    Shell1(spriteInd(x = 1, y = 6)),
-    Shell2(spriteInd(x = 2, y = 6)),
-    Shell3(spriteInd(x = 3, y = 6)),
-    Shell4(spriteInd(x = 4, y = 6)),
-    Shell5(spriteInd(x = 5, y = 6)),
-    Shell6(spriteInd(x = 6, y = 6)),
-    Shell7(spriteInd(x = 7, y = 6)),
-    Shell8(spriteInd(x = 8, y = 6)),
-    Shell9(spriteInd(x = 9, y = 6)),
-    Shell10(spriteInd(x = 10, y = 6)),
-    Shell11(spriteInd(x = 11, y = 6)),
-    Shell12(spriteInd(x = 12, y = 6)),
-    Shell13(spriteInd(x = 13, y = 6)),
-    Shell14(spriteInd(x = 14, y = 6)),
-    Shell15(spriteInd(x = 15, y = 6)),
-    Explosion0(spriteInd(x = 0, y = 7)),
-    Explosion1(spriteInd(x = 1, y = 7)),
-    Explosion2(spriteInd(x = 2, y = 7)),
-    Explosion3(spriteInd(x = 3, y = 7)),
-    Explosion4(spriteInd(x = 4, y = 7)),
-    Explosion5(spriteInd(x = 5, y = 7)),
-    Lgm0(spriteInd(x = 6, y = 7)),
-    Lgm1(spriteInd(x = 7, y = 7)),
-    Parachute(spriteInd(x = 8, y = 7)),
-    Reticule(spriteInd(x = 9, y = 7)),
-    Cursor(spriteInd(x = 10, y = 7));
-
-    fun withBearing(bearing: Float): Sprite =
-        entries[(ordinal + ((bearing + (Float.pi * (1.0 / 16.0))) * (8.0 / Float.pi)).toInt().clampCycle(16))]
-}
-
-data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
-
-typealias TileProgram = (clipMatrix: M4, tileArray: ImageTileArray) -> Unit
+typealias TileProgram = (clipMatrix: M4, tileArray: ImageTileArrayImpl) -> Unit
 
 fun WebGLRenderingContext.createTileProgram(
     coroutineScope: CoroutineScope,
@@ -283,7 +144,7 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ELEMENT_ARRAY_BUFFER,
-        arrayOf<Short>(0, 1, 2, 3).let { Uint16Array(it) },
+        Uint16Array(arrayOf(0, 1, 2, 3)),
         STATIC_DRAW,
     )
 
@@ -374,7 +235,7 @@ fun WebGLRenderingContext.createTileProgram(
         STATIC_DRAW,
     )
 
-    fun(clipMatrix: M4, tileArray: ImageTileArray) {
+    fun(clipMatrix: M4, tileArray: ImageTileArrayImpl) {
         useProgram(program)
         disable(BLEND)
 
@@ -631,9 +492,7 @@ private fun WebGLRenderingContext.setTextureParameters() {
     texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, NEAREST)
 }
 
-private fun spriteInd(x: Int, y: Int): Int = (spriteSheetWidth * y) + x
-
-private fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32Array, Uint16Array> {
+fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32Array, Uint16Array> {
     val vertex = Float32Array(sprites.size * 8)
     val coordinate = Float32Array(sprites.size * 8)
     val element = Uint16Array(sprites.size * 6)

@@ -2,13 +2,13 @@ package client
 
 import kotlinx.browser.window
 
-fun checkWebSocket() {
+actual fun checkWebSocket() {
     if (window.asDynamic().WebSocket == null) {
         throw IllegalStateException("Your browser does not have WebSocket")
     }
 }
 
-fun checkWebRTC() {
+actual fun checkWebRTC() {
     if (window.asDynamic().RTCPeerConnection == null) {
         throw IllegalStateException("Your browser does not have RTCPeerConnection")
     }

@@ -1,6 +1,6 @@
-package client
+package bmap
 
-import client.TypeTile.*
+import bmap.TypeTile.*
 
 fun TypeTile.isTreeLikeTile(): Int = when (this) {
     Tree,

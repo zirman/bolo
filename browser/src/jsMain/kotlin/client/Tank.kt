@@ -3,6 +3,7 @@ package client
 import bmap.Entity
 import bmap.StartInfo
 import bmap.TerrainTile
+import bmap.isMinedTerrain
 import bmap.isSolid
 import bmap.worldHeight
 import frame.FrameClient

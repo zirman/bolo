@@ -1,0 +1,4 @@
+package clientWasm
+
+fun main() {
+}

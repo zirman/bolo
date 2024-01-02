@@ -1,5 +1,7 @@
 package client
 
+import bmap.tileInd
+
 enum class ImageTile(val index: Int) {
     Sea0(tileInd(x = 8, y = 4)),
     Sea1(tileInd(x = 9, y = 4)),
