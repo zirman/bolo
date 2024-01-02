@@ -105,12 +105,7 @@ kotlin {
 }
 
 tasks.named<Copy>("jvmProcessResources") {
-    from(tasks.named("jsBrowserDistribution"))
-}
-
-tasks.named<JavaExec>("run") {
-    dependsOn(tasks.named<Jar>("jvmJar"))
-    classpath(tasks.named<Jar>("jvmJar"))
+    from(tasks.named<Copy>("jsBrowserDistribution"))
 }
 
 // Enables ES6 classes generation
