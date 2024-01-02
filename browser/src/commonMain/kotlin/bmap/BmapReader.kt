@@ -3,15 +3,15 @@ package bmap
 import assert.assertEqual
 import assert.assertLessThan
 import assert.assertLessThanOrEqual
-import util.baseArmorMax
-import util.baseMinesMax
-import util.baseShellsMax
-import util.basesMax
+import client.baseArmorMax
+import client.baseMinesMax
+import client.baseShellsMax
+import client.basesMax
+import client.pillArmorMax
+import client.pillSpeedMax
+import client.pillsMax
+import client.startsMax
 import math.clampCycle
-import util.pillArmorMax
-import util.pillSpeedMax
-import util.pillsMax
-import util.startsMax
 import kotlin.math.min
 
 const val worldWidth: Int = 256

@@ -9,7 +9,6 @@ import math.scale
 import math.x
 import math.y
 import util.dirToVec
-import util.isWater
 import kotlin.math.max
 import kotlin.math.min
 

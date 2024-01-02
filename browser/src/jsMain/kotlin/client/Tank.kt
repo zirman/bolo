@@ -10,35 +10,22 @@ import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import math.clampCycle
-import math.clampRange
 import kotlinx.serialization.protobuf.ProtoBuf
-import math.pi
-import math.tau
 import math.V2
 import math.add
+import math.clampCycle
+import math.clampRange
 import math.mag
 import math.norm
+import math.pi
 import math.prj
 import math.scale
+import math.tau
 import math.v2
 import math.v2Origin
 import math.x
 import math.y
-import util.armorUnit
 import util.dirToVec
-import util.getMaxAngularVelocity
-import util.getSpeedMax
-import util.isDrivable
-import util.isShore
-import util.minesUnit
-import util.refuelArmorTime
-import util.refuelMineTime
-import util.refuelShellTime
-import util.shellsUnit
-import util.tankArmorMax
-import util.tankMinesMax
-import util.tankShellsMax
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -168,7 +155,7 @@ class TankImpl(
             } else {
                 // turning
                 val acceleration = 12.566370f
-                val maxVelocity: Float = if (onBoat) 5f / 2f else getMaxAngularVelocity(onTerrain)
+                val maxVelocity: Float = if (onBoat) 5f / 2f else onTerrain.getMaxAngularVelocity()
 
                 when (control.directionHorizontal) {
                     DirectionHorizontal.Left -> {
@@ -187,7 +174,7 @@ class TankImpl(
                 }
 
                 // accelerating
-                val max: Float = if (onBoat) 25f / 8f else getSpeedMax(onTerrain)
+                val max: Float = if (onBoat) 25f / 8f else onTerrain.getSpeedMax()
 
                 when {
                     speed > max ->
@@ -220,30 +207,26 @@ class TankImpl(
                     val fy: Float = position.y - onY
                     val cx: Float = 1f - fx
                     val cy: Float = 1f - fy
-                    val fxc: Boolean = (fx < TANK_RADIUS) && isShore(terrainLeft)
-                    val cxc: Boolean = ((1 - fx) < TANK_RADIUS) && isShore(terrainRight)
-                    val fyc: Boolean = (fy < TANK_RADIUS) && isShore(terrainUp)
-                    val cyc: Boolean = ((1 - fy) < TANK_RADIUS) && isShore(terrainDown)
+                    val fxc: Boolean = (fx < TANK_RADIUS) && terrainLeft.isShore()
+                    val cxc: Boolean = ((1 - fx) < TANK_RADIUS) && terrainRight.isShore()
+                    val fyc: Boolean = (fy < TANK_RADIUS) && terrainUp.isShore()
+                    val cyc: Boolean = ((1 - fy) < TANK_RADIUS) && terrainDown.isShore()
 
                     push = when {
-                        fxc.not() && fyc.not() && (((fx * fx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
-                            terrainUpLeft
-                        ))
+                        fxc.not() && fyc.not() &&
+                                (((fx * fx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpLeft.isShore())
                         -> v2(fx, fy)
 
-                        cxc.not() && fyc.not() && (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
-                            terrainUpRight
-                        ))
+                        cxc.not() && fyc.not() &&
+                                (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpRight.isShore())
                         -> v2(-cx, fy)
 
-                        fxc.not() && cyc.not() && (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
-                            terrainDownLeft
-                        ))
+                        fxc.not() && cyc.not() &&
+                                (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownLeft.isShore())
                         -> v2(fx, -cy)
 
-                        cxc.not() && cyc.not() && (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && isShore(
-                            terrainDownRight
-                        ))
+                        cxc.not() && cyc.not() &&
+                                (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownRight.isShore())
                         -> v2(-cx, -cy)
 
                         else -> when {
@@ -292,7 +275,7 @@ class TankImpl(
 
                 if (x != onX || y != onY) {
                     if (onBoat) {
-                        if (isDrivable(bmap[x, y])) {
+                        if (bmap[x, y].isDrivable()) {
                             onBoat = false
 
                             if (onTerrain == TerrainTile.River) {

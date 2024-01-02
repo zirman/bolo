@@ -21,7 +21,6 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.w3c.dom.HTMLCanvasElement
-import util.canvasId
 
 enum class Element {
     Canvas,

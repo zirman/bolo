@@ -8,6 +8,8 @@ import bmap.toExtra
 import bmap.writeBmap
 import bmap.writeBmapCode
 import bmap.writeDamage
+import client.isBuildable
+import client.pillArmorMax
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner
@@ -17,8 +19,6 @@ import io.ktor.websocket.close
 import io.ktor.websocket.send
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import util.isBuildable
-import util.pillArmorMax
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.component1
@@ -143,7 +143,7 @@ class BoloServer(
                 TerrainTile.Boat -> bmap[frameClient.x, frameClient.y] == TerrainTile.River
                 TerrainTile.Wall,
                 TerrainTile.Road,
-                -> isBuildable(bmap[frameClient.x, frameClient.y])
+                -> bmap[frameClient.x, frameClient.y].isBuildable()
 
                 else -> false
             }

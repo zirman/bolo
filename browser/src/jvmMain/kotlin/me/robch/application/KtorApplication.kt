@@ -1,5 +1,6 @@
 package me.robch.application
 
+import client.canvasId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -27,7 +28,6 @@ import kotlinx.html.unsafe
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
-import util.canvasId
 import java.time.Duration
 
 fun Application.ktorModule() {
