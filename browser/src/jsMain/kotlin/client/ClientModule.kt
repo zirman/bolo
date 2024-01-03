@@ -2,6 +2,8 @@ package client
 
 import bmap.Bmap
 import bmap.BmapCode
+import common.Window
+import common.WindowActual
 import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -91,7 +93,9 @@ val clientModule = module {
 
     single<HttpClient> { HttpClient { install(WebSockets) } }
 
-    single<Control> { Control(window) }
+    single<Window> { WindowActual() }
+
+    single<Control> { Control(get()) }
 
     single<Game> {
             (

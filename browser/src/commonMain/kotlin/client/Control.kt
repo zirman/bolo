@@ -1,6 +1,6 @@
 package client
 
-import org.w3c.dom.Window
+import common.Window
 
 class Control(window: Window) {
     private var builderMode: BuilderMode = BuilderMode.Tree
@@ -65,10 +65,8 @@ class Control(window: Window) {
     private var mouseUp = false
 
     init {
-        window.onkeydown = { event ->
-            var preventDefault = true
-
-            when (event.which) {
+        window.setOnkeydown { keyCode ->
+            when (keyCode) {
                 16 -> keyShift = true
                 32 -> keySpace = true
                 37 -> keyLeft = true
@@ -84,18 +82,14 @@ class Control(window: Window) {
                 68 -> keyD = true
                 87 -> keyW = true
                 83 -> keyS = true
-                else -> preventDefault = false
+                else -> return@setOnkeydown false
             }
 
-            if (preventDefault) {
-                event.preventDefault()
-            }
+            true
         }
 
-        window.onkeyup = { event ->
-            var preventDefault = true
-
-            when (event.which) {
+        window.setOnkeyup { keyCode ->
+            when (keyCode) {
                 16 -> keyShift = false
                 32 -> keySpace = false
                 37 -> keyLeft = false
@@ -106,44 +100,42 @@ class Control(window: Window) {
                 68 -> keyD = false
                 83 -> keyS = false
                 87 -> keyW = false
-                else -> preventDefault = false
+                else -> return@setOnkeyup false
             }
 
-            if (preventDefault) {
-                event.preventDefault()
-            }
+            true
         }
 
-        window.onmousedown = { event ->
+        window.setOnmousedown { x, y ->
             mouseDown = true
-            mouseX = event.clientX
-            mouseY = event.clientY
+            mouseX = x
+            mouseY = y
             mouseDrag = false
             mouseDragX = 0
             mouseDragY = 0
-            event.preventDefault()
+            true
         }
 
-        window.onmousemove = { event ->
+        window.setOnmousemove { x, y ->
             if (mouseDown) {
                 mouseDrag = true
-                mouseDragX += event.clientX - mouseX
-                mouseDragY += event.clientY - mouseY
+                mouseDragX += x - mouseX
+                mouseDragY += y - mouseY
             }
 
-            mouseX = event.clientX
-            mouseY = event.clientY
-            event.preventDefault()
+            mouseX = x
+            mouseY = y
+            true
         }
 
-        window.onmouseup = { event ->
+        window.setOnmouseup { x, y ->
             mouseDown = false
-            mouseUp = !mouseDrag
-            event.preventDefault()
+            mouseUp = mouseDrag.not()
+            true
         }
 
-        window.addEventListener("gamepadconnect", {
+        window.setGamepadconnect {
             // TODO: gamepad support
-        })
+        }
     }
 }

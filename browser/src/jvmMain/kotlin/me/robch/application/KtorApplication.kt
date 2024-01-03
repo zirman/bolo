@@ -3,7 +3,6 @@ package me.robch.application
 import client.canvasId
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticResources
@@ -25,27 +24,31 @@ import kotlinx.html.script
 import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
-import org.koin.ktor.ext.inject
-import org.koin.ktor.plugin.Koin
-import org.koin.logger.slf4jLogger
+import org.koin.core.context.startKoin
 import java.time.Duration
 
 fun Application.ktorModule() {
-    install(Koin) {
-        slf4jLogger()
+    // Manually start Koin until it's updated for Ktor 3
+    val koinApp = startKoin {
         modules(serverModule)
+        createEagerInstances()
     }
+
+    // install(Koin) {
+    //     slf4jLogger()
+    //     modules(serverModule)
+    // }
 
     install(ContentNegotiation) {
         json()
     }
 
-//        install(CORS) {
-//            method(HttpMethod.Get)
-//            method(HttpMethod.Post)
-//            method(HttpMethod.Delete)
-//            anyHost()
-//        }
+    // install(CORS) {
+    //     method(HttpMethod.Get)
+    //     method(HttpMethod.Post)
+    //     method(HttpMethod.Delete)
+    //     anyHost()
+    // }
 
     install(Compression) {
         gzip()
@@ -104,7 +107,7 @@ fun Application.ktorModule() {
             }
         }
 
-        val boloServer: BoloServer by inject()
+        val boloServer: BoloServer = koinApp.koin.get() // by inject()
 
         webSocket("/ws") {
             boloServer.handleWebSocket(this)

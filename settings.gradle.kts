@@ -10,6 +10,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     }
 
     versionCatalogs {
@@ -33,7 +34,7 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "ktor",
-                /* version = */ "2.3.7"
+                /* version = */ "3.0.0-beta-1"
             )
 
             plugin(

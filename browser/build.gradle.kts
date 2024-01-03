@@ -105,6 +105,12 @@ kotlin {
 
         val wasmJsMain by getting {
             dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-wasm-js:1.8.0-RC2-wasm0")
+                implementation("io.ktor:ktor-client-core-wasm-js:3.0.0-wasm2")
+                implementation("io.ktor:ktor-client-js-wasm-js:3.0.0-wasm2")
+                implementation("io.ktor:ktor-client-json-wasm-js:3.0.0-wasm2")
+                implementation("io.ktor:ktor-client-serialization-wasm-js:3.0.0-wasm2")
+                implementation("io.ktor:ktor-client-websockets-wasm-js:3.0.0-wasm2")
             }
         }
 

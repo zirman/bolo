@@ -18,8 +18,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.await
-import kotlinx.coroutines.awaitAnimationFrame
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
@@ -46,13 +44,7 @@ import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
-import org.koin.core.component.KoinComponent
-import org.koin.core.parameter.parametersOf
 import org.w3c.dom.HTMLCanvasElement
-import kotlin.js.Date
-import kotlin.js.Json
-import kotlin.js.Promise
-import kotlin.js.json
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -87,8 +79,8 @@ class GameImpl(
     override val bmap: Bmap,
     private val receiveChannel: ReceiveChannel<Frame>,
     private val bmapCode: BmapCode,
-) : Game, KoinComponent {
-    override val random = Random(Date.now().toInt())
+) : Game {
+    override val random = Random(1)
     override var center: V2 = v2Origin
 
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
@@ -287,33 +279,33 @@ class GameImpl(
             if (peers.isNotEmpty()) {
                 val dataChannel = peers.values.toList()[frameCount % peers.size].dataChannel
 
-                if (dataChannel.asDynamic().readyState == "open") {
-                    dataChannel.asDynamic().send(
-                        PeerUpdate(
-                            tank = tank?.let { tank ->
-                                PeerTank(
-                                    positionX = tank.position.x,
-                                    positionY = tank.position.y,
-                                    bearing = tank.bearing,
-                                    onBoat = tank.onBoat,
-                                )
-                            },
-                            shells = shells.map {
-                                PeerShell(
-                                    positionX = it.position.x,
-                                    positionY = it.position.y,
-                                    bearing = it.bearing,
-                                )
-                            },
-                            builder = builder?.let { builder ->
-                                PeerBuilder(
-                                    positionX = builder.position.x,
-                                    positionY = builder.position.y,
-                                )
-                            },
-                        ).toHexString(),
-                    )
-                }
+//                if (dataChannel.readyState == "open") {
+//                    dataChannel.send(
+//                        PeerUpdate(
+//                            tank = tank?.let { tank ->
+//                                PeerTank(
+//                                    positionX = tank.position.x,
+//                                    positionY = tank.position.y,
+//                                    bearing = tank.bearing,
+//                                    onBoat = tank.onBoat,
+//                                )
+//                            },
+//                            shells = shells.map {
+//                                PeerShell(
+//                                    positionX = it.position.x,
+//                                    positionY = it.position.y,
+//                                    bearing = it.bearing,
+//                                )
+//                            },
+//                            builder = builder?.let { builder ->
+//                                PeerBuilder(
+//                                    positionX = builder.position.x,
+//                                    positionY = builder.position.y,
+//                                )
+//                            },
+//                        ).toHexString(),
+//                    )
+//                }
             }
         } catch (error: Throwable) {
             error.printStackTrace()
@@ -400,7 +392,7 @@ class GameImpl(
     }
 
     private suspend fun renderFrame(frameCount: Int) {
-        val time = window.awaitAnimationFrame()
+        val time = 0.0//window.awaitAnimationFrame()
         frameRegulator.removeAll { time - it > 1000.0 }
         frameRegulator.add(time)
         val ticksPerSec = max(1, frameRegulator.size).toFloat()
@@ -605,44 +597,44 @@ class GameImpl(
                             }
 
                             is FrameServer.Signal.Offer -> {
-                                peerConnection
-                                    .asDynamic()
-                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
-                                    .unsafeCast<Promise<Any?>>().await()
-
-                                peerConnection
-                                    .asDynamic()
-                                    .createAnswer()
-                                    .unsafeCast<Promise<Any?>>().await()
-                                    .let { peerConnection.asDynamic().setLocalDescription(it) }
-                                    .unsafeCast<Promise<Any?>>().await()
-
-                                run {
-                                    peerConnection.asDynamic().localDescription.unsafeCast<Any?>()
-                                        ?: throw IllegalStateException("localDescription == null")
-                                }
-                                    .let { answer ->
-                                        FrameClient.Signal.Answer(
-                                            owner = frameServer.from,
-                                            sessionDescription = JSON.stringify(answer),
-                                        )
-                                    }
-                                    .toFrame()
-                                    .run { sendChannel.send(this) }
+                                val peerConnection = peerConnection as JsAny
+//                                peerConnection
+//                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
+//                                    .unsafeCast<Promise<Any?>>().await()
+//
+//                                peerConnection
+//                                    .asDynamic()
+//                                    .createAnswer()
+//                                    .unsafeCast<Promise<Any?>>().await()
+//                                    .let { peerConnection.asDynamic().setLocalDescription(it) }
+//                                    .unsafeCast<Promise<Any?>>().await()
+//
+//                                run {
+//                                    peerConnection.asDynamic().localDescription.unsafeCast<Any?>()
+//                                        ?: throw IllegalStateException("localDescription == null")
+//                                }
+//                                    .let { answer ->
+//                                        FrameClient.Signal.Answer(
+//                                            owner = frameServer.from,
+//                                            sessionDescription = JSON.stringify(answer),
+//                                        )
+//                                    }
+//                                    .toFrame()
+//                                    .run { sendChannel.send(this) }
                             }
 
                             is FrameServer.Signal.Answer -> {
-                                peerConnection
-                                    .asDynamic()
-                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
-                                    .unsafeCast<Promise<Any?>>().await()
+//                                peerConnection
+//                                    .asDynamic()
+//                                    .setRemoteDescription(JSON.parse(frameServer.sessionDescription))
+//                                    .unsafeCast<Promise<Any?>>().await()
                             }
 
                             is FrameServer.Signal.IceCandidate -> {
-                                peerConnection
-                                    .asDynamic()
-                                    .addIceCandidate(JSON.parse(frameServer.iceCandidate))
-                                    .unsafeCast<Promise<Any?>>().await()
+//                                peerConnection
+//                                    .asDynamic()
+//                                    .addIceCandidate(JSON.parse(frameServer.iceCandidate))
+//                                    .unsafeCast<Promise<Any?>>().await()
                             }
 
                             is FrameServer.Signal.Disconnect -> {
@@ -765,113 +757,113 @@ class GameImpl(
         return peers.getOrPut(from) {
             val peerConnection = newRTCPeerConnection()
 
-            peerConnection.onnegotiationneeded = { event: dynamic ->
-                println("PeerConnection.onnegotiationneeded: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//            peerConnection.onnegotiationneeded = { event: JsAny ->
+//                println("PeerConnection.onnegotiationneeded: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//
+//                scope.launch {
+//                    peerConnection.createOffer()
+//                        .unsafeCast<Promise<Any?>>().await()
+//                        .let { peerConnection.setLocalDescription(it) }
+//                        .unsafeCast<Promise<Any?>>().await()
+//
+//                    run {
+//                        peerConnection.localDescription.unsafeCast<Json?>()
+//                            ?: throw IllegalStateException("localDescription == null")
+//                    }
+//                        .let { offer ->
+//                            FrameClient.Signal.Offer(
+//                                owner = from,
+//                                sessionDescription = JSON.stringify(offer),
+//                            )
+//                        }
+//                        .toFrame()
+//                        .run { sendChannel.send(this) }
+//                }
+//            }
 
-                scope.launch {
-                    peerConnection.createOffer()
-                        .unsafeCast<Promise<Any?>>().await()
-                        .let { peerConnection.setLocalDescription(it) }
-                        .unsafeCast<Promise<Any?>>().await()
+//            peerConnection.onconnectionstatechange = {
+//                println("PeerConnection.onconnectionstatechange: $from ${peerConnection.connectionState.unsafeCast<String>()}")
+//            }
 
-                    run {
-                        peerConnection.localDescription.unsafeCast<Json?>()
-                            ?: throw IllegalStateException("localDescription == null")
-                    }
-                        .let { offer ->
-                            FrameClient.Signal.Offer(
-                                owner = from,
-                                sessionDescription = JSON.stringify(offer),
-                            )
-                        }
-                        .toFrame()
-                        .run { sendChannel.send(this) }
-                }
-            }
+//            peerConnection.ondatachannel = { event: JsAny ->
+//                println("peerConnection.ondatachannel: $from")
+//
+//                event.channel.onopen = {
+//                    println("channel.onopen: $from")
+//                }
+//
+//                event.channel.onmessage = { message: dynamic ->
+//                    peerEventUpdate(
+//                        from = from,
+//                        peerUpdate = message.data.unsafeCast<String>().toPeerUpdate(),
+//                    )
+//                }
+//
+//                event.channel.onclose = {
+//                    println("channel.onclose: $from")
+//                }
+//
+//                event.channel.onerror = {
+//                    println("channel.onerror: $from")
+//                }
+//            }
 
-            peerConnection.onconnectionstatechange = {
-                println("PeerConnection.onconnectionstatechange: $from ${peerConnection.connectionState.unsafeCast<String>()}")
-            }
+//            peerConnection.onicecandidate = { peerConnectionIceEvent: JsAny ->
+//                println("PeerConnection.onicecandidate: $from ${JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>())}")
+//
+//                if (peerConnectionIceEvent.unsafeCast<Json?>() != null) {
+//                    scope.launch {
+//                        FrameClient.Signal
+//                            .IceCandidate(
+//                                owner = from,
+//                                iceCandidate = JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>()),
+//                            )
+//                            .toFrame()
+//                            .run { sendChannel.send(this) }
+//                    }
+//                }
+//            }
 
-            peerConnection.ondatachannel = { event: dynamic ->
-                println("peerConnection.ondatachannel: $from")
+//            val dataChannel = peerConnection.createDataChannel(
+//                "Data Channel: $from",
+//                json(
+//                    "negotiated" to false,
+//                    "ordered" to false,
+//                    "maxRetransmits" to 0,
+//                ),
+//            )
 
-                event.channel.onopen = {
-                    println("channel.onopen: $from")
-                }
+//            dataChannel.onopen = { event: JsAny ->
+//                println("DataChannel.onopen: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//            }
 
-                event.channel.onmessage = { message: dynamic ->
-                    peerEventUpdate(
-                        from = from,
-                        peerUpdate = message.data.unsafeCast<String>().toPeerUpdate(),
-                    )
-                }
+//            dataChannel.onmessage = { event: JsAny ->
+//                println("DataChannel.onmessage: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//
+//                peerEventUpdate(
+//                    from = from,
+//                    peerUpdate = JSON.parse(event.data.unsafeCast<String>()),
+//                )
+//            }
 
-                event.channel.onclose = {
-                    println("channel.onclose: $from")
-                }
+//            dataChannel.onclose = { event: JsAny ->
+//                println("DataChannel.onclose: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//            }
 
-                event.channel.onerror = {
-                    println("channel.onerror: $from")
-                }
-            }
-
-            peerConnection.onicecandidate = { peerConnectionIceEvent: dynamic ->
-                println("PeerConnection.onicecandidate: $from ${JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>())}")
-
-                if (peerConnectionIceEvent.unsafeCast<Json?>() != null) {
-                    scope.launch {
-                        FrameClient.Signal
-                            .IceCandidate(
-                                owner = from,
-                                iceCandidate = JSON.stringify(peerConnectionIceEvent.candidate.unsafeCast<Json>()),
-                            )
-                            .toFrame()
-                            .run { sendChannel.send(this) }
-                    }
-                }
-            }
-
-            val dataChannel = peerConnection.createDataChannel(
-                "Data Channel: $from",
-                json(
-                    "negotiated" to false,
-                    "ordered" to false,
-                    "maxRetransmits" to 0,
-                ),
-            )
-
-            dataChannel.onopen = { event: dynamic ->
-                println("DataChannel.onopen: $from ${JSON.stringify(event.unsafeCast<Json>())}")
-            }
-
-            dataChannel.onmessage = { event: dynamic ->
-                println("DataChannel.onmessage: $from ${JSON.stringify(event.unsafeCast<Json>())}")
-
-                peerEventUpdate(
-                    from = from,
-                    peerUpdate = JSON.parse(event.data.unsafeCast<String>()),
-                )
-            }
-
-            dataChannel.onclose = { event: dynamic ->
-                println("DataChannel.onclose: $from ${JSON.stringify(event.unsafeCast<Json>())}")
-            }
-
-            dataChannel.onerror = { event: dynamic ->
-                println("DataChannel.onerror: $from ${JSON.stringify(event.unsafeCast<Json>())}")
-            }
+//            dataChannel.onerror = { event: JsAny ->
+//                println("DataChannel.onerror: $from ${JSON.stringify(event.unsafeCast<Json>())}")
+//            }
 
             Peer(
-                peerConnection = peerConnection.unsafeCast<Any>(),
-                dataChannel = dataChannel.unsafeCast<Any>(),
+                peerConnection = peerConnection,
+                dataChannel = peerConnection,//dataChannel,
             )
         }
     }
 
     override fun launchTank(hasBuilder: Boolean) {
         tank?.job?.cancel()
-        tank = getKoin().get { parametersOf(hasBuilder) }
+        tank = TODO()//getKoin().get { parametersOf(hasBuilder) }
     }
 
     override fun launchBuilder(
@@ -879,7 +871,7 @@ class GameImpl(
         builderMission: BuilderMission,
     ) {
         builder?.job?.cancel()
-        builder = getKoin().get { parametersOf(startPosition, builderMission) }
+        builder = TODO() // getKoin().get { parametersOf(startPosition, builderMission) }
     }
 
     override fun launchShell(
@@ -888,7 +880,7 @@ class GameImpl(
         startPosition: V2,
         sightRange: Float,
     ) {
-        shells.add(getKoin().get { parametersOf(startPosition, bearing, onBoat, sightRange) })
+        shells.add(TODO())//getKoin().get { parametersOf(startPosition, bearing, onBoat, sightRange) })
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
@@ -983,7 +975,7 @@ fun Entity.isShellable(owner: Int): Boolean =
             }
     }
 
-fun newRTCPeerConnection(): dynamic = js(
+fun newRTCPeerConnection(): JsAny = js(
     """
     new RTCPeerConnection({
         iceServers: [
