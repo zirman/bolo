@@ -44,8 +44,8 @@ class WindowAdapterImpl : WindowAdapter {
     }
 
     override fun setGamepadconnect(callback: () -> Unit) {
-        window.addEventListener("gamepadconnect", {
+        window.addEventListener("gamepadconnect") {
             callback()
-        })
+        }
     }
 }
