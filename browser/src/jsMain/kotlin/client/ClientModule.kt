@@ -1,9 +1,13 @@
 package client
 
+import adapters.HTMLCanvasElementAdapter
+import adapters.HTMLCanvasElementAdapterImpl
 import bmap.Bmap
 import bmap.BmapCode
-import common.Window
-import common.WindowActual
+import adapters.RTCPeerConnectionAdapter
+import adapters.RTCPeerConnectionAdapterImpl
+import adapters.WindowAdapter
+import adapters.WindowAdapterImpl
 import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -22,7 +26,6 @@ import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import org.w3c.dom.HTMLCanvasElement
 
 enum class Element {
     Canvas,
@@ -49,13 +52,16 @@ val clientModule = module {
 
     single<CoroutineScope> { CoroutineScope(get<CoroutineExceptionHandler>()) }
 
-    single<HTMLCanvasElement>(named(Element.Canvas)) {
-        document.getElementById(canvasId) as? HTMLCanvasElement ?: throw IllegalStateException("Canvas not found")
+    single<HTMLCanvasElementAdapter>(named(Element.Canvas)) {
+        HTMLCanvasElementAdapterImpl(
+            document.getElementById(canvasId) as? org.w3c.dom.HTMLCanvasElement
+                ?: throw IllegalStateException("Canvas not found")
+        )
     }
 
     single<WebGLRenderingContext>(named(Element.WebGL)) {
         run {
-            get<HTMLCanvasElement>(named(Element.Canvas))
+            get<HTMLCanvasElementAdapter>(named(Element.Canvas))
                 .getContext("webgl", "{ alpha: false }") as? WebGLRenderingContext
                 ?: throw IllegalStateException("Your browser does not have WebGl")
         }
@@ -93,7 +99,7 @@ val clientModule = module {
 
     single<HttpClient> { HttpClient { install(WebSockets) } }
 
-    single<Window> { WindowActual() }
+    single<WindowAdapter> { WindowAdapterImpl() }
 
     single<Control> { Control(get()) }
 
@@ -120,6 +126,8 @@ val clientModule = module {
             bmapCode = bmapCode,
         )
     }
+
+    single<RTCPeerConnectionAdapter> { RTCPeerConnectionAdapterImpl() }
 
     factory<Tank> { (hasBuilder: Boolean) ->
         TankImpl(

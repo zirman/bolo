@@ -1,6 +1,6 @@
-package common
+package adapters
 
-interface Window {
+interface WindowAdapter {
     fun setOnkeydown(callback: (keyCode: Int) -> Boolean)
     fun setOnkeyup(callback: (keyCode: Int) -> Boolean)
     fun setOnmousedown(callback: (x: Int, y: Int) -> Boolean)

@@ -1,14 +1,16 @@
 package client
 
+import adapters.DataChannelAdapter
+import adapters.RTCPeerConnectionAdapter
 import kotlinx.serialization.Serializable
 
-//data class Peer(
-//    val peerConnection: Any,
-//    val dataChannel: Any,
-//    var tank: PeerTank? = null,
-//    var shells: List<PeerShell> = emptyList(),
-//    var builder: PeerBuilder? = null,
-//)
+data class Peer(
+    val peerConnection: RTCPeerConnectionAdapter,
+    val dataChannel: DataChannelAdapter,
+    var tank: PeerTank? = null,
+    var shells: List<PeerShell> = emptyList(),
+    var builder: PeerBuilder? = null,
+)
 
 @Serializable
 data class PeerUpdate(

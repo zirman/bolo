@@ -1,8 +1,8 @@
 package client
 
-import common.Window
+import adapters.WindowAdapter
 
-class Control(window: Window) {
+class Control(window: WindowAdapter) {
     private var builderMode: BuilderMode = BuilderMode.Tree
     private val directionHorizontal: DirectionHorizontal
         get() = when {

@@ -1,8 +1,8 @@
-package common
+package adapters
 
 import kotlinx.browser.window
 
-class WindowActual : Window {
+class WindowAdapterImpl : WindowAdapter {
     override fun setOnkeydown(callback: (Int) -> Boolean) {
         window.onkeydown = { event ->
             if (callback(event.which)) {
