@@ -21,6 +21,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.ARRAY_BUFFER
 import org.khronos.webgl.WebGLRenderingContext.Companion.BLEND
 import org.khronos.webgl.WebGLRenderingContext.Companion.CLAMP_TO_EDGE
+import org.khronos.webgl.WebGLRenderingContext.Companion.COMPILE_STATUS
 import org.khronos.webgl.WebGLRenderingContext.Companion.ELEMENT_ARRAY_BUFFER
 import org.khronos.webgl.WebGLRenderingContext.Companion.FLOAT
 import org.khronos.webgl.WebGLRenderingContext.Companion.FRAGMENT_SHADER
@@ -44,7 +45,6 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.VERTEX_SHADER
 import org.khronos.webgl.WebGLTexture
 import org.khronos.webgl.WebGLUniformLocation
 import org.khronos.webgl.set
-import util.loadImage
 import kotlin.math.floor
 
 typealias TileProgram = (clipMatrix: M4, tileArray: ImageTileArrayImpl) -> Unit
@@ -128,13 +128,12 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ARRAY_BUFFER,
-        arrayOf(
+        float32ArrayOf(
             0f, 1f,
             1f, 1f,
             1f, 0f,
             0f, 0f,
-        )
-            .let { Float32Array(it) },
+        ),
         STATIC_DRAW,
     )
 
@@ -144,7 +143,7 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ELEMENT_ARRAY_BUFFER,
-        Uint16Array(arrayOf(0, 1, 2, 3)),
+        uint16ArrayOf(0u, 1u, 2u, 3u),
         STATIC_DRAW,
     )
 
@@ -225,13 +224,12 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ARRAY_BUFFER,
-        arrayOf(
+        float32ArrayOf(
             0f, 0f,
             worldWidth.toFloat(), 0f,
             worldWidth.toFloat(), worldHeight.toFloat(),
             0f, worldHeight.toFloat(),
-        )
-            .let { Float32Array(it) },
+        ),
         STATIC_DRAW,
     )
 
@@ -478,7 +476,7 @@ private fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int,
     shaderSource(vertexShader, source)
     compileShader(vertexShader)
 
-    if ((getShaderParameter(vertexShader, WebGLRenderingContext.COMPILE_STATUS) as Boolean).not()) {
+    if ((getShaderParameter(vertexShader, COMPILE_STATUS) as Boolean).not()) {
         throw IllegalStateException(getShaderInfoLog(vertexShader))
     }
 
@@ -534,8 +532,24 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
     return Triple(vertex, coordinate, element)
 }
 
-fun WebGLRenderingContext.setTextureUniform(location: WebGLUniformLocation, texture: WebGLTexture, unit: Int, x: Int) {
+fun WebGLRenderingContext.setTextureUniform(
+    location: WebGLUniformLocation,
+    texture: WebGLTexture,
+    unit: Int, x: Int,
+) {
     activeTexture(unit + x)
     bindTexture(TEXTURE_2D, texture)
     uniform1i(location, x)
+}
+
+fun float32ArrayOf(vararg fs: Float) = Float32Array(fs.size).apply {
+    fs.forEachIndexed { index, fl ->
+        this[index] = fl
+    }
+}
+
+fun uint16ArrayOf(vararg ss: UShort) = Uint16Array(ss.size).apply {
+    ss.forEachIndexed { index, fl ->
+        this[index] = fl.toShort()
+    }
 }

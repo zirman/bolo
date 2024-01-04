@@ -12,7 +12,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import load.loadImage
 import math.M4
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
@@ -22,6 +21,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.ARRAY_BUFFER
 import org.khronos.webgl.WebGLRenderingContext.Companion.BLEND
 import org.khronos.webgl.WebGLRenderingContext.Companion.CLAMP_TO_EDGE
+import org.khronos.webgl.WebGLRenderingContext.Companion.COMPILE_STATUS
 import org.khronos.webgl.WebGLRenderingContext.Companion.ELEMENT_ARRAY_BUFFER
 import org.khronos.webgl.WebGLRenderingContext.Companion.FLOAT
 import org.khronos.webgl.WebGLRenderingContext.Companion.FRAGMENT_SHADER
@@ -98,7 +98,7 @@ fun WebGLRenderingContext.createTileProgram(
 
     linkProgram(program)
 
-    if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
+    if ((getProgramParameter(program, LINK_STATUS) as JsBoolean).toBoolean().not()) {
         window.alert("Unable to initialize the shader program: ${getProgramInfoLog(program)}")
         throw IllegalStateException(getProgramInfoLog(program))
     }
@@ -133,8 +133,7 @@ fun WebGLRenderingContext.createTileProgram(
             1f, 1f,
             1f, 0f,
             0f, 0f,
-        )
-            .let { Float32Array(it) },
+        ),
         STATIC_DRAW,
     )
 
@@ -144,7 +143,7 @@ fun WebGLRenderingContext.createTileProgram(
 
     bufferData(
         ELEMENT_ARRAY_BUFFER,
-        uint16ArrayOf(0, 1, 2, 3),
+        uint16ArrayOf(0u, 1u, 2u, 3u),
         STATIC_DRAW,
     )
 
@@ -257,7 +256,7 @@ fun WebGLRenderingContext.createTileProgram(
         setTextureParameters()
 
         // update uniforms
-        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toFloat32Array())
+        uniformMatrix4fv(location = uClipMatrix, transpose = false, float32ArrayOf(*clipMatrix.array))
 
         setTextureUniform(location = uTiles, texture = tilesTexture, unit = TEXTURE0, x = 0)
         setTextureUniform(location = uTileMap, texture = tileMapTexture, unit = TEXTURE0, x = 1)
@@ -365,7 +364,7 @@ fun WebGLRenderingContext.createSpriteProgram(
 
     linkProgram(program)
 
-    if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
+    if ((getProgramParameter(program, LINK_STATUS) as JsBoolean).toBoolean().not()) {
         window.alert("linkProgram() failed: ${getProgramInfoLog(program)}")
         throw IllegalStateException()
     }
@@ -409,7 +408,7 @@ fun WebGLRenderingContext.createSpriteProgram(
         enable(BLEND)
 
         // set uniforms
-        uniformMatrix4fv(location = uClipMatrix, transpose = false, clipMatrix.array.toFloat32Array())
+        uniformMatrix4fv(location = uClipMatrix, transpose = false, float32ArrayOf(*clipMatrix.array))
         setTextureUniform(location = uTexture, texture = texture, unit = TEXTURE0, x = 0)
 
         bindBuffer(ARRAY_BUFFER, vertexBuffer)
@@ -477,7 +476,7 @@ private fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int,
     shaderSource(vertexShader, source)
     compileShader(vertexShader)
 
-    if ((getShaderParameter(vertexShader, WebGLRenderingContext.COMPILE_STATUS) as Boolean).not()) {
+    if ((getShaderParameter(vertexShader, COMPILE_STATUS) as JsBoolean).toBoolean().not()) {
         throw IllegalStateException(getShaderInfoLog(vertexShader))
     }
 
@@ -533,7 +532,11 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
     return Triple(vertex, coordinate, element)
 }
 
-fun WebGLRenderingContext.setTextureUniform(location: WebGLUniformLocation, texture: WebGLTexture, unit: Int, x: Int) {
+fun WebGLRenderingContext.setTextureUniform(
+    location: WebGLUniformLocation,
+    texture: WebGLTexture,
+    unit: Int, x: Int,
+) {
     activeTexture(unit + x)
     bindTexture(TEXTURE_2D, texture)
     uniform1i(location, x)
@@ -545,14 +548,8 @@ fun float32ArrayOf(vararg fs: Float) = Float32Array(fs.size).apply {
     }
 }
 
-fun uint16ArrayOf(vararg fs: Short) = Uint16Array(fs.size).apply {
-    fs.forEachIndexed { index, fl ->
-        this[index] = fl
-    }
-}
-
-fun FloatArray.toFloat32Array() = Float32Array(size).also {
-    forEachIndexed { index, fl ->
-        it[index] = fl
+fun uint16ArrayOf(vararg ss: UShort) = Uint16Array(ss.size).apply {
+    ss.forEachIndexed { index, fl ->
+        this[index] = fl.toShort()
     }
 }
