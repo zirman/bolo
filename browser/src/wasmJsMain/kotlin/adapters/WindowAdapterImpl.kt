@@ -28,7 +28,7 @@ class WindowAdapterImpl : WindowAdapter {
     }
 
     override fun setOnmousemove(callback: (Int, Int) -> Boolean) {
-        window.onmousedown = { event ->
+        window.onmousemove = { event ->
             if (callback(event.clientX, event.clientY)) {
                 event.preventDefault()
             }
@@ -36,7 +36,7 @@ class WindowAdapterImpl : WindowAdapter {
     }
 
     override fun setOnmouseup(callback: (Int, Int) -> Boolean) {
-        window.onmousedown = { event ->
+        window.onmouseup = { event ->
             if (callback(event.clientX, event.clientY)) {
                 event.preventDefault()
             }

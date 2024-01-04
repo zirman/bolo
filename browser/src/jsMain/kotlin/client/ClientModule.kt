@@ -6,8 +6,10 @@ import bmap.Bmap
 import bmap.BmapCode
 import adapters.RTCPeerConnectionAdapter
 import adapters.RTCPeerConnectionAdapterImpl
+import adapters.RenderingContextAdapterImpl
 import adapters.WindowAdapter
 import adapters.WindowAdapterImpl
+import assert.assertNotNull
 import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -20,6 +22,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import math.V2
 import org.khronos.webgl.WebGLRenderingContext
 import org.koin.core.module.dsl.createdAtStart
@@ -61,11 +65,16 @@ val clientModule = module {
     }
 
     single<WebGLRenderingContext>(named(Element.WebGL)) {
-        run {
-            get<HTMLCanvasElementAdapter>(named(Element.Canvas))
-                .getContext("webgl", "{ alpha: false }") as? WebGLRenderingContext
-                ?: throw IllegalStateException("Your browser does not have WebGl")
-        }
+        get<HTMLCanvasElementAdapter>(named(Element.Canvas))
+            .getContext(
+                contextId = "webgl",
+                arguments = buildJsonObject {
+                    put("alpha", JsonPrimitive(false))
+                },
+            )
+            .let { it as? RenderingContextAdapterImpl }
+            .assertNotNull("Your browser does not have WebGl")
+            .let { it.renderingContext as WebGLRenderingContext }
             .apply {
                 if (getExtension("OES_texture_float") == null) {
                     throw IllegalStateException("Your WebGL does not support floating point texture")

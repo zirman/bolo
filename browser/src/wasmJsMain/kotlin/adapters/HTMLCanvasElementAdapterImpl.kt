@@ -12,8 +12,6 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
     override val clientWidth: Int get() = canvas.clientWidth
     override val clientHeight: Int get() = canvas.clientHeight
     override fun getContext(contextId: String, arguments: JsonObject): RenderingContextAdapter? {
-        return canvas
-            .getContext(contextId, JSON.parse(arguments.toString()))
-            ?.let { RenderingContextAdapterImpl(it) }
+        return canvas.getContext(contextId, JSON.parse(arguments.toString()))?.let { RenderingContextAdapterImpl(it) }
     }
 }

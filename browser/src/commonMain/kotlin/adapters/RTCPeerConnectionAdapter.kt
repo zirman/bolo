@@ -1,5 +1,7 @@
 package adapters
 
+import kotlinx.serialization.json.JsonObject
+
 interface RTCPeerConnectionAdapter {
     suspend fun setRemoteDescription(description: String)
     suspend fun setLocalDescription(description: String)
@@ -11,5 +13,5 @@ interface RTCPeerConnectionAdapter {
     fun setOnconnectionstatechange(callback: (connectionState: String) -> Unit)
     fun setOndatachannel(callback: (DataChannelAdapter) -> Unit)
     fun setOnicecandidate(callback: (candidate: String?) -> Unit)
-    fun createDataChannel(label: String, options: Map<String, Any>): DataChannelAdapter
+    fun createDataChannel(label: String, options: JsonObject): DataChannelAdapter
 }

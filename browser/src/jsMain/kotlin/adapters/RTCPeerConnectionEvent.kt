@@ -2,7 +2,7 @@ package adapters
 
 import kotlin.js.Json
 
-external class RTCPeerConnectionEvent {
+external interface RTCPeerConnectionEvent {
     val channel: DataChannel
     val candidate: Json?
 }

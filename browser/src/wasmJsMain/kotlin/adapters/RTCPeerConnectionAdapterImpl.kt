@@ -2,22 +2,21 @@ package adapters
 
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.JsonObject
-import kotlin.js.Json
 
-class RTCPeerConnectionAdapterImpl(configuration: Json) : RTCPeerConnectionAdapter {
+class RTCPeerConnectionAdapterImpl(configuration: JsAny) : RTCPeerConnectionAdapter {
     private val rtcPeerConnection: RTCPeerConnection = RTCPeerConnection(configuration)
 
     override suspend fun setRemoteDescription(description: String) {
         println("setRemoteDescription $description")
-        rtcPeerConnection.setRemoteDescription(JSON.parse(description)).await()
+        return rtcPeerConnection.setRemoteDescription(JSON.parse(description)!!).await()
     }
 
     override suspend fun setLocalDescription(description: String) {
-        rtcPeerConnection.setLocalDescription(JSON.parse(description)).await()
+        return rtcPeerConnection.setLocalDescription(JSON.parse(description)!!).await()
     }
 
     override suspend fun addIceCandidate(candidate: String) {
-        rtcPeerConnection.addIceCandidate(JSON.parse(candidate)).await()
+        return rtcPeerConnection.addIceCandidate(JSON.parse(candidate)!!).await()
     }
 
     override val localDescription: String?
@@ -59,7 +58,7 @@ class RTCPeerConnectionAdapterImpl(configuration: Json) : RTCPeerConnectionAdapt
         return DataChannelAdapterImpl(
             rtcPeerConnection.createDataChannel(
                 label = label,
-                options = JSON.parse(options.toString()),
+                options = JSON.parse(options.toString())!!,
             ),
         )
     }

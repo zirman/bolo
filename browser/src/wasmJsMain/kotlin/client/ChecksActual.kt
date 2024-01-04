@@ -1,10 +1,7 @@
 package client
 
-@JsFun("() => window.WebSocket === null")
-external fun webSocketNotAvailable(): Boolean
-
-@JsFun("() => window.RTCPeerConnection === null")
-external fun rtcPeerConnectionNotAvailable(): Boolean
+fun webSocketNotAvailable(): Boolean = js("window.WebSocket === null")
+fun rtcPeerConnectionNotAvailable(): Boolean = js("window.RTCPeerConnection === null")
 
 actual fun checkWebSocket() {
     if (webSocketNotAvailable()) {

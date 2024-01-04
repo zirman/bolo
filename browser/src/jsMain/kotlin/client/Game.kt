@@ -33,6 +33,8 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromHexString
 import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.M4
 import math.V2
@@ -803,11 +805,11 @@ class GameImpl(
 
             val dataChannel = peerConnection.createDataChannel(
                 label = "Data Channel: $from",
-                options = mapOf(
-                    "negotiated" to false,
-                    "ordered" to false,
-                    "maxRetransmits" to 0,
-                ),
+                options = buildJsonObject {
+                    put("negotiated", JsonPrimitive(false))
+                    put("ordered", JsonPrimitive(false))
+                    put("maxRetransmits", JsonPrimitive(0))
+                },
             )
 
             dataChannel.setOnopen { event ->

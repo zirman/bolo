@@ -72,6 +72,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinxCoroutinesCore)
+                implementation(libs.kotlinxSerializationJson)
                 implementation(libs.kotlinxSerializationProtobuf)
                 implementation(libs.ktorClientCore)
                 implementation(project.dependencies.platform(libs.koinBom))

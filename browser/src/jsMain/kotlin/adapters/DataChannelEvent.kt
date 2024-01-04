@@ -1,5 +1,5 @@
 package adapters
 
-external class DataChannelEvent {
+external interface DataChannelEvent {
     val data: String
 }

@@ -1,6 +1,6 @@
 package adapters
 
-external interface DataChannel {
+external interface DataChannel : JsAny {
     val readyState: String
     var onopen: (DataChannelEvent) -> Unit
     var onmessage: (DataChannelEvent) -> Unit
