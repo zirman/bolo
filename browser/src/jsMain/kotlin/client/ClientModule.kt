@@ -26,6 +26,7 @@ import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import kotlin.js.json
 
 enum class Element {
     Canvas,
@@ -127,7 +128,19 @@ val clientModule = module {
         )
     }
 
-    single<RTCPeerConnectionAdapter> { RTCPeerConnectionAdapterImpl() }
+    single<RTCPeerConnectionAdapter> {
+        RTCPeerConnectionAdapterImpl(
+            json(
+                "iceServers" to arrayOf(
+                    json(
+                        "urls" to arrayOf("stun:robch.dev", "turn:robch.dev"),
+                        "username" to "prouser",
+                        "credential" to "BE3pJ@",
+                    ),
+                ),
+            ),
+        )
+    }
 
     factory<Tank> { (hasBuilder: Boolean) ->
         TankImpl(

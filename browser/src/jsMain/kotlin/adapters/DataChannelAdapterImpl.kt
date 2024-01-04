@@ -1,32 +1,29 @@
 package adapters
 
-import kotlin.js.Json
-
-class DataChannelAdapterImpl(private val dataChannel: dynamic) : DataChannelAdapter {
-    override val readyState: String
-        get() = dataChannel.readyState.unsafeCast<String>()
+class DataChannelAdapterImpl(private val dataChannel: DataChannel) : DataChannelAdapter {
+    override val readyState: String by dataChannel::readyState
 
     override fun setOnopen(callback: (event: String) -> Unit) {
-        dataChannel.onopen = { event: dynamic ->
-            callback(event)
+        dataChannel.onopen = { event ->
+            callback(JSON.stringify(event))
         }
     }
 
     override fun setOnmessage(callback: (data: String) -> Unit) {
-        dataChannel.onmessage = { event: dynamic ->
-            callback(event.data.unsafeCast<String>())
+        dataChannel.onmessage = { event ->
+            callback(event.data)
         }
     }
 
     override fun setOnclose(callback: (event: String) -> Unit) {
-        dataChannel.onclose = { event: dynamic ->
-            callback(JSON.stringify(event.unsafeCast<Json>()))
+        dataChannel.onclose = { event ->
+            callback(JSON.stringify(event))
         }
     }
 
     override fun setOnerror(callback: (event: String) -> Unit) {
-        dataChannel.onerror = { event: dynamic ->
-            callback(JSON.stringify(event.unsafeCast<Json>()))
+        dataChannel.onerror = { event ->
+            callback(JSON.stringify(event))
         }
     }
 
