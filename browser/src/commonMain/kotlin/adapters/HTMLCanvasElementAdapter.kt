@@ -2,8 +2,6 @@ package adapters
 
 import kotlinx.serialization.json.JsonObject
 
-interface RenderingContextAdapter
-
 interface HTMLCanvasElementAdapter {
     val width: Int
     val height: Int

@@ -3,12 +3,13 @@
 package client
 
 import adapters.HTMLCanvasElementAdapterImpl
-import bmap.Bmap
-import bmap.BmapCode
+import adapters.JSON
 import adapters.RTCPeerConnectionAdapterImpl
 import adapters.RenderingContextAdapterImpl
 import adapters.WindowAdapterImpl
 import assert.assertNotNull
+import bmap.Bmap
+import bmap.BmapCode
 import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -21,13 +22,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import math.V2
 import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
-import kotlin.js.json
 
 class ClientApplicationModuleImpl : ClientApplicationModule {
     override val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -105,15 +106,24 @@ class GameModuleImpl(
     lateinit var game: Game
 
     override val rtcPeerConnectionAdapter = RTCPeerConnectionAdapterImpl(
-        json(
-            "iceServers" to arrayOf(
-                json(
-                    "urls" to arrayOf("stun:robch.dev", "turn:robch.dev"),
-                    "username" to "prouser",
-                    "credential" to "BE3pJ@",
-                ),
-            ),
-        ),
+        JSON.parse(
+            buildJsonObject {
+                put(
+                    "iceServers", buildJsonArray {
+                        add(
+                            buildJsonObject {
+                                put("urls", buildJsonArray {
+                                    add(JsonPrimitive("stun:robch.dev"))
+                                    add(JsonPrimitive("turn:robch.dev"))
+                                })
+                                put("username", JsonPrimitive("prouser"))
+                                put("credential", JsonPrimitive("BE3pJ@"))
+                            }
+                        )
+                    }
+                )
+            }.toString()
+        )!!,
     )
 
     override fun tank(hasBuilder: Boolean): Tank {

@@ -50,7 +50,7 @@ class ImageTileArrayImpl(private val bmap: Bmap, private val owner: Owner) : Ima
         if (x < 0 || x >= worldWidth || y < 0 || y >= worldHeight) TypeTile.SeaMined
         else TypeTile.entries[tiles[ind(x, y)].toInt()]
 
-    fun update(x: Int, y: Int) {
+    override fun update(x: Int, y: Int) {
         run {
             for (pill in bmap.pills) {
                 if (pill.isPlaced && pill.x == x && pill.y == y) {
@@ -86,4 +86,6 @@ class ImageTileArrayImpl(private val bmap: Bmap, private val owner: Owner) : Ima
             }
         }
     }
+
+    override val arrayBuffer: Any = tiles
 }

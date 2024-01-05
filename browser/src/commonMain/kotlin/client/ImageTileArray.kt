@@ -12,6 +12,8 @@ import bmap.isWaterLikeToWaterTile
 
 interface ImageTileArray {
     fun getTypeTile(x: Int, y: Int): TypeTile
+    fun update(x: Int, y: Int)
+    val arrayBuffer: Any
 }
 
 fun ImageTileArray.mapImage(x: Int, y: Int): ImageTile {

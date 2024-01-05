@@ -3,18 +3,6 @@ package client
 import math.clampCycle
 import math.pi
 
-const val tilePixelWidth = 16
-const val tilePixelHeight = 16
-
-const val tileSheetSrc = "tile_sheet.png"
-
-const val spriteSheetWidth = 16
-const val spriteSheetHeight = 16
-
-const val spriteSheetSrc = "sprite_sheet.png"
-
-private fun spriteInd(x: Int, y: Int): Int = (spriteSheetWidth * y) + x
-
 enum class Sprite(val int: Int) {
     TankBoat0(spriteInd(x = 0, y = 0)),
     TankBoat1(spriteInd(x = 1, y = 0)),
@@ -144,4 +132,4 @@ enum class Sprite(val int: Int) {
         entries[(ordinal + ((bearing + (Float.pi * (1.0 / 16.0))) * (8.0 / Float.pi)).toInt().clampCycle(16))]
 }
 
-data class SpriteInstance(val x: Float, val y: Float, val sprite: Sprite)
+private fun spriteInd(x: Int, y: Int): Int = (spriteSheetWidth * y) + x

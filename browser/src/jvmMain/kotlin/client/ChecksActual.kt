@@ -2,10 +2,8 @@ package client
 
 import assert.never
 
-actual fun checkWebSocket() {
+actual suspend fun awaitAnimationFrame(): Double {
     never()
 }
 
-actual fun checkWebRTC() {
-    never()
-}
+actual val devicePixelRatio: Double get() = never()

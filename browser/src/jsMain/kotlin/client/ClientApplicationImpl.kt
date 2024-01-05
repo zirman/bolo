@@ -6,24 +6,22 @@ import bmap.BmapReader
 import bmap.loadCodes
 import bmap.toBmapExtra
 import frame.Owner
-import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.ws
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.parameter.parametersOf
 
-class ClientApplication(
-    coroutineScope: CoroutineScope,
-    private val httpClient: HttpClient,
-) : KoinComponent {
+class ClientApplicationImpl(
+    private val module: ClientApplicationModule,
+) : ClientApplication {
+    override val coroutineScope = module.coroutineScope
+    override val httpClient = module.httpClient
+
     init {
         checkWebSocket()
         checkWebRTC()
@@ -56,15 +54,14 @@ class ClientApplication(
             val owner = Owner(bmapExtra.owner)
             bmapExtra.loadCodes(bmap)
 
-            getKoin().get<Game> {
-                parametersOf(
-                    outgoing,
-                    owner,
-                    bmap,
-                    incoming,
-                    bmapCode,
-                )
-            }
+            GameModuleImpl(
+                clientApplicationModule = module,
+                sendChannel = outgoing,
+                owner = owner,
+                bmap = bmap,
+                receiveChannel = incoming,
+                bmapCode = bmapCode,
+            ).start()
 
             awaitCancellation()
         } catch (error: Throwable) {

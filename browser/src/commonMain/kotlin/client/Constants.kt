@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package client
 
 const val canvasId = "bolo-canvas"
@@ -34,3 +36,13 @@ const val replenishBaseTime = 600f / 60f
 const val refuelArmorTime = 46f / 60f
 const val refuelShellTime = 7f / 60f
 const val refuelMineTime = 7f / 60f
+
+const val tilePixelWidth = 16
+const val tilePixelHeight = 16
+
+const val tileSheetSrc = "tile_sheet.png"
+
+const val spriteSheetWidth = 16
+const val spriteSheetHeight = 16
+
+const val spriteSheetSrc = "sprite_sheet.png"

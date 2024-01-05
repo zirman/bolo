@@ -30,16 +30,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-interface Tank : GeneratorLoop<Tick> {
-    val position: V2
-    val bearing: Float
-    val sightRange: Float
-    val onBoat: Boolean
-    var material: Int
-    var hasBuilder: Boolean
-    var nextBuilderMission: BuilderMission?
-}
-
 @Suppress("NAME_SHADOWING")
 class TankImpl(
     private val scope: CoroutineScope,
