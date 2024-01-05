@@ -87,5 +87,5 @@ class ImageTileArrayImpl(private val bmap: Bmap, private val owner: Owner) : Ima
         }
     }
 
-    override val arrayBuffer: Any get() = tiles
+    override val arrayBuffer: Any get() = imageTiles
 }
