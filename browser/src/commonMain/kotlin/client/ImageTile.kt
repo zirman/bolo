@@ -1,6 +1,12 @@
+@file:Suppress("unused")
+
 package client
 
-import bmap.tileInd
+const val tileSheetWidth: Int = 16
+const val tileSheetHeight: Int = 16
+const val tilesCount: Int = tileSheetWidth * tileSheetHeight
+
+fun tileInd(x: Int, y: Int): Int = (tileSheetWidth * y) + x
 
 enum class ImageTile(val index: Int) {
     Sea0(tileInd(x = 8, y = 4)),

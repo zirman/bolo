@@ -27,7 +27,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.VERTEX_SHADER
 fun WebGLRenderingContext.createSpriteProgram(
     coroutineScope: CoroutineScope,
 ): Deferred<SpriteProgram> = coroutineScope.async {
-    val program = createProgram().assertNotNull("createProgram() failed")
+    val program = createProgram().assertNotNull("createProgram() returned null")
 
     createShader(
         program,

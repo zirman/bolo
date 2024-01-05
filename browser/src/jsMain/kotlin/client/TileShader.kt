@@ -2,10 +2,6 @@ package client
 
 import assert.assertNotNull
 import bmap.ind
-import bmap.tileInd
-import bmap.tileSheetHeight
-import bmap.tileSheetWidth
-import bmap.tilesCount
 import bmap.worldHeight
 import bmap.worldWidth
 import kotlinx.browser.window

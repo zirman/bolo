@@ -3,10 +3,6 @@ package client
 
 import assert.assertNotNull
 import bmap.ind
-import bmap.tileInd
-import bmap.tileSheetHeight
-import bmap.tileSheetWidth
-import bmap.tilesCount
 import bmap.worldHeight
 import bmap.worldWidth
 import kotlinx.browser.window
@@ -39,7 +35,7 @@ import org.khronos.webgl.set
 fun WebGLRenderingContext.createTileProgram(
     coroutineScope: CoroutineScope,
 ): Deferred<TileProgram> = coroutineScope.async {
-    val program = createProgram().assertNotNull("shader program is null")
+    val program = createProgram().assertNotNull("createProgram() returned null")
 
     createShader(
         program,

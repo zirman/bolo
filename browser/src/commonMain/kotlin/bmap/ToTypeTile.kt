@@ -1,11 +1,5 @@
 package bmap
 
-const val tileSheetWidth: Int = 16
-const val tileSheetHeight: Int = 16
-const val tilesCount: Int = tileSheetWidth * tileSheetHeight
-
-fun tileInd(x: Int, y: Int): Int = (tileSheetWidth * y) + x
-
 fun TerrainTile.toTypeTile(): TypeTile = when (this) {
     TerrainTile.Sea -> TypeTile.Sea
     TerrainTile.Boat -> TypeTile.Boat
