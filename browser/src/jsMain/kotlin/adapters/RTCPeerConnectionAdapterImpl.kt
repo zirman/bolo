@@ -51,7 +51,7 @@ class RTCPeerConnectionAdapterImpl(configuration: Json) : RTCPeerConnectionAdapt
 
     override fun setOnicecandidate(callback: (candidate: String?) -> Unit) {
         rtcPeerConnection.onicecandidate = { event ->
-            callback(JSON.stringify(event.candidate))
+            callback(event.candidate?.let { JSON.stringify(it) })
         }
     }
 
