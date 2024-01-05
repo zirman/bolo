@@ -13,7 +13,6 @@ import kotlinx.coroutines.channels.SendChannel
 import math.V2
 
 interface GameModule {
-    val clientApplicationModule: ClientApplicationModule
     val sendChannel: SendChannel<Frame>
     val owner: Owner
     val bmap: Bmap
@@ -24,20 +23,19 @@ interface GameModule {
     val windowAdapter: WindowAdapter
     val control: Control
     val rtcPeerConnectionAdapter: RTCPeerConnectionAdapter
+    val game: Game
 
-    fun tank(hasBuilder: Boolean): Tank
+    fun tankFactory(hasBuilder: Boolean): Tank
 
-    fun shell(
+    fun shellFactory(
         startPosition: V2,
         bearing: Float,
         fromBoat: Boolean,
         sightRange: Float,
     ): Shell
 
-    fun builder(
+    fun builderFactory(
         startPosition: V2,
         buildOp: BuilderMission,
     ): Builder
-
-    fun start()
 }

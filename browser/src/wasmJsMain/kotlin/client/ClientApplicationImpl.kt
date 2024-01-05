@@ -1,30 +1,48 @@
 package client
 
+import adapters.windowRTCPeerConnection
+import adapters.windowWebSocket
+import bmap.Bmap
+import bmap.BmapCode
 import bmap.BmapCodeReader
 import bmap.BmapDamageReader
 import bmap.BmapReader
 import bmap.loadCodes
 import bmap.toBmapExtra
 import frame.Owner
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.ws
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 class ClientApplicationImpl(
-    private val module: ClientApplicationModule,
+    val coroutineScope: CoroutineScope,
+    val httpClient: HttpClient,
+    val gameModuleFactory: (
+        sendChannel: SendChannel<Frame>,
+        owner: Owner,
+        bmap: Bmap,
+        receiveChannel: ReceiveChannel<Frame>,
+        bmapCode: BmapCode,
+    ) -> GameModule,
 ) : ClientApplication {
-    override val coroutineScope = module.coroutineScope
-    override val httpClient = module.httpClient
-
     init {
-        checkWebSocket()
-        checkWebRTC()
+        if (windowWebSocket == null) {
+            throw IllegalStateException("Your browser does not have WebSocket")
+        }
+
+        if (windowRTCPeerConnection == null) {
+            throw IllegalStateException("Your browser does not have RTCPeerConnection")
+        }
 
         coroutineScope.launch {
             httpClient.ws(
@@ -54,14 +72,13 @@ class ClientApplicationImpl(
             val owner = Owner(bmapExtra.owner)
             bmapExtra.loadCodes(bmap)
 
-            GameModuleImpl(
-                clientApplicationModule = module,
-                sendChannel = outgoing,
-                owner = owner,
-                bmap = bmap,
-                receiveChannel = incoming,
-                bmapCode = bmapCode,
-            ).start()
+            gameModuleFactory(
+                outgoing,
+                owner,
+                bmap,
+                incoming,
+                bmapCode,
+            )
 
             awaitCancellation()
         } catch (error: Throwable) {

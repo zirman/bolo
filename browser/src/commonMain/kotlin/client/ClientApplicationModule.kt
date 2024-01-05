@@ -9,5 +9,4 @@ interface ClientApplicationModule {
     val coroutineScope: CoroutineScope
     val httpClient: HttpClient
     val clientApplication: ClientApplication
-    fun start()
 }

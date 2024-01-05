@@ -40,23 +40,36 @@ class ClientApplicationModuleImpl : ClientApplicationModule {
 
     override val httpClient = HttpClient { install(WebSockets) }
 
-    override lateinit var clientApplication: ClientApplication
+    fun gameModuleFactory(
+        sendChannel: SendChannel<Frame>,
+        owner: Owner,
+        bmap: Bmap,
+        receiveChannel: ReceiveChannel<Frame>,
+        bmapCode: BmapCode,
+    ): GameModule = GameModuleImpl(
+        coroutineScope = coroutineScope,
+        sendChannel = sendChannel,
+        owner = owner,
+        bmap = bmap,
+        receiveChannel = receiveChannel,
+        bmapCode = bmapCode,
+    )
 
-    override fun start() {
-        ClientApplicationImpl(this)
-    }
+    override val clientApplication: ClientApplication = ClientApplicationImpl(
+        coroutineScope = coroutineScope,
+        httpClient = httpClient,
+        gameModuleFactory = this::gameModuleFactory,
+    )
 }
 
 class GameModuleImpl(
-    override val clientApplicationModule: ClientApplicationModule,
+    override val coroutineScope: CoroutineScope,
     override val sendChannel: SendChannel<Frame>,
     override val owner: Owner,
     override val bmap: Bmap,
     override val receiveChannel: ReceiveChannel<Frame>,
     override val bmapCode: BmapCode,
 ) : GameModule {
-    override val coroutineScope = clientApplicationModule.coroutineScope
-
     override val htmlCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
         document.getElementById(canvasId) as? org.w3c.dom.HTMLCanvasElement
             ?: throw IllegalStateException("Canvas not found")
@@ -102,7 +115,6 @@ class GameModuleImpl(
     val spriteProgram = webGLRenderingContext.createSpriteProgram(coroutineScope)
     override val windowAdapter = WindowAdapterImpl()
     override val control = Control(windowAdapter)
-    lateinit var game: Game
 
     override val rtcPeerConnectionAdapter = RTCPeerConnectionAdapterImpl(
         json(
@@ -116,7 +128,7 @@ class GameModuleImpl(
         ),
     )
 
-    override fun tank(hasBuilder: Boolean): Tank {
+    override fun tankFactory(hasBuilder: Boolean): Tank {
         return TankImpl(
             scope = coroutineScope,
             game = game,
@@ -124,7 +136,7 @@ class GameModuleImpl(
         )
     }
 
-    override fun shell(
+    override fun shellFactory(
         startPosition: V2,
         bearing: Float,
         fromBoat: Boolean,
@@ -140,7 +152,7 @@ class GameModuleImpl(
         )
     }
 
-    override fun builder(
+    override fun builderFactory(
         startPosition: V2,
         buildOp: BuilderMission,
     ): Builder {
@@ -154,20 +166,21 @@ class GameModuleImpl(
 
     val tileArray = ImageTileArrayImpl(bmap, owner)
 
-    override fun start() {
-        game = GameImpl(
-            module = this,
-            scope = coroutineScope,
-            control = control,
-            canvas = htmlCanvasElementAdapter,
-            tileProgram = tileProgram,
-            spriteProgram = spriteProgram,
-            sendChannel = sendChannel,
-            owner = owner,
-            bmap = bmap,
-            receiveChannel = receiveChannel,
-            bmapCode = bmapCode,
-            tileArray = tileArray,
-        )
-    }
+    override val game = GameImpl(
+        scope = coroutineScope,
+        sendChannel = sendChannel,
+        receiveChannel = receiveChannel,
+        rtcPeerConnectionAdapter = rtcPeerConnectionAdapter,
+        control = control,
+        canvas = htmlCanvasElementAdapter,
+        tileProgram = tileProgram,
+        spriteProgram = spriteProgram,
+        tileArray = tileArray,
+        owner = owner,
+        bmap = bmap,
+        bmapCode = bmapCode,
+        tankFactory = this::tankFactory,
+        builderFactory = this::builderFactory,
+        shellFactory = this::shellFactory,
+    )
 }

@@ -16,7 +16,7 @@ external fun fibJs(i: Double): Double
 //console.log(`js time: ${end - start} ms`)
 
 fun main() {
-    ClientApplicationModuleImpl().start()
+    ClientApplicationModuleImpl()
 
 //    val i = 38
 //

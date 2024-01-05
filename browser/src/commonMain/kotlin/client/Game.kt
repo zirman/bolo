@@ -73,19 +73,29 @@ typealias TileProgram = (clipMatrix: M4, tileArray: ImageTileArray) -> Unit
 typealias SpriteProgram = (M4, List<SpriteInstance>) -> Unit
 
 class GameImpl(
-    private val module: GameModule,
     private val scope: CoroutineScope,
+    override val sendChannel: SendChannel<Frame>,
+    private val receiveChannel: ReceiveChannel<Frame>,
+    private val rtcPeerConnectionAdapter: RTCPeerConnectionAdapter,
     private val control: Control,
-//    private val gl: WebGLRenderingContext,
     private val canvas: HTMLCanvasElementAdapter,
     private val tileProgram: Deferred<TileProgram>,
     private val spriteProgram: Deferred<SpriteProgram>,
-    override val sendChannel: SendChannel<Frame>,
+    private val tileArray: ImageTileArray,
     override val owner: Owner,
     override val bmap: Bmap,
-    private val receiveChannel: ReceiveChannel<Frame>,
     private val bmapCode: BmapCode,
-    private val tileArray: ImageTileArray,// = ImageTileArray(bmap, owner)
+    private val tankFactory: (hasBuilder: Boolean) -> Tank,
+    private val builderFactory: (
+        startPosition: V2,
+        buildOp: BuilderMission,
+    ) -> Builder,
+    private val shellFactory: (
+        startPosition: V2,
+        bearing: Float,
+        fromBoat: Boolean,
+        sightRange: Float,
+    ) -> Shell,
 ) : Game {
     override val random = Random(1)
     override var center: V2 = v2Origin
@@ -738,7 +748,7 @@ class GameImpl(
 
     private fun getPeer(from: Owner): Peer {
         return peers.getOrPut(from) {
-            val peerConnection: RTCPeerConnectionAdapter = module.rtcPeerConnectionAdapter
+            val peerConnection: RTCPeerConnectionAdapter = rtcPeerConnectionAdapter
 
             peerConnection.setOnnegotiationneeded { event ->
                 println("PeerConnection.onnegotiationneeded: $from $event")
@@ -837,7 +847,7 @@ class GameImpl(
 
     override fun launchTank(hasBuilder: Boolean) {
         tank?.job?.cancel()
-        tank = module.tank(hasBuilder)
+        tank = tankFactory(hasBuilder)
     }
 
     override fun launchBuilder(
@@ -845,7 +855,7 @@ class GameImpl(
         builderMission: BuilderMission,
     ) {
         builder?.job?.cancel()
-        builder = module.builder(startPosition, builderMission)
+        builder = builderFactory(startPosition, builderMission)
     }
 
     override fun launchShell(
@@ -854,7 +864,7 @@ class GameImpl(
         startPosition: V2,
         sightRange: Float,
     ) {
-        shells.add(module.shell(startPosition, bearing, onBoat, sightRange))
+        shells.add(shellFactory(startPosition, bearing, onBoat, sightRange))
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {

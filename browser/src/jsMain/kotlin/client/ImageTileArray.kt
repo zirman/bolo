@@ -37,7 +37,7 @@ class ImageTileArrayImpl(private val bmap: Bmap, private val owner: Owner) : Ima
             }
         }
 
-    val imageTiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
+    private val imageTiles: Uint8Array = Uint8Array(worldWidth * worldHeight)
         .also { tiles ->
             for (y in 0..<worldHeight) {
                 for (x in 0..<worldWidth) {
