@@ -415,7 +415,7 @@ class GameImpl(
     }
 
     private fun handleMouseEvents(tick: Tick) {
-        val devicePixelRatio = devicePixelRatio
+        val devicePixelRatio = getDevicePixelRatio()
 
         when (val mouse = tick.control.mouse) {
             // updates viewport

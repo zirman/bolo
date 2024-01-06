@@ -32,7 +32,7 @@ class ClientApplicationModule {
         bmap: Bmap,
         receiveChannel: ReceiveChannel<Frame>,
         bmapCode: BmapCode,
-    ): GameModule = GameModule(
+    ): GameModule = GameModuleImpl(
         coroutineScope = coroutineScope,
         sendChannel = sendChannel,
         owner = owner,
