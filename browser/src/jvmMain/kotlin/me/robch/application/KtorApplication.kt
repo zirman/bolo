@@ -19,6 +19,7 @@ import kotlinx.html.body
 import kotlinx.html.canvas
 import kotlinx.html.head
 import kotlinx.html.id
+import kotlinx.html.link
 import kotlinx.html.meta
 import kotlinx.html.script
 import kotlinx.html.style
@@ -97,12 +98,23 @@ fun Application.ktorModule() {
                         name = "viewport"
                         content = "width=device-width, initial-scale=1"
                     }
+
+//                    script { src = "/bolo.js" }
+                    script { src = "/boloWasm.js" }
+
+                    link {
+                        href = "tile_sheet.png"
+                        rel = "prefetch"
+                    }
+
+                    link {
+                        href = "sprite_sheet.png"
+                        rel = "prefetch"
+                    }
                 }
 
                 body {
                     canvas { id = canvasId }
-//                    script { src = "/bolo.js" }
-                    script { src = "/boloWasm.js" }
                 }
             }
         }

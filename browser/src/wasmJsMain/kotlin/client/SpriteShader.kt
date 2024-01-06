@@ -26,6 +26,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.VERTEX_SHADER
 fun WebGLRenderingContext.createSpriteProgram(
     coroutineScope: CoroutineScope,
 ): Deferred<SpriteProgram> = coroutineScope.async {
+    val image = loadImage(spriteSheetSrc)
     val program = createProgram().assertNotNull("createProgram() returned null")
 
     createShader(
@@ -71,7 +72,6 @@ fun WebGLRenderingContext.createSpriteProgram(
         throw IllegalStateException()
     }
 
-    val image = loadImage(spriteSheetSrc)
     useProgram(program)
 
     // initialize vertex shader locations

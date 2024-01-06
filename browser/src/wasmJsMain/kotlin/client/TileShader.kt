@@ -34,6 +34,7 @@ import org.khronos.webgl.set
 fun WebGLRenderingContext.createTileProgram(
     coroutineScope: CoroutineScope,
 ): Deferred<TileProgram> = coroutineScope.async {
+    val image = loadImage(tileSheetSrc)
     val program = createProgram().assertNotNull("createProgram() returned null")
 
     createShader(
@@ -85,7 +86,6 @@ fun WebGLRenderingContext.createTileProgram(
         throw IllegalStateException(getProgramInfoLog(program))
     }
 
-    val image = loadImage(tileSheetSrc)
     useProgram(program)
 
     val aVertex = getAttribLocation(program, "aVertex")
