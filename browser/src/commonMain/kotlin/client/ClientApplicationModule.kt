@@ -1,5 +1,3 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
 package client
 
 import bmap.Bmap
@@ -9,7 +7,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
-import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -18,7 +15,7 @@ import kotlinx.coroutines.channels.SendChannel
 class ClientApplicationModule {
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         if (throwable !is CancellationException) {
-            window.alert("${throwable.message}\n${throwable.stackTraceToString()}")
+            alert(throwable)
         }
     }
 

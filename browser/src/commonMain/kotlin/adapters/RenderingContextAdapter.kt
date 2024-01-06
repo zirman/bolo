@@ -1,3 +1,0 @@
-package adapters
-
-interface RenderingContextAdapter

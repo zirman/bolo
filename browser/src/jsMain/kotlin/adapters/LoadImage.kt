@@ -1,4 +1,4 @@
-package client
+package adapters
 
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.w3c.dom.Image

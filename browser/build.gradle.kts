@@ -62,25 +62,25 @@ kotlin {
 
         binaries.executable()
 
-        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
-            applyBinaryen {
-                binaryenArgs = mutableListOf(
-                    "--enable-nontrapping-float-to-int",
-                    "--enable-gc",
-                    "--enable-reference-types",
-                    "--enable-exception-handling",
-                    "--enable-bulk-memory",
-                    "--inline-functions-with-loops",
-                    "--traps-never-happen",
-                    "--fast-math",
-                    "--closed-world",
-                    "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                )
-            }
-        }
+//        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
+//            applyBinaryen {
+//                binaryenArgs = mutableListOf(
+//                    "--enable-nontrapping-float-to-int",
+//                    "--enable-gc",
+//                    "--enable-reference-types",
+//                    "--enable-exception-handling",
+//                    "--enable-bulk-memory",
+//                    "--inline-functions-with-loops",
+//                    "--traps-never-happen",
+//                    "--fast-math",
+//                    "--closed-world",
+//                    "--metrics",
+//                    "-O3", "--gufa", "--metrics",
+//                    "-O3", "--gufa", "--metrics",
+//                    "-O3", "--gufa", "--metrics",
+//                )
+//            }
+//        }
     }
 
     dependencies {
@@ -119,20 +119,20 @@ kotlin {
             implementation(libs.logbackClassic)
         }
 
-        wasmJsMain.dependencies {
-            implementation(libs.kotlinxCoroutinesCoreWasmJs)
-            implementation(libs.ktorClientJsWasmJs)
-            implementation(libs.ktorClientJsonWasmJs)
-            implementation(libs.ktorClientSerializationWasmJs)
-            implementation(libs.ktorClientWebsocketsWasmJs)
-        }
-
         jsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreJs)
             implementation(libs.koinCore)
             implementation(libs.ktorClientJs)
             implementation(libs.ktorClientJsonJs)
             implementation(libs.ktorClientSerializationJs)
+        }
+
+        wasmJsMain.dependencies {
+            implementation(libs.kotlinxCoroutinesCoreWasmJs)
+            implementation(libs.ktorClientJsWasmJs)
+            implementation(libs.ktorClientJsonWasmJs)
+            implementation(libs.ktorClientSerializationWasmJs)
+            implementation(libs.ktorClientWebsocketsWasmJs)
         }
     }
 }

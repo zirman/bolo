@@ -7,5 +7,5 @@ interface HTMLCanvasElementAdapter {
     val height: Int
     val clientWidth: Int
     val clientHeight: Int
-    fun getContext(contextId: String, arguments: JsonObject): RenderingContextAdapter?
+    fun getWebGlContext(arguments: JsonObject): WebGlRenderingContextAdapter
 }

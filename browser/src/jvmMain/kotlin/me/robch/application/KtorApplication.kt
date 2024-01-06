@@ -76,15 +76,15 @@ fun Application.ktorModule() {
                         unsafe {
                             raw(
                                 """
-                                    canvas {
-                                        position: fixed;
-                                        background-color: #808;
-                                        top: 0;
-                                        left: 0;
-                                        width: 100%;
-                                        height: 100%;
-                                    }
-                                    """.trimIndent(),
+                                canvas {
+                                    position: fixed;
+                                    background-color: #808;
+                                    top: 0;
+                                    left: 0;
+                                    width: 100%;
+                                    height: 100%;
+                                }
+                                """.trimIndent(),
                             )
                         }
                     }
@@ -99,9 +99,6 @@ fun Application.ktorModule() {
                         content = "width=device-width, initial-scale=1"
                     }
 
-//                    script { src = "/bolo.js" }
-                    script { src = "/boloWasm.js" }
-
                     link {
                         href = "tile_sheet.png"
                         rel = "prefetch"
@@ -115,6 +112,9 @@ fun Application.ktorModule() {
 
                 body {
                     canvas { id = canvasId }
+
+                    script { src = "/bolo.js" }
+//                    script { src = "/boloWasm.js" }
                 }
             }
         }

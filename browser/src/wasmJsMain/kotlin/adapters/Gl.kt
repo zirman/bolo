@@ -1,10 +1,13 @@
-package client
+package adapters
 
 import bmap.worldHeight
+import client.Sprite
+import client.SpriteInstance
+import client.spriteSheetHeight
+import client.spriteSheetWidth
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.WebGLProgram
-import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.CLAMP_TO_EDGE
 import org.khronos.webgl.WebGLRenderingContext.Companion.COMPILE_STATUS
 import org.khronos.webgl.WebGLRenderingContext.Companion.NEAREST
@@ -13,12 +16,13 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.TEXTURE_MAG_FILTER
 import org.khronos.webgl.WebGLRenderingContext.Companion.TEXTURE_MIN_FILTER
 import org.khronos.webgl.WebGLRenderingContext.Companion.TEXTURE_WRAP_S
 import org.khronos.webgl.WebGLRenderingContext.Companion.TEXTURE_WRAP_T
+import org.khronos.webgl.WebGLRenderingContextBase
 import org.khronos.webgl.WebGLTexture
 import org.khronos.webgl.WebGLUniformLocation
 import org.khronos.webgl.set
 import kotlin.math.floor
 
-fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int, source: String) {
+fun WebGLRenderingContextBase.createShader(program: WebGLProgram, type: Int, source: String) {
     val vertexShader = createShader(type)
     shaderSource(vertexShader, source)
     compileShader(vertexShader)
@@ -30,7 +34,7 @@ fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int, source:
     attachShader(program, vertexShader)
 }
 
-fun WebGLRenderingContext.setTextureParameters() {
+fun WebGLRenderingContextBase.setTextureParameters() {
     texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE)
     texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, CLAMP_TO_EDGE)
     texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, NEAREST)
@@ -79,7 +83,7 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
     return Triple(vertex, coordinate, element)
 }
 
-fun WebGLRenderingContext.setTextureUniform(
+fun WebGLRenderingContextBase.setTextureUniform(
     location: WebGLUniformLocation,
     texture: WebGLTexture,
     unit: Int, x: Int,
