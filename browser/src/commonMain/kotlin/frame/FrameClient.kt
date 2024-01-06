@@ -1,7 +1,9 @@
 package frame
 
 import bmap.TerrainTile
+import io.ktor.websocket.Frame
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.protobuf.ProtoBuf
 
 @Serializable
 sealed interface FrameClient {
@@ -76,4 +78,15 @@ sealed interface FrameClient {
         val x: Int,
         val y: Int,
     ) : FrameClient
+}
+
+val frameClientSerializer = FrameClient.serializer()
+
+fun FrameClient.toFrame(): Frame {
+    return ProtoBuf
+        .encodeToByteArray(
+            serializer = frameClientSerializer,
+            value = this,
+        )
+        .let { Frame.Binary(fin = true, data = it) }
 }

@@ -3,6 +3,9 @@ package client
 import adapters.DataChannelAdapter
 import adapters.RTCPeerConnectionAdapter
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromHexString
+import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.protobuf.ProtoBuf
 
 data class Peer(
     val peerConnection: RTCPeerConnectionAdapter,
@@ -39,3 +42,19 @@ data class PeerBuilder(
     val positionX: Float,
     val positionY: Float,
 )
+
+fun PeerUpdate.toHexString(): String {
+    return ProtoBuf.encodeToHexString(
+        serializer = peerUpdateSerializer,
+        value = this,
+    )
+}
+
+val peerUpdateSerializer = PeerUpdate.serializer()
+
+fun String.toPeerUpdate(): PeerUpdate {
+    return ProtoBuf.decodeFromHexString(
+        deserializer = peerUpdateSerializer,
+        hex = this,
+    )
+}
