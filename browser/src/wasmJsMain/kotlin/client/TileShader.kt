@@ -1,6 +1,5 @@
 package client
 
-
 import assert.assertNotNull
 import bmap.ind
 import bmap.worldHeight

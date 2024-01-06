@@ -62,7 +62,7 @@ kotlin {
 
         binaries.executable()
 
-        if (project.gradle.startParameter.taskNames.find { it.contains("wasmJsBrowserProductionWebpack") } != null) {
+        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
             applyBinaryen {
                 binaryenArgs = mutableListOf(
                     "--enable-nontrapping-float-to-int",

@@ -1,6 +1,5 @@
 package client
 
-
 import assert.assertNotNull
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
