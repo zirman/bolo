@@ -89,60 +89,50 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.kotlinxCoroutinesCore)
-                implementation(libs.kotlinxSerializationJson)
-                implementation(libs.kotlinxSerializationProtobuf)
-                implementation(libs.ktorClientCore)
-                implementation(project.dependencies.platform(libs.koinBom))
-            }
+        commonMain.dependencies {
+            implementation(libs.kotlinxCoroutinesCore)
+            implementation(libs.kotlinxSerializationJson)
+            implementation(libs.kotlinxSerializationProtobuf)
+            implementation(libs.ktorClientCore)
+            implementation(project.dependencies.platform(libs.koinBom))
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlinTest)
-                implementation(libs.kotlinTestCommon)
-                implementation(libs.kotlinTestAnnotationsCommon)
-            }
+        commonTest.dependencies {
+            implementation(libs.kotlinTest)
+            implementation(libs.kotlinTestCommon)
+            implementation(libs.kotlinTestAnnotationsCommon)
         }
 
-        val jvmMain by getting {
-            dependencies {
-                implementation(libs.koinCore)
-                implementation(libs.koinKtor)
-                implementation(libs.koinLoggerSlf4j)
-                implementation(libs.ktorServerCore)
-                implementation(libs.ktorServerNetty)
-                implementation(libs.ktorServerHtmlBuilder)
-                implementation(libs.ktorServerContentNegotiation)
-                implementation(libs.ktorServerCompression)
-                implementation(libs.ktorServerWebsockets)
-                implementation(libs.ktorSerialization)
-                implementation(libs.ktorSerializationKotlinxJson)
-                implementation(libs.ktorWebsockets)
-                implementation(libs.logbackClassic)
-            }
+        jvmMain.dependencies {
+            implementation(libs.koinCore)
+            implementation(libs.koinKtor)
+            implementation(libs.koinLoggerSlf4j)
+            implementation(libs.ktorServerCore)
+            implementation(libs.ktorServerNetty)
+            implementation(libs.ktorServerHtmlBuilder)
+            implementation(libs.ktorServerContentNegotiation)
+            implementation(libs.ktorServerCompression)
+            implementation(libs.ktorServerWebsockets)
+            implementation(libs.ktorSerialization)
+            implementation(libs.ktorSerializationKotlinxJson)
+            implementation(libs.ktorWebsockets)
+            implementation(libs.logbackClassic)
         }
 
-        val wasmJsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-wasm-js:1.8.0-RC2-wasm0")
-                implementation("io.ktor:ktor-client-js-wasm-js:3.0.0-wasm2")
-                implementation("io.ktor:ktor-client-json-wasm-js:3.0.0-wasm2")
-                implementation("io.ktor:ktor-client-serialization-wasm-js:3.0.0-wasm2")
-                implementation("io.ktor:ktor-client-websockets-wasm-js:3.0.0-wasm2")
-            }
+        wasmJsMain.dependencies {
+            implementation(libs.kotlinxCoroutinesCoreWasmJs)
+            implementation(libs.ktorClientJsWasmJs)
+            implementation(libs.ktorClientJsonWasmJs)
+            implementation(libs.ktorClientSerializationWasmJs)
+            implementation(libs.ktorClientWebsocketsWasmJs)
         }
 
-        val jsMain by getting {
-            dependencies {
-                implementation(libs.kotlinxCoroutinesCoreJs)
-                implementation(libs.koinCore)
-                implementation(libs.ktorClientJs)
-                implementation(libs.ktorClientJsonJs)
-                implementation(libs.ktorClientSerializationJs)
-            }
+        jsMain.dependencies {
+            implementation(libs.kotlinxCoroutinesCoreJs)
+            implementation(libs.koinCore)
+            implementation(libs.ktorClientJs)
+            implementation(libs.ktorClientJsonJs)
+            implementation(libs.ktorClientSerializationJs)
         }
     }
 }

@@ -24,7 +24,7 @@ dependencyResolutionManagement {
 
             version(
                 /* alias = */ "kotlinxCoroutines",
-                /* version = */ "1.8.0-RC2"
+                /* version = */ "1.8.0-RC2-wasm0"
             )
 
             version(
@@ -215,6 +215,30 @@ dependencyResolutionManagement {
             ).versionRef("ktor")
 
             library(
+                /* alias = */ "ktorClientJsWasmJs",
+                /* group = */ "io.ktor",
+                /* artifact = */ "ktor-client-js-wasm-js"
+            ).versionRef("ktor")
+
+            library(
+                /* alias = */ "ktorClientJsonWasmJs",
+                /* group = */ "io.ktor",
+                /* artifact = */ "ktor-client-json-wasm-js"
+            ).versionRef("ktor")
+
+            library(
+                /* alias = */ "ktorClientSerializationWasmJs",
+                /* group = */ "io.ktor",
+                /* artifact = */ "ktor-client-serialization-wasm-js"
+            ).versionRef("ktor")
+
+            library(
+                /* alias = */ "ktorClientWebsocketsWasmJs",
+                /* group = */ "io.ktor",
+                /* artifact = */ "ktor-client-websockets-wasm-js"
+            ).versionRef("ktor")
+
+            library(
                 /* alias = */ "kotlinxCoroutinesCore",
                 /* group = */ "org.jetbrains.kotlinx",
                 /* artifact = */ "kotlinx-coroutines-core"
@@ -224,6 +248,12 @@ dependencyResolutionManagement {
                 /* alias = */ "kotlinxCoroutinesCoreJs",
                 /* group = */ "org.jetbrains.kotlinx",
                 /* artifact = */ "kotlinx-coroutines-core-js"
+            ).versionRef("kotlinxCoroutines")
+
+            library(
+                /* alias = */ "kotlinxCoroutinesCoreWasmJs",
+                /* group = */ "org.jetbrains.kotlinx",
+                /* artifact = */ "kotlinx-coroutines-core-wasm-js"
             ).versionRef("kotlinxCoroutines")
 
             library(
