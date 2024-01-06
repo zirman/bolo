@@ -19,9 +19,8 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import math.V2
 
-expect val canvas: Any
 expect val windowAdapter: WindowAdapter
-expect fun htmlCanvasElementAdapterFactory(canvas: Any): HTMLCanvasElementAdapter
+expect val htmlCanvasElementAdapter: HTMLCanvasElementAdapter
 expect fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter
 expect fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter
 
@@ -33,7 +32,7 @@ class GameModuleImpl(
     val receiveChannel: ReceiveChannel<Frame>,
     val bmapCode: BmapCode,
 ) : GameModule {
-    private val htmlCanvasElementAdapter = htmlCanvasElementAdapterFactory(canvas)
+    private val htmlCanvasElementAdapter = client.htmlCanvasElementAdapter
 
     private val webGLRenderingContext = htmlCanvasElementAdapter
         .getWebGlContext(

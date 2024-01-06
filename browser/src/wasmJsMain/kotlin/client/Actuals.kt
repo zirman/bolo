@@ -14,6 +14,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
 import org.khronos.webgl.Uint8Array
+import org.w3c.dom.HTMLCanvasElement
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -24,10 +25,10 @@ actual suspend fun awaitAnimationFrame(): Double = suspendCoroutine { continuati
 actual fun getDevicePixelRatio(): Double = window.devicePixelRatio
 actual fun getLocationHost(): String = window.location.host
 actual val windowAdapter: WindowAdapter = WindowAdapterImpl()
-actual val canvas: Any = document.getElementById(canvasId).assertNotNull("Canvas not found")
 
-actual fun htmlCanvasElementAdapterFactory(canvas: Any): HTMLCanvasElementAdapter =
-    HTMLCanvasElementAdapterImpl(canvas as org.w3c.dom.HTMLCanvasElement)
+actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
+    document.getElementById(canvasId).assertNotNull("Canvas not found") as HTMLCanvasElement,
+)
 
 actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter =
     RTCPeerConnectionAdapterImpl(JSON.parse(configuration.toString())!!)
