@@ -15,6 +15,8 @@ interface Game {
     val owner: Owner
     val sendChannel: SendChannel<Frame>
     var center: V2
+    val tank: Tank?
+    val builder: Builder?
     fun launchTank(hasBuilder: Boolean)
     fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
     fun launchBuilder(startPosition: V2, builderMission: BuilderMission)
@@ -23,7 +25,5 @@ interface Game {
     suspend fun mineTerrain(x: Int, y: Int)
     suspend fun baseDamage(index: Int)
     suspend fun pillDamage(index: Int)
-    val tank: Tank?
-    val builder: Builder?
     operator fun get(x: Int, y: Int): Entity
 }

@@ -49,7 +49,6 @@ class GameImpl(
     private val scope: CoroutineScope,
     override val sendChannel: SendChannel<Frame>,
     private val receiveChannel: ReceiveChannel<Frame>,
-    private val rtcPeerConnectionAdapter: RTCPeerConnectionAdapter,
     private val control: Control,
     private val canvas: HTMLCanvasElementAdapter,
     private val tileProgram: Deferred<TileProgram>,
@@ -58,6 +57,7 @@ class GameImpl(
     override val owner: Owner,
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
+    private val rtcPeerConnectionAdapterFactory: () -> RTCPeerConnectionAdapter,
     private val tankFactory: (hasBuilder: Boolean) -> Tank,
     private val builderFactory: (
         startPosition: V2,
@@ -721,7 +721,7 @@ class GameImpl(
 
     private fun getPeer(from: Owner): Peer {
         return peers.getOrPut(from) {
-            val peerConnection: RTCPeerConnectionAdapter = rtcPeerConnectionAdapter
+            val peerConnection: RTCPeerConnectionAdapter = rtcPeerConnectionAdapterFactory()
 
             peerConnection.setOnnegotiationneeded { event ->
                 println("PeerConnection.onnegotiationneeded: $from $event")

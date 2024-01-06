@@ -22,8 +22,9 @@ interface GameModule {
     val htmlCanvasElementAdapter: HTMLCanvasElementAdapter
     val windowAdapter: WindowAdapter
     val control: Control
-    val rtcPeerConnectionAdapter: RTCPeerConnectionAdapter
     val game: Game
+
+    fun rtcPeerConnectionAdapterFactory(): RTCPeerConnectionAdapter
 
     fun tankFactory(hasBuilder: Boolean): Tank
 

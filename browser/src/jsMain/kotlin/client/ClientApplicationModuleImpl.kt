@@ -116,7 +116,7 @@ class GameModuleImpl(
     override val windowAdapter = WindowAdapterImpl()
     override val control = Control(windowAdapter)
 
-    override val rtcPeerConnectionAdapter = RTCPeerConnectionAdapterImpl(
+    override fun rtcPeerConnectionAdapterFactory() = RTCPeerConnectionAdapterImpl(
         json(
             "iceServers" to arrayOf(
                 json(
@@ -170,7 +170,6 @@ class GameModuleImpl(
         scope = coroutineScope,
         sendChannel = sendChannel,
         receiveChannel = receiveChannel,
-        rtcPeerConnectionAdapter = rtcPeerConnectionAdapter,
         control = control,
         canvas = htmlCanvasElementAdapter,
         tileProgram = tileProgram,
@@ -179,6 +178,7 @@ class GameModuleImpl(
         owner = owner,
         bmap = bmap,
         bmapCode = bmapCode,
+        rtcPeerConnectionAdapterFactory = this::rtcPeerConnectionAdapterFactory,
         tankFactory = this::tankFactory,
         builderFactory = this::builderFactory,
         shellFactory = this::shellFactory,
