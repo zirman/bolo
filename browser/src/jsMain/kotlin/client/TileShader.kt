@@ -232,7 +232,7 @@ fun WebGLRenderingContext.createTileProgram(
             border = 0,
             format = ALPHA,
             type = UNSIGNED_BYTE,
-            pixels = tileArray.arrayBuffer.unsafeCast<ArrayBufferView>(),
+            pixels = tileArray.uint8Array.unsafeCast<ArrayBufferView>(),
         )
 
         setTextureParameters()

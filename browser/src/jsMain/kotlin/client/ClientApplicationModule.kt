@@ -15,24 +15,24 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 
-class ClientApplicationModuleImpl : ClientApplicationModule {
-    override val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+class ClientApplicationModule {
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         if (throwable !is CancellationException) {
             window.alert("${throwable.message}\n${throwable.stackTraceToString()}")
         }
     }
 
-    override val coroutineScope = CoroutineScope(coroutineExceptionHandler)
+    private val coroutineScope = CoroutineScope(coroutineExceptionHandler)
 
-    override val httpClient = HttpClient { install(WebSockets) }
+    private val httpClient = HttpClient { install(WebSockets) }
 
-    fun gameModuleFactory(
+    private fun gameModuleFactory(
         sendChannel: SendChannel<Frame>,
         owner: Owner,
         bmap: Bmap,
         receiveChannel: ReceiveChannel<Frame>,
         bmapCode: BmapCode,
-    ): GameModule = GameModuleImpl(
+    ): GameModule = GameModule(
         coroutineScope = coroutineScope,
         sendChannel = sendChannel,
         owner = owner,
@@ -41,7 +41,8 @@ class ClientApplicationModuleImpl : ClientApplicationModule {
         bmapCode = bmapCode,
     )
 
-    override val clientApplication: ClientApplication = ClientApplicationImpl(
+    @Suppress("unused")
+    private val clientApplication: ClientApplication = ClientApplicationImpl(
         coroutineScope = coroutineScope,
         httpClient = httpClient,
         gameModuleFactory = this::gameModuleFactory,

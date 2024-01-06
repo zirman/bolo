@@ -1,81 +1,46 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
 package client
 
 import adapters.HTMLCanvasElementAdapterImpl
-import bmap.Bmap
-import bmap.BmapCode
 import adapters.RTCPeerConnectionAdapterImpl
 import adapters.RenderingContextAdapterImpl
+import adapters.Uint8ArrayAdapterImpl
 import adapters.WindowAdapterImpl
 import assert.assertNotNull
+import bmap.Bmap
+import bmap.BmapCode
+import bmap.worldHeight
+import bmap.worldWidth
 import frame.Owner
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.Frame
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import math.V2
+import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.WebGLRenderingContext
 import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
 import kotlin.js.json
 
-class ClientApplicationModuleImpl : ClientApplicationModule {
-    override val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        if (throwable !is CancellationException) {
-            window.alert("${throwable.message}\n${throwable.stackTraceToString()}")
-        }
-    }
-
-    override val coroutineScope = CoroutineScope(coroutineExceptionHandler)
-
-    override val httpClient = HttpClient { install(WebSockets) }
-
-    fun gameModuleFactory(
-        sendChannel: SendChannel<Frame>,
-        owner: Owner,
-        bmap: Bmap,
-        receiveChannel: ReceiveChannel<Frame>,
-        bmapCode: BmapCode,
-    ): GameModule = GameModuleImpl(
-        coroutineScope = coroutineScope,
-        sendChannel = sendChannel,
-        owner = owner,
-        bmap = bmap,
-        receiveChannel = receiveChannel,
-        bmapCode = bmapCode,
-    )
-
-    override val clientApplication: ClientApplication = ClientApplicationImpl(
-        coroutineScope = coroutineScope,
-        httpClient = httpClient,
-        gameModuleFactory = this::gameModuleFactory,
-    )
-}
-
-class GameModuleImpl(
-    override val coroutineScope: CoroutineScope,
-    override val sendChannel: SendChannel<Frame>,
-    override val owner: Owner,
-    override val bmap: Bmap,
-    override val receiveChannel: ReceiveChannel<Frame>,
-    override val bmapCode: BmapCode,
-) : GameModule {
-    override val htmlCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
+class GameModule(
+    val coroutineScope: CoroutineScope,
+    val sendChannel: SendChannel<Frame>,
+    val owner: Owner,
+    val bmap: Bmap,
+    val receiveChannel: ReceiveChannel<Frame>,
+    val bmapCode: BmapCode,
+) {
+    private val htmlCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
         document.getElementById(canvasId) as? org.w3c.dom.HTMLCanvasElement
             ?: throw IllegalStateException("Canvas not found")
     )
 
-    val webGLRenderingContext = htmlCanvasElementAdapter
+    private val webGLRenderingContext = htmlCanvasElementAdapter
         .getContext(
             contextId = "webgl",
             arguments = buildJsonObject {
@@ -111,12 +76,12 @@ class GameModuleImpl(
             disable(DEPTH_TEST)
         }
 
-    val tileProgram = webGLRenderingContext.createTileProgram(coroutineScope)
-    val spriteProgram = webGLRenderingContext.createSpriteProgram(coroutineScope)
-    override val windowAdapter = WindowAdapterImpl()
-    override val control = Control(windowAdapter)
+    private val tileProgram = webGLRenderingContext.createTileProgram(coroutineScope)
+    private val spriteProgram = webGLRenderingContext.createSpriteProgram(coroutineScope)
+    private val windowAdapter = WindowAdapterImpl()
+    private val control = Control(windowAdapter)
 
-    override fun rtcPeerConnectionAdapterFactory() = RTCPeerConnectionAdapterImpl(
+    private fun rtcPeerConnectionAdapterFactory() = RTCPeerConnectionAdapterImpl(
         json(
             "iceServers" to arrayOf(
                 json(
@@ -128,7 +93,7 @@ class GameModuleImpl(
         ),
     )
 
-    override fun tankFactory(hasBuilder: Boolean): Tank {
+    private fun tankFactory(hasBuilder: Boolean): Tank {
         return TankImpl(
             scope = coroutineScope,
             game = game,
@@ -136,7 +101,7 @@ class GameModuleImpl(
         )
     }
 
-    override fun shellFactory(
+    private fun shellFactory(
         startPosition: V2,
         bearing: Float,
         fromBoat: Boolean,
@@ -152,7 +117,7 @@ class GameModuleImpl(
         )
     }
 
-    override fun builderFactory(
+    private fun builderFactory(
         startPosition: V2,
         buildOp: BuilderMission,
     ): Builder {
@@ -164,9 +129,13 @@ class GameModuleImpl(
         )
     }
 
-    val tileArray = ImageTileArrayImpl(bmap, owner)
+    private val tileArray = ImageTileArrayImpl(
+        bmap = bmap,
+        owner = owner,
+        imageTiles = Uint8ArrayAdapterImpl(Uint8Array(worldWidth * worldHeight)),
+    )
 
-    override val game = GameImpl(
+    private val game = GameImpl(
         scope = coroutineScope,
         sendChannel = sendChannel,
         receiveChannel = receiveChannel,
