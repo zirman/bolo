@@ -2,13 +2,13 @@ package client
 
 import adapters.AudioAdapter
 
-class AudioManager(src: String) {
-    private val audioPool: MutableList<AudioAdapter> = mutableListOf(audioAdapterFactory(src))
+class AudioManager(private val src: String) {
+    private val audioPool: MutableList<AudioAdapter> = mutableListOf()
 
     fun play() {
         run {
             audioPool.find { it.paused }
-                ?: audioPool.first().cloneNode().also { audioPool.add(it) }
+                ?: (audioPool.firstOrNull()?.cloneNode() ?: audioAdapterFactory(src)).also { audioPool.add(it) }
         }.play()
     }
 }
