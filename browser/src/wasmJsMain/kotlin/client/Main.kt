@@ -1,5 +1,7 @@
 package client
 
+import kotlin.time.measureTime
+
 @JsFun(
     """
 function fib(i) {
@@ -18,13 +20,15 @@ external fun fibJs(i: Double): Double
 fun main() {
     ClientApplicationModule()
 
-//    val i = 38
-//
-//    measureTime {
-//        println("kotlin/wasm fib($i) ${fib(i)}")
-//    }.also { println("kotlin/wasm time: ${it.inWholeMilliseconds} ms") }
-//
-//    measureTime {
-//        println("js fib($i) ${fibJs(i.toDouble())}")
-//    }.also { println("js time: ${it.inWholeMilliseconds} ms") }
+    if (runFibonacciBenchmark) {
+        val i = 38
+
+        measureTime {
+            println("kotlin/wasm fib($i) ${fib(i)}")
+        }.also { println("kotlin/wasm time: ${it.inWholeMilliseconds} ms") }
+
+        measureTime {
+            println("js fib($i) ${fibJs(i.toDouble())}")
+        }.also { println("js time: ${it.inWholeMilliseconds} ms") }
+    }
 }
