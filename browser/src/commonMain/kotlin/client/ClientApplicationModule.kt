@@ -13,13 +13,10 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 
 class ClientApplicationModule {
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        if (throwable !is CancellationException) {
-            alert(throwable)
-        }
-    }
-
-    private val coroutineScope = CoroutineScope(coroutineExceptionHandler)
+    private val coroutineScope = CoroutineScope(CoroutineExceptionHandler { _, throwable ->
+        if (throwable is CancellationException) return@CoroutineExceptionHandler
+        alert("${throwable.message}\n${throwable.stackTraceToString()}")
+    })
 
     private val httpClient = HttpClient { install(WebSockets) }
 

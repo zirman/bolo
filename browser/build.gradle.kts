@@ -90,11 +90,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.koinBom))
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
             implementation(libs.ktorClientCore)
-            implementation(project.dependencies.platform(libs.koinBom))
         }
 
         commonTest.dependencies {

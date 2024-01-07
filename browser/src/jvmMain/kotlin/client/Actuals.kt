@@ -1,5 +1,6 @@
 package client
 
+import adapters.AudioAdapter
 import adapters.HTMLCanvasElementAdapter
 import adapters.RTCPeerConnectionAdapter
 import adapters.Uint8ArrayAdapter
@@ -14,6 +15,8 @@ actual val windowAdapter: WindowAdapter = never()
 actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = never()
 actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter = never()
 actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = never()
-actual fun alert(throwable: Throwable) {
+actual fun audioAdapterFactory(src: String): AudioAdapter = never()
+
+actual fun alert(message: String) {
     never()
 }

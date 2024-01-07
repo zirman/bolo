@@ -33,6 +33,7 @@ import kotlin.math.sqrt
 @Suppress("NAME_SHADOWING")
 class TankImpl(
     private val scope: CoroutineScope,
+    private val tankShotAudioManager: AudioManager,
     game: Game,
     override var hasBuilder: Boolean,
 ) : GeneratorLoopImpl<Tick>(scope), Tank, Game by game {
@@ -285,6 +286,7 @@ class TankImpl(
                     launchShell(bearing, onBoat, position, sightRange)
                     reload = 0f
                     tankShells--
+                    tankShotAudioManager.play()
                 }
 
                 // mine laying

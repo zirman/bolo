@@ -1,5 +1,8 @@
+@file:Suppress("unused")
+
 package client
 
+import adapters.AudioAdapter
 import adapters.HTMLCanvasElementAdapter
 import adapters.RTCPeerConnectionAdapter
 import adapters.Uint8ArrayAdapter
@@ -23,6 +26,7 @@ expect val windowAdapter: WindowAdapter
 expect val htmlCanvasElementAdapter: HTMLCanvasElementAdapter
 expect fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter
 expect fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter
+expect fun audioAdapterFactory(src: String): AudioAdapter
 
 class GameModuleImpl(
     val coroutineScope: CoroutineScope,
@@ -70,6 +74,7 @@ class GameModuleImpl(
             scope = coroutineScope,
             game = game,
             hasBuilder = hasBuilder,
+            tankShotAudioManager = tankShotAudioManager,
         )
     }
 
@@ -106,6 +111,31 @@ class GameModuleImpl(
         owner = owner,
         imageTiles = uint8ArrayAdapterFactory(worldWidth * worldHeight),
     )
+
+    private val bubblesAudioManager: AudioManager = AudioManager("bubbles.mp3")
+    private val buildAudioManager: AudioManager = AudioManager("build.mp3")
+    private val builderDeathAudioManager: AudioManager = AudioManager("builder_death.mp3")
+    private val builderDeathFarAudioManager: AudioManager = AudioManager("builder_death_far.mp3")
+    private val buildFarAudioManager: AudioManager = AudioManager("build_far.mp3")
+    private val explosionAudioManager: AudioManager = AudioManager("explosion.mp3")
+    private val explosionFarAudioManager: AudioManager = AudioManager("explosion_far.mp3")
+    private val hitTankAudioManager: AudioManager = AudioManager("hit_tank.mp3")
+    private val hitTankFarAudioManager: AudioManager = AudioManager("hit_tank_far.mp3")
+    private val hitTerrainAudioManager: AudioManager = AudioManager("hit_terrain.mp3")
+    private val hitTerrainFarAudioManager: AudioManager = AudioManager("hit_terrain_far.mp3")
+    private val hitTreeAudioManager: AudioManager = AudioManager("hit_tree.mp3")
+    private val hitTreeFarAudioManager: AudioManager = AudioManager("hit_tree_far.mp3")
+    private val messageReceivedAudioManager: AudioManager = AudioManager("message_received.mp3")
+    private val mineAudioManager: AudioManager = AudioManager("mine.mp3")
+    private val pillShotAudioManager: AudioManager = AudioManager("pill_shot.mp3")
+    private val shotFarAudioManager: AudioManager = AudioManager("shot_far.mp3")
+    private val sinkAudioManager: AudioManager = AudioManager("sink.mp3")
+    private val sinkFarAudioManager: AudioManager = AudioManager("sink_far.mp3")
+    private val superBoomAudioManager: AudioManager = AudioManager("super_boom.mp3")
+    private val superBoomFarAudioManager: AudioManager = AudioManager("super_boom_far.mp3")
+    private val tankShotAudioManager: AudioManager = AudioManager("tank_shot.mp3")
+    private val treeAudioManager: AudioManager = AudioManager("tree.mp3")
+    private val treeFarAudioManager: AudioManager = AudioManager("tree_far.mp3")
 
     private val game = GameImpl(
         scope = coroutineScope,

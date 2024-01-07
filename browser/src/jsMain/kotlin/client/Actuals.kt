@@ -1,5 +1,7 @@
 package client
 
+import adapters.AudioAdapter
+import adapters.AudioAdapterImpl
 import adapters.HTMLCanvasElementAdapter
 import adapters.HTMLCanvasElementAdapterImpl
 import adapters.RTCPeerConnectionAdapter
@@ -30,6 +32,8 @@ actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerCo
 
 actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = Uint8ArrayAdapterImpl(Uint8Array(length))
 
-actual fun alert(throwable: Throwable) {
-    window.alert("${throwable.message}\n${throwable.stackTraceToString()}")
+actual fun audioAdapterFactory(src: String): AudioAdapter = AudioAdapterImpl(src)
+
+actual fun alert(message: String) {
+    window.alert(message)
 }
