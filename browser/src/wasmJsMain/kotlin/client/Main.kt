@@ -1,5 +1,6 @@
 package client
 
+import org.koin.core.context.startKoin
 import kotlin.time.measureTime
 
 @JsFun(
@@ -18,8 +19,6 @@ external fun fibJs(i: Double): Double
 //console.log(`js time: ${end - start} ms`)
 
 fun main() {
-    ClientApplicationModule()
-
     if (runFibonacciBenchmark) {
         val i = 38
 
@@ -30,5 +29,10 @@ fun main() {
         measureTime {
             println("js fib($i) ${fibJs(i.toDouble())}")
         }.also { println("js time: ${it.inWholeMilliseconds} ms") }
+    } else {
+        startKoin {
+            modules(clientModule, gameModule)
+            createEagerInstances()
+        }
     }
 }

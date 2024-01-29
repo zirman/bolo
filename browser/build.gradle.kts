@@ -15,8 +15,6 @@ application {
 
 kotlin {
     jvm {
-        jvmToolchain(jdkVersion = 17)
-
         compilations.all {
             kotlinOptions {
                 jvmTarget = "17"
@@ -94,6 +92,7 @@ kotlin {
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
+            implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }
 
@@ -101,6 +100,7 @@ kotlin {
             implementation(libs.kotlinTest)
             implementation(libs.kotlinTestCommon)
             implementation(libs.kotlinTestAnnotationsCommon)
+            implementation(libs.koinTest)
         }
 
         jvmMain.dependencies {

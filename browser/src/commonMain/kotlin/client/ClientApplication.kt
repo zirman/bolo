@@ -1,7 +1,5 @@
 package client
 
-import bmap.Bmap
-import bmap.BmapCode
 import bmap.BmapCodeReader
 import bmap.BmapDamageReader
 import bmap.BmapReader
@@ -15,26 +13,19 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 
-interface GameModule
 interface ClientApplication
 
 class ClientApplicationImpl(
     val coroutineScope: CoroutineScope,
     val httpClient: HttpClient,
-    val gameModuleFactory: (
-        sendChannel: SendChannel<Frame>,
-        owner: Owner,
-        bmap: Bmap,
-        receiveChannel: ReceiveChannel<Frame>,
-        bmapCode: BmapCode,
-    ) -> GameModule,
-) : ClientApplication {
+) : ClientApplication, KoinComponent {
     init {
         coroutineScope.launch {
             httpClient.ws(
@@ -64,13 +55,16 @@ class ClientApplicationImpl(
             val owner = Owner(bmapExtra.owner)
             bmapExtra.loadCodes(bmap)
 
-            gameModuleFactory(
-                outgoing,
-                owner,
-                bmap,
-                incoming,
-                bmapCode,
-            )
+            // instantiate game
+            get<Game> {
+                parametersOf(
+                    outgoing,
+                    owner,
+                    bmap,
+                    incoming,
+                    bmapCode,
+                )
+            }
 
             awaitCancellation()
         } catch (error: Throwable) {

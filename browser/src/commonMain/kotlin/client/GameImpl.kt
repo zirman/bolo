@@ -42,6 +42,9 @@ import math.scale
 import math.v2Origin
 import math.x
 import math.y
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -57,19 +60,7 @@ class GameImpl(
     override val owner: Owner,
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
-    private val rtcPeerConnectionAdapterFactory: () -> RTCPeerConnectionAdapter,
-    private val tankFactory: (hasBuilder: Boolean) -> Tank,
-    private val builderFactory: (
-        startPosition: V2,
-        buildOp: BuilderMission,
-    ) -> Builder,
-    private val shellFactory: (
-        startPosition: V2,
-        bearing: Float,
-        fromBoat: Boolean,
-        sightRange: Float,
-    ) -> Shell,
-) : Game {
+) : Game, KoinComponent {
     override val random = Random(1)
     override var center: V2 = v2Origin
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
@@ -187,7 +178,6 @@ class GameImpl(
 
         try {
             tileProgram(clipMatrix, tileArray)
-
             val sprites = mutableListOf<SpriteInstance>()
 
             builder?.run {
@@ -721,7 +711,7 @@ class GameImpl(
 
     private fun getPeer(from: Owner): Peer {
         return peers.getOrPut(from) {
-            val peerConnection: RTCPeerConnectionAdapter = rtcPeerConnectionAdapterFactory()
+            val peerConnection: RTCPeerConnectionAdapter = get()
 
             peerConnection.setOnnegotiationneeded { event ->
                 println("PeerConnection.onnegotiationneeded: $from $event")
@@ -820,7 +810,7 @@ class GameImpl(
 
     override fun launchTank(hasBuilder: Boolean) {
         tank?.job?.cancel()
-        tank = tankFactory(hasBuilder)
+        tank = get { parametersOf(hasBuilder) }
     }
 
     override fun launchBuilder(
@@ -828,7 +818,7 @@ class GameImpl(
         builderMission: BuilderMission,
     ) {
         builder?.job?.cancel()
-        builder = builderFactory(startPosition, builderMission)
+        builder = get { parametersOf(startPosition, builderMission) }
     }
 
     override fun launchShell(
@@ -837,7 +827,7 @@ class GameImpl(
         startPosition: V2,
         sightRange: Float,
     ) {
-        shells.add(shellFactory(startPosition, bearing, onBoat, sightRange))
+        shells.add(get { parametersOf(startPosition, bearing, onBoat, sightRange) })
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {

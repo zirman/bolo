@@ -15,7 +15,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            val kotlin = "2.0.0-Beta2"
+            val kotlin = "2.0.0-Beta3"
 
             version(
                 /* alias = */ "kotlin",
@@ -50,13 +50,13 @@ dependencyResolutionManagement {
             plugin(
                 /* alias = */ "versions",
                 /* id = */ "com.github.ben-manes.versions"
-            ).version("0.50.0")
+            ).version("0.51.0")
 
             library(
                 /* alias = */ "koinBom",
                 /* group = */ "io.insert-koin",
                 /* artifact = */ "koin-bom"
-            ).version("3.5.3")
+            ).version("3.6.0-wasm-alpha1")
 
             library(
                 /* alias = */ "koinCore",
