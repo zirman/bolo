@@ -46,5 +46,3 @@ const val spriteSheetWidth = 16
 const val spriteSheetHeight = 16
 
 const val spriteSheetSrc = "sprite_sheet.png"
-
-const val runFibonacciBenchmark = false

@@ -1,5 +1,7 @@
 @file:OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
 
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+
 plugins {
     application
     alias(libs.plugins.kotlinMultiplatform)
@@ -28,24 +30,25 @@ kotlin {
         }
     }
 
-    js(IR) {
-        moduleName = "jsClient"
-        useEsModules()
-
-        compilations.all {
-            kotlinOptions {
-                useEsClasses = true
-            }
-        }
-
-        browser {
-            commonWebpackConfig {
-                outputFileName = "bolo.js"
-            }
-        }
-
-        binaries.executable()
-    }
+//    js(IR) {
+//        moduleName = "jsClient"
+//        useEsModules()
+//
+//        compilations.all {
+//            kotlinOptions {
+//                useEsClasses = true
+//            }
+//        }
+//
+//        browser {
+//            commonWebpackConfig {
+//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+//                outputFileName = "bolo.js"
+//            }
+//        }
+//
+//        binaries.executable()
+//    }
 
     wasmJs {
         moduleName = "wasmClient"
@@ -119,13 +122,13 @@ kotlin {
             implementation(libs.logbackClassic)
         }
 
-        jsMain.dependencies {
-            implementation(libs.kotlinxCoroutinesCoreJs)
-            implementation(libs.koinCore)
-            implementation(libs.ktorClientJs)
-            implementation(libs.ktorClientJsonJs)
-            implementation(libs.ktorClientSerializationJs)
-        }
+//        jsMain.dependencies {
+//            implementation(libs.kotlinxCoroutinesCoreJs)
+//            implementation(libs.koinCore)
+//            implementation(libs.ktorClientJs)
+//            implementation(libs.ktorClientJsonJs)
+//            implementation(libs.ktorClientSerializationJs)
+//        }
 
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)
@@ -138,6 +141,6 @@ kotlin {
 }
 
 tasks.named<Copy>("jvmProcessResources") {
-    from(tasks.named<Copy>("jsBrowserDistribution"))
+//    from(tasks.named<Copy>("jsBrowserDistribution"))
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
 }
