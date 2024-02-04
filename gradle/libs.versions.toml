@@ -1,0 +1,58 @@
+[versions]
+kotlin = "2.0.0-Beta3"
+kotlinxCoroutines = "1.8.0-RC2-wasm0"
+kotlinxSerialization = "1.6.2"
+ktor = "3.0.0-wasm2"
+koinBom = "3.6.0-wasm-alpha1"
+kotlinxDatetime = "0.4.0"
+kotlinxCollectionsImmutable = "0.3.5"
+logbackClassic = "1.4.14"
+slf4jSimple = "2.0.7"
+junit = "4.13.2"
+versions = "0.51.0"
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "versions" }
+
+[libraries]
+koinBom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koinBom" }
+koinCore = { group = "io.insert-koin", name = "koin-core" }
+koinTest = { group = "io.insert-koin", name = "koin-test" }
+koinTestJunit5 = { group = "io.insert-koin", name = "koin-test-junit5" }
+koinKtor = { group = "io.insert-koin", name = "koin-ktor" }
+koinLoggerSlf4j = { group = "io.insert-koin", name = "koin-logger-slf4j" }
+kotlinTest = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlinTestCommon = { group = "org.jetbrains.kotlin", name = "kotlin-test-common", version.ref = "kotlin" }
+kotlinTestAnnotationsCommon = { group = "org.jetbrains.kotlin", name = "kotlin-test-annotations-common", version.ref = "kotlin" }
+kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlin" }
+kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinxSerializationProtobuf = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-protobuf", version.ref = "kotlinxSerialization" }
+kotlinxDatetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinxCollectionsImmutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
+ktorServerCore = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktorServerNetty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
+ktorServerHtmlBuilder = { group = "io.ktor", name = "ktor-server-html-builder", version.ref = "ktor" }
+ktorServerContentNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+ktorServerCompression = { group = "io.ktor", name = "ktor-server-compression", version.ref = "ktor" }
+ktorServerWebsockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
+ktorSerialization = { group = "io.ktor", name = "ktor-serialization", version.ref = "ktor" }
+ktorSerializationKotlinxJson = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktorWebsockets = { group = "io.ktor", name = "ktor-websockets", version.ref = "ktor" }
+logbackClassic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logbackClassic" }
+ktorClientJs = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor" }
+ktorClientJsonJs = { group = "io.ktor", name = "ktor-client-json-js", version.ref = "ktor" }
+ktorClientSerializationJs = { group = "io.ktor", name = "ktor-client-serialization-js", version.ref = "ktor" }
+ktorClientJsWasmJs = { group = "io.ktor", name = "ktor-client-js-wasm-js", version.ref = "ktor" }
+ktorClientJsonWasmJs = { group = "io.ktor", name = "ktor-client-json-wasm-js", version.ref = "ktor" }
+ktorClientSerializationWasmJs = { group = "io.ktor", name = "ktor-client-serialization-wasm-js", version.ref = "ktor" }
+ktorClientWebsocketsWasmJs = { group = "io.ktor", name = "ktor-client-websockets-wasm-js", version.ref = "ktor" }
+kotlinxCoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesCoreJs = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-js", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesCoreWasmJs = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-wasm-js", version.ref = "kotlinxCoroutines" }
+ktorClientCore = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktorClientLogging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktorClientContentNegotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+slf4jSimple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4jSimple" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
