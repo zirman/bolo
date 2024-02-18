@@ -86,6 +86,7 @@ kotlin {
 
     dependencies {
         implementation(project.dependencies.platform(libs.koinBom))
+        implementation(project.dependencies.platform(libs.kotilnxCoroutinesBom))
         compileOnly(libs.koinCore)
     }
 
