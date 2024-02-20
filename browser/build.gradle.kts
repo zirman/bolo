@@ -52,12 +52,17 @@ kotlin {
 
     wasmJs {
         moduleName = "wasmClient"
+        useEsModules()
+
+        compilations.all {
+            kotlinOptions {
+                useEsClasses = true
+            }
+        }
 
         browser {
-            browser {
-                commonWebpackConfig {
-                    outputFileName = "boloWasm.js"
-                }
+            commonWebpackConfig {
+                outputFileName = "boloWasm.js"
             }
         }
 
@@ -144,4 +149,12 @@ kotlin {
 tasks.named<Copy>("jvmProcessResources") {
 //    from(tasks.named<Copy>("jsBrowserDistribution"))
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
+    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.mjs")
+    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.uninstantiated.mjs")
+    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")
+    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
+//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.mjs")
+//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.uninstantiated.mjs")
+//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm")
+//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
 }

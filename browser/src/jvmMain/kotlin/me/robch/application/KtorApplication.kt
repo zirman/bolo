@@ -5,6 +5,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -26,6 +27,7 @@ import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
 import org.koin.core.context.startKoin
+import java.io.File
 import java.time.Duration
 
 fun Application.ktorModule() {
@@ -66,6 +68,7 @@ fun Application.ktorModule() {
     routing {
         staticResources("/", null)
         staticResources("/", "files")
+        staticFiles("/src", File("src"))
 
         get("/") {
             call.respondHtml {
@@ -114,7 +117,10 @@ fun Application.ktorModule() {
                     canvas { id = canvasId }
 
 //                    script { src = "/bolo.js" }
-                    script { src = "/boloWasm.js" }
+                    script {
+                        type = "module"
+                        src = "/wasmClient.mjs"
+                    }
                 }
             }
         }

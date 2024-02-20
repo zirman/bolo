@@ -2,7 +2,10 @@
 
 Multiplayer tank strategy game.
 
-### TODO
+### Run
+`gradle browser:run`
+
+### Todo
 
 * tank refueling
 * base replenishment
