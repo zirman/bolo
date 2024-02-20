@@ -115,12 +115,7 @@ fun Application.ktorModule() {
 
                 body {
                     canvas { id = canvasId }
-
-//                    script { src = "/bolo.js" }
-                    script {
-                        type = "module"
-                        src = "/wasmClient.mjs"
-                    }
+                    script { src = "/bolo.js" }
                 }
             }
         }

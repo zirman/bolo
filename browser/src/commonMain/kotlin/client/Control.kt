@@ -18,7 +18,7 @@ class Control(window: WindowAdapter) {
             else -> DirectionVertical.Center
         }
 
-    private val shootButton: Boolean get() = keySpace
+    private val fireButton: Boolean get() = keySpace
 
     private val layMineButton: Boolean get() = keyShift
 
@@ -34,7 +34,7 @@ class Control(window: WindowAdapter) {
             builderMode = builderMode,
             directionHorizontal = directionHorizontal,
             directionVertical = directionVertical,
-            shootButton = shootButton,
+            fireButton = fireButton,
             layMineButton = layMineButton,
             mouse = mouse,
         )

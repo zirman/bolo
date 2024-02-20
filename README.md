@@ -13,7 +13,7 @@ Multiplayer tank strategy game.
 * mine placement
 * mine chain reaction
 * explosion sprites
-* pillbox shooting
+* pillbox firing
 * adjacent tile mapper
 * crater flooding
 * tank destruction

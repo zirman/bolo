@@ -62,7 +62,8 @@ kotlin {
 
         browser {
             commonWebpackConfig {
-                outputFileName = "boloWasm.js"
+                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+                outputFileName = "bolo.js"
             }
         }
 
@@ -101,6 +102,8 @@ kotlin {
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
+            implementation(libs.kotlinxDatetime)
+            implementation(libs.kotlinxCollectionsImmutable)
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }
@@ -149,12 +152,8 @@ kotlin {
 tasks.named<Copy>("jvmProcessResources") {
 //    from(tasks.named<Copy>("jsBrowserDistribution"))
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
-    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.mjs")
-    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.uninstantiated.mjs")
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
-//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.mjs")
-//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.uninstantiated.mjs")
 //    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm")
 //    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
 }

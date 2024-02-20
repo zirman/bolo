@@ -29,7 +29,7 @@ data class ControlState(
     val builderMode: BuilderMode,
     val directionHorizontal: DirectionHorizontal,
     val directionVertical: DirectionVertical,
-    val shootButton: Boolean,
+    val fireButton: Boolean,
     val layMineButton: Boolean,
     val mouse: Mouse?,
 )
