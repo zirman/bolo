@@ -8,8 +8,8 @@ import client.ImageTileArray
 import client.SpriteInstance
 import client.SpriteProgram
 import client.TileProgram
+import client.imageTileIndex
 import client.spriteSheetSrc
-import client.tileInd
 import client.tileSheetHeight
 import client.tileSheetSrc
 import client.tileSheetWidth
@@ -173,8 +173,8 @@ class WebGlRenderingContextAdapterImpl(
 
         for (y in 0..<tileSheetHeight) {
             for (x in 0..<tileSheetWidth) {
-                sourceToOriginArray[(tileInd(x, y) * 3)] = x.toFloat() / tileSheetWidth.toFloat()      // s offset
-                sourceToOriginArray[(tileInd(x, y) * 3) + 1] = y.toFloat() / tileSheetHeight.toFloat() // t offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3)] = x.toFloat() / tileSheetWidth.toFloat()      // s offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] = y.toFloat() / tileSheetHeight.toFloat() // t offset
             }
         }
 

@@ -325,7 +325,133 @@ class ImageTileArrayImpl(
                 }
             }
 
-            TypeTile.RoadMined -> ImageTile.RoadMined0
+            TypeTile.RoadMined -> {
+                when (isLikeBits(x, y) { isRoadLikeTile() }) {
+                    0 -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
+                        5 -> ImageTile.RoadMined10
+                        15 -> ImageTile.RoadMined28
+                        10 -> ImageTile.RoadMined29
+                        else -> ImageTile.RoadMined7
+                    }
+
+                    1, 4, 5 -> when (
+                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined29
+                        else -> ImageTile.RoadMined23
+                    }
+
+                    2, 8, 10 -> when (
+                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
+                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined10
+                        else -> ImageTile.RoadMined22
+                    }
+
+                    6 -> when (
+                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
+                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined15
+                        else -> when (getTypeTile(x + 1, y - 1).isRoadLikeTile()) {
+                            1 -> ImageTile.RoadMined12
+                            else -> ImageTile.RoadMined24
+                        }
+                    }
+
+                    3 -> when (
+                        getTypeTile(x + 1, y).isWaterLikeToLandTile()
+                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined17
+                        else -> when (getTypeTile(x - 1, y - 1).isRoadLikeTile()) {
+                            1 -> ImageTile.RoadMined14
+                            else -> ImageTile.RoadMined25
+                        }
+                    }
+
+                    7 -> when (getTypeTile(x, y + 1).isWaterLikeToLandTile()) {
+                        1 -> ImageTile.RoadMined16
+                        else -> when (
+                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
+                                .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
+                        ) {
+                            0 -> ImageTile.RoadMined27
+                            else -> ImageTile.RoadMined13
+                        }
+                    }
+
+                    12 -> when (
+                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
+                            .or(getTypeTile(x, y - 1).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined3
+                        else -> when (getTypeTile(x + 1, y + 1).isRoadLikeTile()) {
+                            1 -> ImageTile.RoadMined0
+                            else -> ImageTile.RoadMined18
+                        }
+                    }
+
+                    14 -> when (getTypeTile(x - 1, y).isWaterLikeToLandTile()) {
+                        1 -> ImageTile.RoadMined9
+                        else -> when (
+                            getTypeTile(x + 1, y - 1).isRoadLikeTile()
+                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                        ) {
+                            0 -> ImageTile.RoadMined26
+                            else -> ImageTile.RoadMined6
+                        }
+                    }
+
+                    9 -> when (
+                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                    ) {
+                        3 -> ImageTile.RoadMined5
+                        else -> when (getTypeTile(x - 1, y + 1).isRoadLikeTile()) {
+                            1 -> ImageTile.RoadMined2
+                            else -> ImageTile.RoadMined19
+                        }
+                    }
+
+                    13 -> when (getTypeTile(x, y - 1).isWaterLikeToLandTile()) {
+                        1 -> ImageTile.RoadMined4
+                        else -> when (
+                            getTypeTile(x - 1, y + 1).isRoadLikeTile()
+                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                        ) {
+                            0 -> ImageTile.RoadMined20
+                            else -> ImageTile.RoadMined1
+                        }
+                    }
+
+                    11 -> when (getTypeTile(x + 1, y).isWaterLikeToLandTile()) {
+                        1 -> ImageTile.RoadMined11
+                        else -> when (
+                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
+                                .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(1))
+                        ) {
+                            0 -> ImageTile.RoadMined21
+                            else -> ImageTile.RoadMined8
+                        }
+                    }
+
+                    15 -> when (
+                        getTypeTile(x - 1, y - 1).isRoadLikeTile()
+                            .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
+                            .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(2))
+                            .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(3))
+                    ) {
+                        0 -> ImageTile.RoadMined30
+                        else -> ImageTile.RoadMined7
+                    }
+
+                    else -> never()
+                }
+            }
+
             TypeTile.Rubble -> ImageTile.Rubble
             TypeTile.RubbleMined -> ImageTile.RubbleMined
             TypeTile.DamagedWall -> ImageTile.DamagedWall
