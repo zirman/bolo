@@ -16,7 +16,7 @@ actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = never()
 actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter = never()
 actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = never()
 actual fun audioAdapterFactory(src: String): AudioAdapter = never()
-
-actual fun alert(message: String) {
-    never()
-}
+actual fun setShellsStatusBar(percent: Double): Unit = never()
+actual fun setArmorStatusBar(percent: Double): Unit = never()
+actual fun setMinesStatusBar(percent: Double): Unit = never()
+actual fun alert(message: String): Unit = never()

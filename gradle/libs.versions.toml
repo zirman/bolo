@@ -3,6 +3,7 @@ kotlin = "2.0.0-Beta4"
 kotlinxCoroutines = "1.8.0-RC2-wasm0"
 kotlinxSerialization = "1.6.3"
 ktor = "3.0.0-wasm2"
+kotlinCss = "1.0.0-pre.700"
 koinBom = "3.6.0-wasm-alpha2"
 kotlinxDatetime = "0.5.0-wasm0"
 kotlinxCollectionsImmutable = "0.4-wasm1"
@@ -34,6 +35,7 @@ kotlinxCollectionsImmutable = { group = "org.jetbrains.kotlinx", name = "kotlinx
 ktorServerCore = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
 ktorServerNetty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
 ktorServerHtmlBuilder = { group = "io.ktor", name = "ktor-server-html-builder", version.ref = "ktor" }
+kotlinCss = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-css", version.ref = "kotlinCss" }
 ktorServerContentNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktorServerCompression = { group = "io.ktor", name = "ktor-server-compression", version.ref = "ktor" }
 ktorServerWebsockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }

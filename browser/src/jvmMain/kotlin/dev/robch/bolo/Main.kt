@@ -1,4 +1,4 @@
-package me.robch.application
+package dev.robch.bolo
 
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer

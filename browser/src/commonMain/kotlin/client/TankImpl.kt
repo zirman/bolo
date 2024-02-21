@@ -94,6 +94,10 @@ class TankImpl(
     }
 
     override suspend fun launch() {
+        setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
+        setArmorStatusBar(tankArmor.toDouble() / tankArmorMax)
+        setMinesStatusBar(tankMines.toDouble() / tankMinesMax)
+
         doWhile { tick ->
             val terrainKernel = TerrainKernel(tick)
 
@@ -329,6 +333,7 @@ class TankImpl(
             launchShell(bearing, onBoat, position, sightRange)
             reload = 0f
             tankShells--
+            setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
             tankShotAudioManager.play()
         }
         reload += delta
@@ -352,18 +357,21 @@ class TankImpl(
                 if (tankArmor < tankArmorMax && entity.ref.armor >= armorUnit) {
                     if (refuelingTime >= refuelArmorTime) {
                         tankArmor = (tankArmor + armorUnit).clamp(0..tankArmorMax)
+                        setArmorStatusBar(tankArmor.toDouble() / tankArmorMax)
                         entity.ref.armor -= armorUnit
                         refuelingTime = 0f
                     }
                 } else if (tankShells < tankShellsMax && entity.ref.shells >= shellsUnit) {
                     if (refuelingTime >= refuelShellTime) {
                         tankShells = (tankShells + shellsUnit).clamp(0..tankShellsMax)
+                        setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
                         entity.ref.shells -= shellsUnit
                         refuelingTime = 0f
                     }
                 } else if (tankMines < tankMinesMax && entity.ref.mines >= minesUnit) {
                     if (refuelingTime >= refuelMineTime) {
                         tankMines = (tankMines + minesUnit).clamp(0..tankMinesMax)
+                        setMinesStatusBar(tankMines.toDouble() / tankMinesMax)
                         entity.ref.mines -= minesUnit
                         refuelingTime = 0f
                     }

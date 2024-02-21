@@ -2,7 +2,12 @@
 
 package client
 
-const val canvasId = "bolo-canvas"
+const val canvasId = "canvas"
+const val armorId = "armor"
+const val shellsId = "shell"
+const val minesId = "mines"
+const val statusPanelId = "status-panel"
+const val statusBarClass = "status-bar"
 
 const val tankShellsMax = 40
 const val tankMinesMax = 40

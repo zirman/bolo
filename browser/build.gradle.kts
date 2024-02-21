@@ -8,11 +8,11 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "dev.robch"
+group = "dev.robch.bolo"
 version = "1.0-SNAPSHOT"
 
 application {
-    mainClass.set("me.robch.application.MainKt")
+    mainClass.set("dev.robch.bolo.MainKt")
 }
 
 kotlin {
@@ -122,6 +122,7 @@ kotlin {
             implementation(libs.ktorServerCore)
             implementation(libs.ktorServerNetty)
             implementation(libs.ktorServerHtmlBuilder)
+            implementation(libs.kotlinCss)
             implementation(libs.ktorServerContentNegotiation)
             implementation(libs.ktorServerCompression)
             implementation(libs.ktorServerWebsockets)
