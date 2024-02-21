@@ -185,7 +185,7 @@ class GameImpl(
                 SpriteInstance(
                     x = position.x,
                     y = position.y,
-                    sprite = when (((2 * frameCount) / ticksPerSec.toInt()) % 2) {
+                    sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
                         0 -> Sprite.Lgm0
                         1 -> Sprite.Lgm1
                         else -> never()
@@ -252,7 +252,7 @@ class GameImpl(
 
             // only send to one peer per tick
             if (peers.isNotEmpty()) {
-                val dataChannel = peers.values.toList()[frameCount % peers.size].dataChannel
+                val dataChannel = peers.values.toList()[frameCount.mod(peers.size)].dataChannel
 
                 if (dataChannel.readyState == "open") {
                     dataChannel.send(

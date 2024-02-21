@@ -18,20 +18,5 @@ inline val Double.Companion.tau: Double get() = pi * 2
 inline val Double.toDegrees: Double get() = this * (Double.degreesInTau / Double.tau)
 inline val Double.toRadians: Double get() = this * (Double.tau / Double.degreesInTau)
 
-fun Int.clampRange(minVal: Int, maxVal: Int): Int =
-    min(max(this, minVal), maxVal)
-
-fun Int.clampCycle(maxVal: Int): Int =
-    if (this < 0) maxVal + (this % maxVal) else this % maxVal
-
-fun Float.clampRange(minVal: Float, maxVal: Float): Float =
-    min(max(this, minVal), maxVal)
-
-fun Float.clampCycle(maxVal: Float): Float =
-    if (this < 0) maxVal + (this % maxVal) else this % maxVal
-
-fun Double.clampRange(minVal: Double, maxVal: Double): Double =
-    min(max(this, minVal), maxVal)
-
-fun Double.clampCycle(maxVal: Double): Double =
-    if (this < 0) maxVal + (this % maxVal) else this % maxVal
+fun Int.clamp(range: IntRange): Int =
+    min(max(this, range.first), range.last)

@@ -11,7 +11,6 @@ import client.pillArmorMax
 import client.pillSpeedMax
 import client.pillsMax
 import client.startsMax
-import math.clampCycle
 import kotlin.math.min
 
 const val worldWidth: Int = 256
@@ -427,7 +426,7 @@ class BmapCode {
     fun inc(x: Int, y: Int): Int {
         val i = ind(x, y)
         val c = code[i].toInt()
-        code[i] = (c + 1).clampCycle(16).toUByte()
+        code[i] = (c + 1).mod(16).toUByte()
         return c
     }
 }

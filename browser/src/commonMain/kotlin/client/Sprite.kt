@@ -1,6 +1,5 @@
 package client
 
-import math.clampCycle
 import math.pi
 
 enum class Sprite(val int: Int) {
@@ -129,7 +128,7 @@ enum class Sprite(val int: Int) {
     Cursor(spriteInd(x = 10, y = 7));
 
     fun withBearing(bearing: Float): Sprite =
-        entries[(ordinal + ((bearing + (Float.pi * (1.0 / 16.0))) * (8.0 / Float.pi)).toInt().clampCycle(16))]
+        entries[(ordinal + ((bearing + (Float.pi * (1.0 / 16.0))) * (8.0 / Float.pi)).toInt().mod(16))]
 }
 
 private fun spriteInd(x: Int, y: Int): Int = (spriteSheetWidth * y) + x

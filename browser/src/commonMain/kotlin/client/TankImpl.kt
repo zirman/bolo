@@ -13,8 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
 import math.add
-import math.clampCycle
-import math.clampRange
+import math.clamp
 import math.dirToVec
 import math.mag
 import math.norm
@@ -141,12 +140,12 @@ class TankImpl(
         when (control.directionHorizontal) {
             DirectionHorizontal.Left -> {
                 rotVel = min(maxVelocity, rotVel + (acceleration / ticksPerSec))
-                bearing = (bearing + (rotVel / ticksPerSec)).clampCycle(Float.tau)
+                bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
             DirectionHorizontal.Right -> {
                 rotVel = max(-maxVelocity, rotVel - (acceleration / ticksPerSec))
-                bearing = (bearing + (rotVel / ticksPerSec)).clampCycle(Float.tau)
+                bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
             else -> {
@@ -352,19 +351,19 @@ class TankImpl(
             is Entity.Base -> {
                 if (tankArmor < tankArmorMax && entity.ref.armor >= armorUnit) {
                     if (refuelingTime >= refuelArmorTime) {
-                        tankArmor = (tankArmor + armorUnit).clampRange(0, tankArmorMax)
+                        tankArmor = (tankArmor + armorUnit).clamp(0..tankArmorMax)
                         entity.ref.armor -= armorUnit
                         refuelingTime = 0f
                     }
                 } else if (tankShells < tankShellsMax && entity.ref.shells >= shellsUnit) {
                     if (refuelingTime >= refuelShellTime) {
-                        tankShells = (tankShells + shellsUnit).clampRange(0, tankShellsMax)
+                        tankShells = (tankShells + shellsUnit).clamp(0..tankShellsMax)
                         entity.ref.shells -= shellsUnit
                         refuelingTime = 0f
                     }
                 } else if (tankMines < tankMinesMax && entity.ref.mines >= minesUnit) {
                     if (refuelingTime >= refuelMineTime) {
-                        tankMines = (tankMines + minesUnit).clampRange(0, tankMinesMax)
+                        tankMines = (tankMines + minesUnit).clamp(0..tankMinesMax)
                         entity.ref.mines -= minesUnit
                         refuelingTime = 0f
                     }

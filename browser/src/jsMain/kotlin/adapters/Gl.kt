@@ -52,7 +52,7 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
         val y: Float = worldHeight.toFloat() - sprites[i].y
         val sprite: Sprite = sprites[i].sprite
 
-        val s: Float = ((sprite.int.toFloat() % spriteSheetWidth.toFloat()) / spriteSheetWidth.toFloat())
+        val s: Float = ((sprite.int.toFloat().mod(spriteSheetWidth.toFloat())) / spriteSheetWidth.toFloat())
         val t: Float = floor(sprite.int.toFloat() / spriteSheetWidth.toFloat()) / spriteSheetHeight.toFloat()
 
         vertex[(i * 8) + 0] = x - .5f
