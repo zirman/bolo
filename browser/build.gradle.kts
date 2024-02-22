@@ -91,14 +91,15 @@ kotlin {
     }
 
     dependencies {
-        implementation(project.dependencies.platform(libs.koinBom))
-        implementation(project.dependencies.platform(libs.kotilnxCoroutinesBom))
-        implementation(project.dependencies.platform(libs.kotlinWrappersBom))
+        implementation(platform(libs.koinBom))
+        implementation(platform(libs.kotilnxCoroutinesBom))
+        implementation(platform(libs.kotlinWrappersBom))
         compileOnly(libs.koinCore)
     }
 
     sourceSets {
         commonMain.dependencies {
+            implementation(dependencies.platform(libs.koinBom))
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
