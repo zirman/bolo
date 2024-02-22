@@ -1,5 +1,6 @@
 package client
 
+import bmap.Base
 import bmap.Entity
 import bmap.StartInfo
 import bmap.TerrainTile
@@ -82,6 +83,7 @@ class TankImpl(
     inner class TerrainKernel(val tick: Tick) {
         val onX: Int = position.x.toInt()
         val onY: Int = position.y.toInt()
+        val onBase: Base? = bmap.bases.firstOrNull { it.x == onX && it.y == onY }
         val onTerrain: TerrainTile = bmap[onX, onY]
         val terrainUpLeft: TerrainTile = bmap[onX - 1, onY - 1]
         val terrainUp: TerrainTile = bmap[onX, onY - 1]
@@ -118,8 +120,8 @@ class TankImpl(
                 }
 
                 else -> {
-                    tick.turning(terrainKernel.onTerrain)
-                    tick.accelerating(terrainKernel.onTerrain)
+                    tick.turning(terrainKernel)
+                    tick.accelerating(terrainKernel)
                     tick.updateKick()
                     tick.updatePosition()
                     terrainKernel.shorePush()
@@ -136,10 +138,14 @@ class TankImpl(
         }
     }
 
-    private fun Tick.turning(onTerrain: TerrainTile) {
+    private fun Tick.turning(terrainKernel: TerrainKernel) {
         // turning
         val acceleration = 12.566370f
-        val maxVelocity: Float = if (onBoat) 5f / 2f else onTerrain.getMaxAngularVelocity()
+        val maxVelocity: Float = if (onBoat || terrainKernel.onBase != null) {
+            5f / 2f
+        } else {
+            terrainKernel.onTerrain.getMaxAngularVelocity()
+        }
 
         when (control.directionHorizontal) {
             DirectionHorizontal.Left -> {
@@ -158,8 +164,8 @@ class TankImpl(
         }
     }
 
-    private fun Tick.accelerating(onTerrain: TerrainTile) {
-        val max: Float = if (onBoat) 25f / 8f else onTerrain.getSpeedMax()
+    private fun Tick.accelerating(terrainKernel: TerrainKernel) {
+        val max: Float = if (onBoat || terrainKernel.onBase != null) 25f / 8f else terrainKernel.onTerrain.getSpeedMax()
 
         when {
             speed > max ->
