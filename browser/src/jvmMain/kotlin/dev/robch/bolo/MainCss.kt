@@ -1,8 +1,8 @@
 package dev.robch.bolo
 
-import client.builderModePanelId
-import client.canvasId
-import client.statusPanelId
+import client.BUILDER_MODE_PANEL_ID
+import client.CANVAS_ID
+import client.STATUS_PANEL_ID
 import kotlinx.css.Border
 import kotlinx.css.BorderStyle
 import kotlinx.css.Color
@@ -24,7 +24,7 @@ import kotlinx.css.top
 import kotlinx.css.width
 
 fun CssBuilder.mainCss() {
-    rule("#$canvasId") {
+    rule("#$CANVAS_ID") {
         position = Position.fixed
         backgroundColor = Color.magenta
         cursor = Cursor.crosshair
@@ -34,7 +34,7 @@ fun CssBuilder.mainCss() {
         height = 100.pct
     }
 
-    rule("#$statusPanelId") {
+    rule("#$STATUS_PANEL_ID") {
         position = Position.fixed
         top = 0.px
         left = 0.px
@@ -42,7 +42,7 @@ fun CssBuilder.mainCss() {
         opacity = 0.95
     }
 
-    rule("#$statusPanelId progress") {
+    rule("#$STATUS_PANEL_ID progress") {
         width = 100.pct
         border = Border(
             width = 3.px,
@@ -51,7 +51,7 @@ fun CssBuilder.mainCss() {
         )
     }
 
-    rule("#$builderModePanelId") {
+    rule("#$BUILDER_MODE_PANEL_ID") {
         backgroundColor = Color.whiteSmoke
         width = LinearDimension.fitContent
         border = Border(
@@ -61,7 +61,7 @@ fun CssBuilder.mainCss() {
         )
     }
 
-    rule("#$builderModePanelId label") {
+    rule("#$BUILDER_MODE_PANEL_ID label") {
         paddingRight = 4.px
     }
 }

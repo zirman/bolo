@@ -81,8 +81,8 @@ inline var V3.z: Float
         array[2] = z
     }
 
-const val dimensionV2A: Int = 2
-inline val V2A.dimension: Int get() = dimensionV2A
+const val DIMENSION_V2A: Int = 2
+inline val V2A.dimension: Int get() = DIMENSION_V2A
 //fun math.V2A.count(): Int = floatArray.size / math.getDimension
 //inline val math.V2A.indices: IntRange get() = IntRange(0, count() - 1)
 
@@ -91,8 +91,8 @@ fun V2A.set(i: Int, x: Float, y: Float) {
     array[(i * dimension) + 1] = y
 }
 
-const val dimensionV3A: Int = 3
-inline val V3A.dimension: Int get() = dimensionV3A
+const val DIMENSION_V3A: Int = 3
+inline val V3A.dimension: Int get() = DIMENSION_V3A
 
 fun V3A.set(i: Int, x: Float, y: Float, z: Float) {
     array[(i * dimension) + 0] = x
@@ -100,8 +100,8 @@ fun V3A.set(i: Int, x: Float, y: Float, z: Float) {
     array[(i * dimension) + 2] = z
 }
 
-const val dimensionV4A: Int = 4
-inline val V4A.dimension: Int get() = dimensionV4A
+const val DIMENSION_V4A: Int = 4
+inline val V4A.dimension: Int get() = DIMENSION_V4A
 //fun math.V4A.count(): Int = floatArray.size / math.getDimension
 
 fun V4A.getX(i: Int): Float = array[(i * dimension) + 0]

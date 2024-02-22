@@ -7,9 +7,9 @@ import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
 import bmap.TerrainTile
-import bmap.border
-import bmap.worldHeight
-import bmap.worldWidth
+import bmap.BORDER
+import bmap.WORLD_HEIGHT
+import bmap.WORLD_WIDTH
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner
@@ -166,8 +166,8 @@ class GameImpl(
 //    }
 
     private fun render(frameCount: Int, ticksPerSec: Float, tileProgram: TileProgram, spriteProgram: SpriteProgram) {
-        val windowWidth: Float = (canvas.width.toFloat() / tilePixelWidth.toFloat()) / zoomLevel
-        val windowHeight: Float = (canvas.height.toFloat() / tilePixelHeight.toFloat()) / zoomLevel
+        val windowWidth: Float = (canvas.width.toFloat() / TILE_PIXEL_WIDTH.toFloat()) / zoomLevel
+        val windowHeight: Float = (canvas.height.toFloat() / TILE_PIXEL_HEIGHT.toFloat()) / zoomLevel
 
         val clipMatrix: M4 =
             orthographicProj2d(
@@ -420,11 +420,11 @@ class GameImpl(
                     (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
 
                 val sqrY: Int =
-                    (worldWidth.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+                    (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
 
                 tank?.run {
-                    if (sqrX in border..<(worldWidth - border) &&
-                        sqrY in border..<(worldHeight - border)
+                    if (sqrX in BORDER..<(WORLD_WIDTH - BORDER) &&
+                        sqrY in BORDER..<(WORLD_HEIGHT - BORDER)
                     ) {
                         when (tick.control.builderMode) {
                             BuilderMode.Tree -> when (bmap[sqrX, sqrY]) {

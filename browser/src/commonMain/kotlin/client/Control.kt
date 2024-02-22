@@ -228,23 +228,23 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             true
         }
 
-        window.setOnInputElementChecked(builderModeTreeId) {
+        window.setOnInputElementChecked(BUILDER_MODE_TREE_ID) {
             builderMode = BuilderMode.Tree
         }
 
-        window.setOnInputElementChecked(builderModeRoadId) {
+        window.setOnInputElementChecked(BUILDER_MODE_ROAD_ID) {
             builderMode = BuilderMode.Road
         }
 
-        window.setOnInputElementChecked(builderModeWallId) {
+        window.setOnInputElementChecked(BUILDER_MODE_WALL_ID) {
             builderMode = BuilderMode.Wall
         }
 
-        window.setOnInputElementChecked(builderModePillId) {
+        window.setOnInputElementChecked(BUILDER_MODE_PILL_ID) {
             builderMode = BuilderMode.Pill
         }
 
-        window.setOnInputElementChecked(builderModeMineId) {
+        window.setOnInputElementChecked(BUILDER_MODE_MINE_ID) {
             builderMode = BuilderMode.Mine
         }
 

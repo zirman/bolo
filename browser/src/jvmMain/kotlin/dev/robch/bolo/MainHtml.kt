@@ -1,16 +1,16 @@
 package dev.robch.bolo
 
-import client.armorId
-import client.builderModeMineId
-import client.builderModePanelId
-import client.builderModePillId
-import client.builderModeRoadId
-import client.builderModeTreeId
-import client.builderModeWallId
-import client.canvasId
-import client.minesId
-import client.shellsId
-import client.statusPanelId
+import client.ARMOR_ID
+import client.BUILDER_MODE_MINE_ID
+import client.BUILDER_MODE_PANEL_ID
+import client.BUILDER_MODE_PILL_ID
+import client.BUILDER_MODE_ROAD_ID
+import client.BUILDER_MODE_TREE_ID
+import client.BUILDER_MODE_WALL_ID
+import client.CANVAS_ID
+import client.MINES_ID
+import client.SHELLS_ID
+import client.STATUS_PANEL_ID
 import kotlinx.html.FlowContent
 import kotlinx.html.HTML
 import kotlinx.html.body
@@ -48,7 +48,7 @@ fun HTML.mainHtml() {
     }
 
     body {
-        canvas { id = canvasId }
+        canvas { id = CANVAS_ID }
         statusPanel()
         script { src = "/bolo.js" }
     }
@@ -56,12 +56,12 @@ fun HTML.mainHtml() {
 
 fun FlowContent.statusPanel() {
     div {
-        id = statusPanelId
+        id = STATUS_PANEL_ID
 
         div {
-            statusBar(id = shellsId)
-            statusBar(id = minesId)
-            statusBar(id = armorId)
+            statusBar(id = SHELLS_ID)
+            statusBar(id = MINES_ID)
+            statusBar(id = ARMOR_ID)
         }
 
         builderModes()
@@ -78,12 +78,12 @@ fun FlowContent.statusBar(id: String) {
 
 fun FlowContent.builderModes() {
     div {
-        id = builderModePanelId
-        builderMode(id = builderModeTreeId, value = "tree", text = "Tree")
-        builderMode(id = builderModeRoadId, value = "road", text = "Road")
-        builderMode(id = builderModeWallId, value = "wall", text = "Wall")
-        builderMode(id = builderModePillId, value = "pill", text = "Pill")
-        builderMode(id = builderModeMineId, value = "mine", text = "Mine")
+        id = BUILDER_MODE_PANEL_ID
+        builderMode(id = BUILDER_MODE_TREE_ID, value = "tree", text = "Tree")
+        builderMode(id = BUILDER_MODE_ROAD_ID, value = "road", text = "Road")
+        builderMode(id = BUILDER_MODE_WALL_ID, value = "wall", text = "Wall")
+        builderMode(id = BUILDER_MODE_PILL_ID, value = "pill", text = "Pill")
+        builderMode(id = BUILDER_MODE_MINE_ID, value = "mine", text = "Mine")
     }
 }
 

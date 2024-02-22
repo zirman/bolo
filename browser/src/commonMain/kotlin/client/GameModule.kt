@@ -6,8 +6,8 @@ import adapters.WebGlRenderingContextAdapter
 import adapters.WindowAdapter
 import bmap.Bmap
 import bmap.BmapCode
-import bmap.worldHeight
-import bmap.worldWidth
+import bmap.WORLD_HEIGHT
+import bmap.WORLD_WIDTH
 import frame.Owner
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.Deferred
@@ -110,7 +110,7 @@ val gameModule = module {
         ImageTileArrayImpl(
             bmap = get(),
             owner = get(),
-            imageTiles = uint8ArrayAdapterFactory(worldWidth * worldHeight),
+            imageTiles = uint8ArrayAdapterFactory(WORLD_WIDTH * WORLD_HEIGHT),
         )
     }
 

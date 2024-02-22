@@ -4,7 +4,7 @@ import adapters.Uint8ArrayAdapter
 import assert.never
 import bmap.Bmap
 import bmap.TypeTile
-import bmap.border
+import bmap.BORDER
 import bmap.ind
 import bmap.isCraterLikeTile
 import bmap.isRoadLikeTile
@@ -14,8 +14,8 @@ import bmap.isWallLikeTile
 import bmap.isWaterLikeToLandTile
 import bmap.isWaterLikeToWaterTile
 import bmap.toTypeTile
-import bmap.worldHeight
-import bmap.worldWidth
+import bmap.WORLD_HEIGHT
+import bmap.WORLD_WIDTH
 import frame.Owner
 
 class ImageTileArrayImpl(
@@ -24,7 +24,7 @@ class ImageTileArrayImpl(
     private val imageTiles: Uint8ArrayAdapter,
 ) : ImageTileArray {
     override fun getTypeTile(x: Int, y: Int): TypeTile =
-        if (x < 0 || x >= worldWidth || y < 0 || y >= worldHeight) TypeTile.SeaMined
+        if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) TypeTile.SeaMined
         else TypeTile.entries[tiles[ind(x, y)].toInt()]
 
     override fun update(x: Int, y: Int) {
@@ -52,7 +52,7 @@ class ImageTileArrayImpl(
                 }
             }
 
-            if (x >= border && x < worldWidth - border && y >= border && y < worldHeight - border) {
+            if (x >= BORDER && x < WORLD_WIDTH - BORDER && y >= BORDER && y < WORLD_HEIGHT - BORDER) {
                 tiles[ind(x, y)] = bmap[x, y].toTypeTile().ordinal.toUByte()
             }
         }
@@ -66,10 +66,10 @@ class ImageTileArrayImpl(
 
     override val uint8Array: Any get() = imageTiles.uint8Array
 
-    private val tiles: UByteArray = UByteArray(worldWidth * worldHeight)
+    private val tiles: UByteArray = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
         .also { tiles ->
-            for (y in 0..<worldHeight) {
-                for (x in 0..<worldWidth) {
+            for (y in 0..<WORLD_HEIGHT) {
+                for (x in 0..<WORLD_WIDTH) {
                     tiles[ind(x, y)] = bmap[x, y].toTypeTile().ordinal.toUByte()
                 }
             }
@@ -615,8 +615,8 @@ class ImageTileArrayImpl(
     }
 
     init {
-        for (rowIndex in 0..<worldHeight) {
-            for (columnIndex in 0..<worldWidth) {
+        for (rowIndex in 0..<WORLD_HEIGHT) {
+            for (columnIndex in 0..<WORLD_WIDTH) {
                 imageTiles[ind(columnIndex, rowIndex)] = mapImage(columnIndex, rowIndex).index.toUByte()
             }
         }

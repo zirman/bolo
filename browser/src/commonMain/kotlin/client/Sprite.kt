@@ -131,4 +131,4 @@ enum class Sprite(val int: Int) {
         entries[(ordinal + ((bearing + (Float.pi * (1.0 / 16.0))) * (8.0 / Float.pi)).toInt().mod(16))]
 }
 
-private fun spriteInd(x: Int, y: Int): Int = (spriteSheetWidth * y) + x
+private fun spriteInd(x: Int, y: Int): Int = (SPRITE_SHEET_WIDTH * y) + x

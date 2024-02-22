@@ -9,7 +9,7 @@ import bmap.writeBmap
 import bmap.writeBmapCode
 import bmap.writeDamage
 import client.isBuildable
-import client.pillArmorMax
+import client.PILL_ARMOR_MAX
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner
@@ -283,7 +283,7 @@ class BoloServer(
         ) {
             val additionalArmor = frameClient.material * 4
             val oldArmor = pill.armor
-            val newArmor = min(pillArmorMax, oldArmor + additionalArmor)
+            val newArmor = min(PILL_ARMOR_MAX, oldArmor + additionalArmor)
             pill.armor = newArmor
             pill.code++
 
@@ -313,7 +313,7 @@ class BoloServer(
             pill.owner == owner.int
         ) {
             pill.isPlaced = true
-            pill.armor = min(pillArmorMax, frameClient.material * 4)
+            pill.armor = min(PILL_ARMOR_MAX, frameClient.material * 4)
             pill.x = frameClient.x
             pill.y = frameClient.y
             pill.code++

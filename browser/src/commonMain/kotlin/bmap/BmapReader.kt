@@ -3,19 +3,19 @@ package bmap
 import assert.assertEqual
 import assert.assertLessThan
 import assert.assertLessThanOrEqual
-import client.baseArmorMax
-import client.baseMinesMax
-import client.baseShellsMax
-import client.basesMax
-import client.pillArmorMax
-import client.pillSpeedMax
-import client.pillsMax
-import client.startsMax
+import client.BASE_ARMOR_MAX
+import client.BASE_MINES_MAX
+import client.BASE_SHELLS_MAX
+import client.BASES_MAX
+import client.PILL_ARMOR_MAX
+import client.PILL_SPEED_MAX
+import client.PILLS_MAX
+import client.STARTS_MAX
 import kotlin.math.min
 
-const val worldWidth: Int = 256
-const val worldHeight: Int = 256
-const val border: Int = 16
+const val WORLD_WIDTH: Int = 256
+const val WORLD_HEIGHT: Int = 256
+const val BORDER: Int = 16
 
 enum class TerrainTile {
     Sea,
@@ -50,28 +50,28 @@ enum class TerrainTile {
     GrassMined,
 }
 
-fun ind(x: Int, y: Int): Int = (worldWidth * y) + x
+fun ind(x: Int, y: Int): Int = (WORLD_WIDTH * y) + x
 
 class Bmap(
     val pills: Array<Pill>,
     val bases: Array<Base>,
     val starts: Array<StartInfo>,
 ) {
-    private val terrain = UByteArray(worldWidth * worldHeight)
+    private val terrain = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
         .apply {
-            for (y in 0..<worldHeight) {
-                for (x in 0..<worldWidth) {
+            for (y in 0..<WORLD_HEIGHT) {
+                for (x in 0..<WORLD_WIDTH) {
                     this[ind(x, y)] = defaultTerrain(x, y).ordinal.toUByte()
                 }
             }
         }
 
     operator fun get(x: Int, y: Int): TerrainTile =
-        if (x < border || x >= worldWidth || y < 0 || y >= worldHeight) TerrainTile.SeaMined
+        if (x < BORDER || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) TerrainTile.SeaMined
         else TerrainTile.entries[terrain[ind(x, y)].toInt()]
 
     operator fun set(x: Int, y: Int, t: TerrainTile) {
-        if (x >= border && x < worldWidth - border && y >= border && y < worldHeight - border) {
+        if (x >= BORDER && x < WORLD_WIDTH - BORDER && y >= BORDER && y < WORLD_HEIGHT - BORDER) {
             terrain[ind(x, y)] = t.ordinal.toUByte()
         }
     }
@@ -260,9 +260,9 @@ class BmapReader(
     init {
         matchString("BMAPBOLO")
         matchUByte(1.toUByte())
-        val nPills = readMaxUByte(pillsMax.toUByte()).toInt()
-        val nBases = readMaxUByte(basesMax.toUByte()).toInt()
-        val nStarts = readMaxUByte(startsMax.toUByte()).toInt()
+        val nPills = readMaxUByte(PILLS_MAX.toUByte()).toInt()
+        val nBases = readMaxUByte(BASES_MAX.toUByte()).toInt()
+        val nStarts = readMaxUByte(STARTS_MAX.toUByte()).toInt()
         val pills = readMulti(nPills) { readPill() }
         val bases = readMulti(nBases) { readBase() }
         val starts = readMulti(nStarts) { readStart() }
@@ -356,8 +356,8 @@ class BmapReader(
         val x = readUByte().toInt()
         val y = readUByte().toInt()
         val owner = readUByte().toInt()
-        val armor = readMaxUByte(pillArmorMax.toUByte()).toInt() // range 0-15 (dead pillbox = 0, full strength = 15)
-        val speed = readMaxUByte(pillSpeedMax.toUByte()).toInt() // typically 50. Time between shots, in 20ms units
+        val armor = readMaxUByte(PILL_ARMOR_MAX.toUByte()).toInt() // range 0-15 (dead pillbox = 0, full strength = 15)
+        val speed = readMaxUByte(PILL_SPEED_MAX.toUByte()).toInt() // typically 50. Time between shots, in 20ms units
         // Lower values makes the pillbox start off 'angry'
         return Pill(x = x, y = y, owner = owner, armor = armor, speed = speed, code = 0, isPlaced = true)
     }
@@ -366,9 +366,9 @@ class BmapReader(
         val x = readUByte().toInt()
         val y = readUByte().toInt()
         val owner = readUByte().toInt()
-        val armor = readMaxUByte(baseArmorMax.toUByte()).toInt() // initial stocks of base. Maximum value 90
-        val shells = readMaxUByte(baseShellsMax.toUByte()).toInt() // initial stocks of base. Maximum value 90
-        val mines = readMaxUByte(baseMinesMax.toUByte()).toInt() // initial stocks of base. Maximum value 90
+        val armor = readMaxUByte(BASE_ARMOR_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
+        val shells = readMaxUByte(BASE_SHELLS_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
+        val mines = readMaxUByte(BASE_MINES_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
         return Base(x = x, y = y, owner = owner, armor = armor, shells = shells, mines, code = 0)
     }
 
@@ -411,11 +411,11 @@ fun nibbleToTerrain(nibble: Int): TerrainTile =
     }
 
 fun defaultTerrain(x: Int, y: Int): TerrainTile =
-    if (x < border || y < border || x >= worldWidth - border || y >= worldHeight - border) TerrainTile.SeaMined
+    if (x < BORDER || y < BORDER || x >= WORLD_WIDTH - BORDER || y >= WORLD_HEIGHT - BORDER) TerrainTile.SeaMined
     else TerrainTile.Sea
 
 class BmapCode {
-    private val code = UByteArray(worldWidth * worldHeight)
+    private val code = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
 
     operator fun get(x: Int, y: Int): Int = code[ind(x, y)].toInt()
 

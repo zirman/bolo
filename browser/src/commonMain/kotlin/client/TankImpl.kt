@@ -6,7 +6,7 @@ import bmap.StartInfo
 import bmap.TerrainTile
 import bmap.isMinedTerrain
 import bmap.isSolid
-import bmap.worldHeight
+import bmap.WORLD_HEIGHT
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
@@ -40,21 +40,24 @@ class TankImpl(
         private const val TANK_RADIUS: Float = 3f / 8f
         private const val FORCE_PUSH: Float = 25f / 16f
         private const val RELOAD_SEC: Float = 1f / 3f
-        private const val MAX_BOAT_SPEED: Float = 25f / 8f
-        private const val ACC_PER_SEC2: Float = MAX_BOAT_SPEED * (3f / 4f)
+        private const val MAX_SPEED: Float = 25f / 8f
+        private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
+        private const val MAX_TURN_RATE: Float = 5f / 2f
+        private const val TURN_RATE_PER_SEC2 = 12.566370f
+        private const val MAX_SIGHT_RANGE: Float = 6f
         // private const val forceKick: Float = 25f / 8f
         // private const val maxSpeedRoad: Float = maxSpeedBoat
     }
 
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
-    override var position: V2 = v2(x = start.x.toFloat() + (1f / 2f), y = start.y.toFloat() + (1f / 2f))
+    override var position: V2 = v2(x = start.x.toFloat() + 0.5f, y = start.y.toFloat() + 0.5f)
         private set
 
     override var bearing: Float = start.direction.toFloat() * (Float.pi / 8f)
         private set
 
-    override var sightRange: Float = 6f
+    override var sightRange: Float = MAX_SIGHT_RANGE
         private set
 
     override var onBoat: Boolean = true
@@ -65,12 +68,12 @@ class TankImpl(
     override var nextBuilderMission: BuilderMission? = null
 
     init {
-        center = v2(x = start.x.toFloat() + (1f / 2f), y = worldHeight - (start.y.toFloat() + (1f / 2f)))
+        center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
     }
 
     private var reload: Float = 0f
-    private var tankShells: Int = tankShellsMax
-    private var tankArmor: Int = tankArmorMax
+    private var tankShells: Int = TANK_SHELLS_MAX
+    private var tankArmor: Int = TANK_ARMOR_MAX
     private var tankMines: Int = 0
 
     private var speed: Float = 0f
@@ -96,9 +99,9 @@ class TankImpl(
     }
 
     override suspend fun launch() {
-        setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
-        setArmorStatusBar(tankArmor.toDouble() / tankArmorMax)
-        setMinesStatusBar(tankMines.toDouble() / tankMinesMax)
+        setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
+        setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
+        setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
 
         doWhile { tick ->
             val terrainKernel = TerrainKernel(tick)
@@ -140,21 +143,20 @@ class TankImpl(
 
     private fun Tick.turning(terrainKernel: TerrainKernel) {
         // turning
-        val acceleration = 12.566370f
         val maxVelocity: Float = if (onBoat || terrainKernel.onBase != null) {
-            5f / 2f
+            MAX_TURN_RATE
         } else {
             terrainKernel.onTerrain.getMaxAngularVelocity()
         }
 
         when (control.directionHorizontal) {
             DirectionHorizontal.Left -> {
-                rotVel = min(maxVelocity, rotVel + (acceleration / ticksPerSec))
+                rotVel = min(maxVelocity, rotVel + (TURN_RATE_PER_SEC2 / ticksPerSec))
                 bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
             DirectionHorizontal.Right -> {
-                rotVel = max(-maxVelocity, rotVel - (acceleration / ticksPerSec))
+                rotVel = max(-maxVelocity, rotVel - (TURN_RATE_PER_SEC2 / ticksPerSec))
                 bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
@@ -165,7 +167,7 @@ class TankImpl(
     }
 
     private fun Tick.accelerating(terrainKernel: TerrainKernel) {
-        val max: Float = if (onBoat || terrainKernel.onBase != null) 25f / 8f else terrainKernel.onTerrain.getSpeedMax()
+        val max: Float = if (onBoat || terrainKernel.onBase != null) MAX_SPEED else terrainKernel.onTerrain.getSpeedMax()
 
         when {
             speed > max ->
@@ -339,7 +341,7 @@ class TankImpl(
             launchShell(bearing, onBoat, position, sightRange)
             reload = 0f
             tankShells--
-            setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
+            setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
             tankShotAudioManager.play()
         }
         reload += delta
@@ -360,25 +362,25 @@ class TankImpl(
 
         when (val entity = bmap.getEntity(onX, onY)) {
             is Entity.Base -> {
-                if (tankArmor < tankArmorMax && entity.ref.armor >= armorUnit) {
-                    if (refuelingTime >= refuelArmorTime) {
-                        tankArmor = (tankArmor + armorUnit).clamp(0..tankArmorMax)
-                        setArmorStatusBar(tankArmor.toDouble() / tankArmorMax)
-                        entity.ref.armor -= armorUnit
+                if (tankArmor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
+                    if (refuelingTime >= REFUEL_ARMOR_TIME) {
+                        tankArmor = (tankArmor + ARMOR_UNIT).clamp(0..TANK_ARMOR_MAX)
+                        setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
+                        entity.ref.armor -= ARMOR_UNIT
                         refuelingTime = 0f
                     }
-                } else if (tankShells < tankShellsMax && entity.ref.shells >= shellsUnit) {
-                    if (refuelingTime >= refuelShellTime) {
-                        tankShells = (tankShells + shellsUnit).clamp(0..tankShellsMax)
-                        setShellsStatusBar(tankShells.toDouble() / tankShellsMax)
-                        entity.ref.shells -= shellsUnit
+                } else if (tankShells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
+                    if (refuelingTime >= REFUEL_SHELL_TIME) {
+                        tankShells = (tankShells + SHELL_UNIT).clamp(0..TANK_SHELLS_MAX)
+                        setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
+                        entity.ref.shells -= SHELL_UNIT
                         refuelingTime = 0f
                     }
-                } else if (tankMines < tankMinesMax && entity.ref.mines >= minesUnit) {
-                    if (refuelingTime >= refuelMineTime) {
-                        tankMines = (tankMines + minesUnit).clamp(0..tankMinesMax)
-                        setMinesStatusBar(tankMines.toDouble() / tankMinesMax)
-                        entity.ref.mines -= minesUnit
+                } else if (tankMines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
+                    if (refuelingTime >= REFUEL_MINE_TIME) {
+                        tankMines = (tankMines + MIENS_UNIT).clamp(0..TANK_MINES_MAX)
+                        setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
+                        entity.ref.mines -= MIENS_UNIT
                         refuelingTime = 0f
                     }
                 }

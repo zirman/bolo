@@ -2,11 +2,11 @@
 
 package client
 
-const val tileSheetWidth: Int = 16
-const val tileSheetHeight: Int = 16
-const val tilesCount: Int = tileSheetWidth * tileSheetHeight
+const val TILE_SHEET_WIDTH: Int = 16
+const val TILE_SHEET_HEIGHT: Int = 16
+const val TILES_COUNT: Int = TILE_SHEET_WIDTH * TILE_SHEET_HEIGHT
 
-fun imageTileIndex(x: Int, y: Int): Int = (tileSheetWidth * y) + x
+fun imageTileIndex(x: Int, y: Int): Int = (TILE_SHEET_WIDTH * y) + x
 
 enum class ImageTile(val index: Int) {
     Sea0(imageTileIndex(x = 8, y = 4)),

@@ -119,12 +119,12 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     writeMulti(bmap.bases.asIterable()) { writeBase(it) }
     writeMulti(bmap.starts.asIterable()) { writeStart(it) }
 
-    for (y in border..<worldHeight - border) {
-        var x: Int = border
+    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
+        var x: Int = BORDER
 
-        while (x < worldWidth - border) {
+        while (x < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < worldWidth - border) {
+            while (x < WORLD_WIDTH - BORDER) {
                 if (bmap[x, y] != defaultTerrain(x, y)) {
                     val startX = x
                     val nibbleWriter = NibbleWriter()
@@ -136,7 +136,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
                             val t = bmap[x, y]
 
                             x += 2
-                            while (x - beginX < 9 && x < worldWidth - border && bmap[x, y] == t) {
+                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && bmap[x, y] == t) {
                                 x++
                             }
 
@@ -145,7 +145,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
                         } else { // sequence of different terrain
                             x++
                             while (x - beginX < 8 &&
-                                x < worldWidth - border &&
+                                x < WORLD_WIDTH - BORDER &&
                                 bmap[x, y] != bmap[x - 1, y] &&
                                 bmap[x, y] != defaultTerrain(x, y)
                             ) {
@@ -158,7 +158,7 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
                                 nibbleWriter.writeNibble(terrainToNibble(bmap[i, y]))
                             }
                         }
-                    } while (x < worldWidth - border && bmap[x, y] != defaultTerrain(x, y))
+                    } while (x < WORLD_WIDTH - BORDER && bmap[x, y] != defaultTerrain(x, y))
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
@@ -200,12 +200,12 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
     writeString("BMAPDAMG")
     writeUByte(1.toUByte())
 
-    for (y in border..<worldHeight - border) {
-        var x: Int = border
+    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
+        var x: Int = BORDER
 
-        while (x < worldWidth - border) {
+        while (x < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < worldWidth - border) {
+            while (x < WORLD_WIDTH - BORDER) {
                 if (getDamageLevel(bmap[x, y]) != 0) {
                     val startX = x
                     val nibbleWriter = NibbleWriter()
@@ -218,7 +218,7 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
                             val t = getDamageLevel(bmap[x, y])
 
                             x += 2
-                            while (x - beginX < 9 && x < worldWidth - border && getDamageLevel(bmap[x, y]) == t) {
+                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && getDamageLevel(bmap[x, y]) == t) {
                                 x++
                             }
 
@@ -228,7 +228,7 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
                             x++
                             while (
                                 x - beginX < 8 &&
-                                x < worldWidth - border &&
+                                x < WORLD_WIDTH - BORDER &&
                                 getDamageLevel(bmap[x, y]) != getDamageLevel(bmap[x - 1, y]) &&
                                 getDamageLevel(bmap[x, y]) != 0
                             ) {
@@ -241,7 +241,7 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
                                 nibbleWriter.writeNibble(getDamageLevel(bmap[i, y]))
                             }
                         }
-                    } while (x < worldWidth - border && getDamageLevel(bmap[x, y]) != 0)
+                    } while (x < WORLD_WIDTH - BORDER && getDamageLevel(bmap[x, y]) != 0)
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
@@ -283,12 +283,12 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
     writeString("BMAPCODE")
     writeUByte(1.toUByte())
 
-    for (y in border..<worldHeight - border) {
-        var x: Int = border
+    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
+        var x: Int = BORDER
 
-        while (x < worldWidth - border) {
+        while (x < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < worldWidth - border) {
+            while (x < WORLD_WIDTH - BORDER) {
                 if (bmapCode[x, y] != 0) {
                     val startX = x
                     val nibbleWriter = NibbleWriter()
@@ -300,7 +300,7 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
                             val t = bmapCode[x, y]
 
                             x += 2
-                            while (x - beginX < 9 && x < worldWidth - border && bmapCode[x, y] == t) {
+                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && bmapCode[x, y] == t) {
                                 x++
                             }
 
@@ -309,7 +309,7 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
                         } else { // sequence of different terrain
                             x++
                             while (x - beginX < 8 &&
-                                x < worldWidth - border &&
+                                x < WORLD_WIDTH - BORDER &&
                                 bmapCode[x, y] != bmapCode[x - 1, y] &&
                                 bmapCode[x, y] != 0
                             ) {
@@ -322,7 +322,7 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
                                 nibbleWriter.writeNibble(bmapCode[i, y])
                             }
                         }
-                    } while (x < worldWidth - border && bmapCode[x, y] != 0)
+                    } while (x < WORLD_WIDTH - BORDER && bmapCode[x, y] != 0)
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
