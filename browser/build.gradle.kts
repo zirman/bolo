@@ -93,12 +93,12 @@ kotlin {
     dependencies {
         implementation(project.dependencies.platform(libs.koinBom))
         implementation(project.dependencies.platform(libs.kotilnxCoroutinesBom))
+        implementation(project.dependencies.platform(libs.kotlinWrappersBom))
         compileOnly(libs.koinCore)
     }
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform(libs.koinBom))
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
@@ -122,13 +122,13 @@ kotlin {
             implementation(libs.ktorServerCore)
             implementation(libs.ktorServerNetty)
             implementation(libs.ktorServerHtmlBuilder)
-            implementation(libs.kotlinCss)
             implementation(libs.ktorServerContentNegotiation)
             implementation(libs.ktorServerCompression)
             implementation(libs.ktorServerWebsockets)
             implementation(libs.ktorSerialization)
             implementation(libs.ktorSerializationKotlinxJson)
             implementation(libs.ktorWebsockets)
+            implementation(libs.kotlinCss)
             implementation(libs.logbackClassic)
         }
 
