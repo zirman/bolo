@@ -7,25 +7,22 @@ Multiplayer tank strategy game.
 
 ### Todo
 
-* tank refueling
 * base replenishment
+* pillbox firing
 * tree growth
 * mine placement
 * mine chain reaction
 * explosion sprites
-* pillbox firing
-* adjacent tile mapper
 * crater flooding
 * tank destruction
 * tank sinking
 * super boom
-* respawning
+* respawning builder
 * ui
 * builder movement
 * reticule controls
 * fog of war
 * sound effects
-* web rtc
 * tank collisions
 * chat communication
 * audio/video communication
