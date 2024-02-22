@@ -36,19 +36,6 @@ class TankImpl(
     game: Game,
     override var hasBuilder: Boolean,
 ) : GeneratorLoopImpl<Tick>(scope), Tank, Game by game {
-    companion object {
-        private const val TANK_RADIUS: Float = 3f / 8f
-        private const val FORCE_PUSH: Float = 25f / 16f
-        private const val RELOAD_SEC: Float = 1f / 3f
-        private const val MAX_SPEED: Float = 25f / 8f
-        private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
-        private const val MAX_TURN_RATE: Float = 5f / 2f
-        private const val TURN_RATE_PER_SEC2 = 12.566370f
-        private const val MAX_SIGHT_RANGE: Float = 6f
-        // private const val forceKick: Float = 25f / 8f
-        // private const val maxSpeedRoad: Float = maxSpeedBoat
-    }
-
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
     override var position: V2 = v2(x = start.x.toFloat() + 0.5f, y = start.y.toFloat() + 0.5f)
@@ -67,10 +54,6 @@ class TankImpl(
 
     override var nextBuilderMission: BuilderMission? = null
 
-    init {
-        center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
-    }
-
     private var reload: Float = 0f
     private var tankShells: Int = TANK_SHELLS_MAX
     private var tankArmor: Int = TANK_ARMOR_MAX
@@ -83,26 +66,14 @@ class TankImpl(
     private var kickSpeed: Float = 0f
     private var refuelingTime: Float = 0f
 
-    inner class TerrainKernel(val tick: Tick) {
-        val onX: Int = position.x.toInt()
-        val onY: Int = position.y.toInt()
-        val onBase: Base? = bmap.bases.firstOrNull { it.x == onX && it.y == onY }
-        val onTerrain: TerrainTile = bmap[onX, onY]
-        val terrainUpLeft: TerrainTile = bmap[onX - 1, onY - 1]
-        val terrainUp: TerrainTile = bmap[onX, onY - 1]
-        val terrainUpRight: TerrainTile = bmap[onX + 1, onY - 1]
-        val terrainLeft: TerrainTile = bmap[onX - 1, onY]
-        val terrainRight: TerrainTile = bmap[onX + 1, onY]
-        val terrainDownLeft: TerrainTile = bmap[onX - 1, onY + 1]
-        val terrainDown: TerrainTile = bmap[onX, onY + 1]
-        val terrainDownRight: TerrainTile = bmap[onX + 1, onY + 1]
-    }
-
-    override suspend fun launch() {
+    init {
+        center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
         setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
         setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
         setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
+    }
 
+    override suspend fun launch() {
         doWhile { tick ->
             val terrainKernel = TerrainKernel(tick)
 
@@ -445,5 +416,32 @@ class TankImpl(
 
         scope.launch { launchTank(hasBuilder) }
         return false
+    }
+
+    inner class TerrainKernel(val tick: Tick) {
+        val onX: Int = position.x.toInt()
+        val onY: Int = position.y.toInt()
+        val onBase: Base? = bmap.bases.firstOrNull { it.x == onX && it.y == onY }
+        val onTerrain: TerrainTile = bmap[onX, onY]
+        val terrainUpLeft: TerrainTile = bmap[onX - 1, onY - 1]
+        val terrainUp: TerrainTile = bmap[onX, onY - 1]
+        val terrainUpRight: TerrainTile = bmap[onX + 1, onY - 1]
+        val terrainLeft: TerrainTile = bmap[onX - 1, onY]
+        val terrainRight: TerrainTile = bmap[onX + 1, onY]
+        val terrainDownLeft: TerrainTile = bmap[onX - 1, onY + 1]
+        val terrainDown: TerrainTile = bmap[onX, onY + 1]
+        val terrainDownRight: TerrainTile = bmap[onX + 1, onY + 1]
+    }
+
+    companion object {
+        private const val TANK_RADIUS: Float = 3f / 8f
+        private const val FORCE_PUSH: Float = 25f / 16f
+        private const val RELOAD_SEC: Float = 1f / 3f
+        private const val MAX_SPEED: Float = 25f / 8f
+        private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
+        private const val MAX_TURN_RATE: Float = 5f / 2f
+        private const val TURN_RATE_PER_SEC2 = 12.566370f
+        private const val MAX_SIGHT_RANGE: Float = 6f
+        // private const val FORCE_KICK: Float = 25f / 8f
     }
 }
