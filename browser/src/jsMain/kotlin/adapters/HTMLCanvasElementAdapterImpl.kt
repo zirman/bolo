@@ -47,4 +47,28 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
             .assertNotNull("Your browser does not have WebGl")
             .let { WebGlRenderingContextAdapterImpl(it) }
     }
+
+    override fun setOnmousedown(callback: (Int, Int) -> Boolean) {
+        canvas.onmousedown = { event ->
+            if (callback(event.clientX, event.clientY)) {
+                event.preventDefault()
+            }
+        }
+    }
+
+    override fun setOnmousemove(callback: (Int, Int) -> Boolean) {
+        canvas.onmousemove = { event ->
+            if (callback(event.clientX, event.clientY)) {
+                event.preventDefault()
+            }
+        }
+    }
+
+    override fun setOnmouseup(callback: (Int, Int) -> Boolean) {
+        canvas.onmouseup = { event ->
+            if (callback(event.clientX, event.clientY)) {
+                event.preventDefault()
+            }
+        }
+    }
 }

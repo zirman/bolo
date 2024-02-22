@@ -1,8 +1,9 @@
 package client
 
+import adapters.HTMLCanvasElementAdapter
 import adapters.WindowAdapter
 
-class Control(window: WindowAdapter) {
+class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
     private var builderMode: BuilderMode = BuilderMode.Tree
     private val directionHorizontal: DirectionHorizontal
         get() = when {
@@ -67,22 +68,78 @@ class Control(window: WindowAdapter) {
     init {
         window.setOnkeydown { keyCode ->
             when (keyCode) {
-                16 -> keyShift = true
-                32 -> keySpace = true
-                37 -> keyLeft = true
-                38 -> keyUp = true
-                39 -> keyRight = true
-                40 -> keyDown = true
-                49 -> builderMode = BuilderMode.Tree
-                50 -> builderMode = BuilderMode.Road
-                51 -> builderMode = BuilderMode.Wall
-                52 -> builderMode = BuilderMode.Pill
-                54 -> builderMode = BuilderMode.Mine
-                65 -> keyA = true
-                68 -> keyD = true
-                87 -> keyW = true
-                83 -> keyS = true
-                else -> return@setOnkeydown false
+                9 -> {
+                    // ignore tab
+                }
+
+                16 -> {
+                    keyShift = true
+                }
+
+                32 -> {
+                    keySpace = true
+                }
+
+                37 -> {
+                    keyLeft = true
+                }
+
+                38 -> {
+                    keyUp = true
+                }
+
+                39 -> {
+                    keyRight = true
+                }
+
+                40 -> {
+                    keyDown = true
+                }
+
+                49 -> {
+                    builderMode = BuilderMode.Tree
+                    setBuilderMode(builderMode)
+                }
+
+                50 -> {
+                    builderMode = BuilderMode.Road
+                    setBuilderMode(builderMode)
+                }
+
+                51 -> {
+                    builderMode = BuilderMode.Wall
+                    setBuilderMode(builderMode)
+                }
+
+                52 -> {
+                    builderMode = BuilderMode.Pill
+                    setBuilderMode(builderMode)
+                }
+
+                54 -> {
+                    builderMode = BuilderMode.Mine
+                    setBuilderMode(builderMode)
+                }
+
+                65 -> {
+                    keyA = true
+                }
+
+                68 -> {
+                    keyD = true
+                }
+
+                87 -> {
+                    keyW = true
+                }
+
+                83 -> {
+                    keyS = true
+                }
+
+                else -> {
+                    return@setOnkeydown false
+                }
             }
 
             true
@@ -90,23 +147,55 @@ class Control(window: WindowAdapter) {
 
         window.setOnkeyup { keyCode ->
             when (keyCode) {
-                16 -> keyShift = false
-                32 -> keySpace = false
-                37 -> keyLeft = false
-                38 -> keyUp = false
-                39 -> keyRight = false
-                40 -> keyDown = false
-                65 -> keyA = false
-                68 -> keyD = false
-                83 -> keyS = false
-                87 -> keyW = false
-                else -> return@setOnkeyup false
+                16 -> {
+                    keyShift = false
+                }
+
+                32 -> {
+                    keySpace = false
+                }
+
+                37 -> {
+                    keyLeft = false
+                }
+
+                38 -> {
+                    keyUp = false
+                }
+
+                39 -> {
+                    keyRight = false
+                }
+
+                40 -> {
+                    keyDown = false
+                }
+
+                65 -> {
+                    keyA = false
+                }
+
+                68 -> {
+                    keyD = false
+                }
+
+                83 -> {
+                    keyS = false
+                }
+
+                87 -> {
+                    keyW = false
+                }
+
+                else -> {
+                    return@setOnkeyup false
+                }
             }
 
             true
         }
 
-        window.setOnmousedown { x, y ->
+        canvas.setOnmousedown { x, y ->
             mouseDown = true
             mouseX = x
             mouseY = y
@@ -116,7 +205,7 @@ class Control(window: WindowAdapter) {
             true
         }
 
-        window.setOnmousemove { x, y ->
+        canvas.setOnmousemove { x, y ->
             if (mouseDown) {
                 mouseDrag = true
                 mouseDragX += x - mouseX
@@ -128,10 +217,35 @@ class Control(window: WindowAdapter) {
             true
         }
 
-        window.setOnmouseup { x, y ->
+        canvas.setOnmouseup { _, _ ->
             mouseDown = false
             mouseUp = mouseDrag.not()
             true
+        }
+
+        // ignore right clicking
+        window.setOncontextmenu { _, _ ->
+            true
+        }
+
+        window.setOnInputElementChecked(builderModeTreeId) {
+            builderMode = BuilderMode.Tree
+        }
+
+        window.setOnInputElementChecked(builderModeRoadId) {
+            builderMode = BuilderMode.Road
+        }
+
+        window.setOnInputElementChecked(builderModeWallId) {
+            builderMode = BuilderMode.Wall
+        }
+
+        window.setOnInputElementChecked(builderModePillId) {
+            builderMode = BuilderMode.Pill
+        }
+
+        window.setOnInputElementChecked(builderModeMineId) {
+            builderMode = BuilderMode.Mine
         }
 
         window.setGamepadconnect {

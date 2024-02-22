@@ -17,9 +17,14 @@ import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLProgressElement
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+
+actual fun alert(message: String) {
+    window.alert(message)
+}
 
 actual suspend fun awaitAnimationFrame(): Double = suspendCoroutine { continuation ->
     window.requestAnimationFrame { continuation.resume(it) }
@@ -55,6 +60,31 @@ actual fun setMinesStatusBar(percent: Double) {
     minesProgressElement.value = percent
 }
 
-actual fun alert(message: String) {
-    window.alert(message)
+val builderModeTreeElement = document.getElementById(builderModeTreeId) as HTMLInputElement
+val builderModeRoadElement = document.getElementById(builderModeRoadId) as HTMLInputElement
+val builderModeWallElement = document.getElementById(builderModeWallId) as HTMLInputElement
+val builderModePillElement = document.getElementById(builderModePillId) as HTMLInputElement
+val builderModeMineElement = document.getElementById(builderModeMineId) as HTMLInputElement
+actual fun setBuilderMode(builderMode: BuilderMode) {
+    when (builderMode) {
+        BuilderMode.Tree -> {
+            builderModeTreeElement.checked = true
+        }
+
+        BuilderMode.Road -> {
+            builderModeRoadElement.checked = true
+        }
+
+        BuilderMode.Wall -> {
+            builderModeWallElement.checked = true
+        }
+
+        BuilderMode.Pill -> {
+            builderModePillElement.checked = true
+        }
+
+        BuilderMode.Mine -> {
+            builderModeMineElement.checked = true
+        }
+    }
 }

@@ -42,7 +42,7 @@ val gameModule = module {
 
     single<WindowAdapter> { windowAdapter }
 
-    single<Control> { Control(windowAdapter) }
+    single<Control> { Control(windowAdapter, htmlCanvasElementAdapter) }
 
     factory<RTCPeerConnectionAdapter> {
         rtcPeerConnectionAdapterFactory(

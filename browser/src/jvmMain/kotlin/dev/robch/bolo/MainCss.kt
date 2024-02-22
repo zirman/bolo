@@ -1,19 +1,25 @@
 package dev.robch.bolo
 
+import client.builderModePanelId
 import client.canvasId
 import client.statusPanelId
 import kotlinx.css.Border
 import kotlinx.css.BorderStyle
 import kotlinx.css.Color
 import kotlinx.css.CssBuilder
+import kotlinx.css.Cursor
 import kotlinx.css.LinearDimension
 import kotlinx.css.Position
 import kotlinx.css.backgroundColor
 import kotlinx.css.border
+import kotlinx.css.cursor
 import kotlinx.css.height
 import kotlinx.css.left
 import kotlinx.css.opacity
+import kotlinx.css.paddingRight
+import kotlinx.css.pct
 import kotlinx.css.position
+import kotlinx.css.px
 import kotlinx.css.top
 import kotlinx.css.width
 
@@ -21,31 +27,41 @@ fun CssBuilder.mainCss() {
     rule("#$canvasId") {
         position = Position.fixed
         backgroundColor = Color.magenta
-        top = LinearDimension("0")
-        left = LinearDimension("0")
-        width = LinearDimension("100%")
-        height = LinearDimension("100%")
+        cursor = Cursor.crosshair
+        top = 0.px
+        left = 0.px
+        width = 100.pct
+        height = 100.pct
     }
 
     rule("#$statusPanelId") {
         position = Position.fixed
-        top = LinearDimension("0")
-        left = LinearDimension("0")
-        width = LinearDimension("33%")
-        border = Border(
-            width = LinearDimension("3px"),
-            style = BorderStyle.solid,
-            color = Color.black,
-        )
+        top = 0.px
+        left = 0.px
+        width = 256.px
         opacity = 0.95
     }
 
     rule("#$statusPanelId progress") {
-        width = LinearDimension("100%")
+        width = 100.pct
         border = Border(
-            width = LinearDimension("3px"),
+            width = 3.px,
             style = BorderStyle.solid,
             color = Color.black,
         )
+    }
+
+    rule("#$builderModePanelId") {
+        backgroundColor = Color.whiteSmoke
+        width = LinearDimension.fitContent
+        border = Border(
+            width = 3.px,
+            style = BorderStyle.solid,
+            color = Color.black,
+        )
+    }
+
+    rule("#$builderModePanelId label") {
+        paddingRight = 4.px
     }
 }

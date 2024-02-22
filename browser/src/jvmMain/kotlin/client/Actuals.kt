@@ -8,6 +8,7 @@ import adapters.WindowAdapter
 import assert.never
 import kotlinx.serialization.json.JsonObject
 
+actual fun alert(message: String): Unit = never()
 actual suspend fun awaitAnimationFrame(): Double = never()
 actual fun getDevicePixelRatio(): Double = never()
 actual fun getLocationHost(): String = never()
@@ -19,4 +20,4 @@ actual fun audioAdapterFactory(src: String): AudioAdapter = never()
 actual fun setShellsStatusBar(percent: Double): Unit = never()
 actual fun setArmorStatusBar(percent: Double): Unit = never()
 actual fun setMinesStatusBar(percent: Double): Unit = never()
-actual fun alert(message: String): Unit = never()
+actual fun setBuilderMode(builderMode: BuilderMode): Unit = never()

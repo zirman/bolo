@@ -1,9 +1,11 @@
 package adapters
 
+import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLInputElement
 
 class WindowAdapterImpl : WindowAdapter {
-    override fun setOnkeydown(callback: (Int) -> Boolean) {
+    override fun setOnkeydown(callback: (keyCode: Int) -> Boolean) {
         window.onkeydown = { event ->
             if (callback(event.which)) {
                 event.preventDefault()
@@ -11,7 +13,7 @@ class WindowAdapterImpl : WindowAdapter {
         }
     }
 
-    override fun setOnkeyup(callback: (Int) -> Boolean) {
+    override fun setOnkeyup(callback: (keyCode: Int) -> Boolean) {
         window.onkeyup = { event ->
             if (callback(event.which)) {
                 event.preventDefault()
@@ -19,26 +21,19 @@ class WindowAdapterImpl : WindowAdapter {
         }
     }
 
-    override fun setOnmousedown(callback: (Int, Int) -> Boolean) {
-        window.onmousedown = { event ->
+    override fun setOncontextmenu(callback: (x: Int, y: Int) -> Boolean) {
+        window.oncontextmenu = { event ->
             if (callback(event.clientX, event.clientY)) {
                 event.preventDefault()
             }
         }
     }
 
-    override fun setOnmousemove(callback: (Int, Int) -> Boolean) {
-        window.onmousemove = { event ->
-            if (callback(event.clientX, event.clientY)) {
-                event.preventDefault()
-            }
-        }
-    }
-
-    override fun setOnmouseup(callback: (Int, Int) -> Boolean) {
-        window.onmouseup = { event ->
-            if (callback(event.clientX, event.clientY)) {
-                event.preventDefault()
+    override fun setOnInputElementChecked(elementId: String, callback: () -> Unit) {
+        val inputElement = document.getElementById(elementId) as HTMLInputElement
+        inputElement.onchange = { _ ->
+            if (inputElement.checked) {
+                callback()
             }
         }
     }

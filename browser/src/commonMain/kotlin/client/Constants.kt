@@ -8,6 +8,12 @@ const val shellsId = "shell"
 const val minesId = "mines"
 const val statusPanelId = "status-panel"
 const val statusBarClass = "status-bar"
+const val builderModePanelId = "builder-mode-panel"
+const val builderModeTreeId = "tree"
+const val builderModeRoadId = "road"
+const val builderModeWallId = "wall"
+const val builderModePillId = "pill"
+const val builderModeMineId = "mine"
 
 const val tankShellsMax = 40
 const val tankMinesMax = 40

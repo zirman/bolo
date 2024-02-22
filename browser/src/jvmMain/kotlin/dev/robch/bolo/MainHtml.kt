@@ -1,21 +1,29 @@
 package dev.robch.bolo
 
 import client.armorId
+import client.builderModeMineId
+import client.builderModePanelId
+import client.builderModePillId
+import client.builderModeRoadId
+import client.builderModeTreeId
+import client.builderModeWallId
 import client.canvasId
 import client.minesId
 import client.shellsId
 import client.statusPanelId
-import kotlinx.html.BODY
-import kotlinx.html.DIV
+import kotlinx.html.FlowContent
 import kotlinx.html.HTML
 import kotlinx.html.body
+import kotlinx.html.br
 import kotlinx.html.canvas
 import kotlinx.html.div
 import kotlinx.html.head
 import kotlinx.html.id
+import kotlinx.html.label
 import kotlinx.html.link
 import kotlinx.html.meta
 import kotlinx.html.progress
+import kotlinx.html.radioInput
 import kotlinx.html.script
 import kotlinx.html.title
 
@@ -46,19 +54,47 @@ fun HTML.mainHtml() {
     }
 }
 
-fun BODY.statusPanel() {
+fun FlowContent.statusPanel() {
     div {
         id = statusPanelId
-        statusBar(id = shellsId)
-        statusBar(id = minesId)
-        statusBar(id = armorId)
+
+        div {
+            statusBar(id = shellsId)
+            statusBar(id = minesId)
+            statusBar(id = armorId)
+        }
+
+        builderModes()
     }
 }
 
-fun DIV.statusBar(id: String) {
+fun FlowContent.statusBar(id: String) {
     progress {
         this.id = id
         value = "0"
         max = "1"
+    }
+}
+
+fun FlowContent.builderModes() {
+    div {
+        id = builderModePanelId
+        builderMode(id = builderModeTreeId, value = "tree", text = "Tree")
+        builderMode(id = builderModeRoadId, value = "road", text = "Road")
+        builderMode(id = builderModeWallId, value = "wall", text = "Wall")
+        builderMode(id = builderModePillId, value = "pill", text = "Pill")
+        builderMode(id = builderModeMineId, value = "mine", text = "Mine")
+    }
+}
+
+fun FlowContent.builderMode(id: String, value: String, text: String) {
+    radioInput(name = "builder") {
+        this.id = id
+        this.value = value
+        label {
+            attributes["for"] = value
+            +text
+        }
+        br()
     }
 }
