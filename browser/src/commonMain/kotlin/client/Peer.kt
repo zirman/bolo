@@ -50,7 +50,7 @@ fun PeerUpdate.toHexString(): String {
     )
 }
 
-val peerUpdateSerializer = PeerUpdate.serializer()
+private val peerUpdateSerializer = PeerUpdate.serializer()
 
 fun String.toPeerUpdate(): PeerUpdate {
     return ProtoBuf.decodeFromHexString(

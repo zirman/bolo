@@ -40,7 +40,7 @@ import math.add
 import math.dirToVec
 import math.orthographicProj2d
 import math.scale
-import math.v2Origin
+import math.V2_ORIGIN
 import math.x
 import math.y
 import org.koin.core.component.KoinComponent
@@ -63,7 +63,7 @@ class GameImpl(
     private val bmapCode: BmapCode,
 ) : Game, KoinComponent {
     override val random = Random(Clock.System.now().toEpochMilliseconds())
-    override var center: V2 = v2Origin
+    override var center: V2 = V2_ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
     private val frameRegulator: MutableSet<Double> = mutableSetOf()
     private val buildQueue: MutableList<BuildOp> = mutableListOf()

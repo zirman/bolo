@@ -23,7 +23,7 @@ import math.prj
 import math.scale
 import math.tau
 import math.v2
-import math.v2Origin
+import math.V2_ORIGIN
 import math.x
 import math.y
 import kotlin.math.max
@@ -113,7 +113,6 @@ class TankImpl(
     }
 
     private fun Tick.turning(terrainKernel: TerrainKernel) {
-        // turning
         val maxVelocity: Float = if (onBoat || terrainKernel.onBase != null) {
             MAX_TURN_RATE
         } else {
@@ -166,7 +165,6 @@ class TankImpl(
     }
 
     private fun TerrainKernel.shorePush() {
-        // shorePush
         if (onBoat) {
             val push: V2
 
@@ -212,7 +210,7 @@ class TankImpl(
                     else -> when {
                         fyc -> v2(0f, fy)
                         cyc -> v2(0f, -cy)
-                        else -> v2Origin
+                        else -> V2_ORIGIN
                     }
                 }
             }

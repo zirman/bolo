@@ -80,7 +80,7 @@ sealed interface FrameClient {
     ) : FrameClient
 }
 
-val frameClientSerializer = FrameClient.serializer()
+private val frameClientSerializer = FrameClient.serializer()
 
 fun FrameClient.toFrame(): Frame {
     return ProtoBuf

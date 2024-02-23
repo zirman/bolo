@@ -60,11 +60,11 @@ actual fun setMinesStatusBar(percent: Double) {
     minesProgressElement.value = percent
 }
 
-val builderModeTreeElement = document.getElementById(BUILDER_MODE_TREE_ID) as HTMLInputElement
-val builderModeRoadElement = document.getElementById(BUILDER_MODE_ROAD_ID) as HTMLInputElement
-val builderModeWallElement = document.getElementById(BUILDER_MODE_WALL_ID) as HTMLInputElement
-val builderModePillElement = document.getElementById(BUILDER_MODE_PILL_ID) as HTMLInputElement
-val builderModeMineElement = document.getElementById(BUILDER_MODE_MINE_ID) as HTMLInputElement
+private val builderModeTreeElement = document.getElementById(BUILDER_MODE_TREE_ID) as HTMLInputElement
+private val builderModeRoadElement = document.getElementById(BUILDER_MODE_ROAD_ID) as HTMLInputElement
+private val builderModeWallElement = document.getElementById(BUILDER_MODE_WALL_ID) as HTMLInputElement
+private val builderModePillElement = document.getElementById(BUILDER_MODE_PILL_ID) as HTMLInputElement
+private val builderModeMineElement = document.getElementById(BUILDER_MODE_MINE_ID) as HTMLInputElement
 actual fun setBuilderMode(builderMode: BuilderMode) {
     when (builderMode) {
         BuilderMode.Tree -> {

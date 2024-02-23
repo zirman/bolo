@@ -61,5 +61,5 @@ fun q4FromTo(to: V3, from: V3): Q4 {
     val x: V3 = from.cross(to)
     val xLen: Float = x.mag()
     return if (xLen > 0.00001) q4AxisAngle(x.norm(), asin(xLen))
-    else q4AxisAngle(v3x, acos(from.dot(to)))
+    else q4AxisAngle(V3_X, acos(from.dot(to)))
 }

@@ -22,9 +22,9 @@ inline var V2.y: Float
         array[1] = y
     }
 
-val v2Origin: V2 = v2(0f, 0f)
-val v2x: V2 = v2(1f, 0f)
-val v2y: V2 = v2(0f, 1f)
+val V2_ORIGIN: V2 = v2(0f, 0f)
+val V2_X: V2 = v2(1f, 0f)
+val V2_Y: V2 = v2(0f, 1f)
 
 fun V2.dot(v: V2): Float =
     x * v.x + y * v.y
@@ -133,10 +133,10 @@ fun V3.neg(): V3 =
         -z,
     )
 
-val v3Origin: V3 = v3(0f, 0f, 0f)
-val v3x: V3 = v3(1f, 0f, 0f)
-val v3y: V3 = v3(0f, 1f, 0f)
-val v3z: V3 = v3(0f, 0f, 1f)
+val V3_ORIGIN: V3 = v3(0f, 0f, 0f)
+val V3_X: V3 = v3(1f, 0f, 0f)
+val V3_Y: V3 = v3(0f, 1f, 0f)
+val V3_Z: V3 = v3(0f, 0f, 1f)
 
 fun V3.norm(): V3 =
     scale(1f / mag())
