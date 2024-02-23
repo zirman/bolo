@@ -4,7 +4,12 @@ import adapters.HTMLCanvasElementAdapter
 import adapters.WindowAdapter
 
 class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
-    private var builderMode: BuilderMode = BuilderMode.Tree
+    private var builderMode: BuilderMode = BuilderMode.Tree.also { setBuilderMode(it) }
+        set(value) {
+            field = value
+            setBuilderMode(value)
+        }
+
     private val directionHorizontal: DirectionHorizontal
         get() = when {
             keyA || keyLeft && (keyD || keyRight).not() -> DirectionHorizontal.Left
@@ -98,27 +103,22 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
 
                 49 -> {
                     builderMode = BuilderMode.Tree
-                    setBuilderMode(builderMode)
                 }
 
                 50 -> {
                     builderMode = BuilderMode.Road
-                    setBuilderMode(builderMode)
                 }
 
                 51 -> {
                     builderMode = BuilderMode.Wall
-                    setBuilderMode(builderMode)
                 }
 
                 52 -> {
                     builderMode = BuilderMode.Pill
-                    setBuilderMode(builderMode)
                 }
 
                 54 -> {
                     builderMode = BuilderMode.Mine
-                    setBuilderMode(builderMode)
                 }
 
                 65 -> {
