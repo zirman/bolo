@@ -245,7 +245,7 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
         }
 
         canvas.setOnmouseup { button, x, y ->
-            if (button.toInt().and(LEFT_MOUSE_BUTTON_MASK) != 0) {
+            if (button.toInt() == LEFT_MOUSE_BUTTON_ID) {
                 mouseUpEvent = MouseEvent.Up(x, y, this.x, this.y)
             }
 
@@ -301,5 +301,6 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
         private const val W_KEYCODE = 87
         private const val LEFT_MOUSE_BUTTON_MASK = 0b01
         private const val RIGHT_MOUSE_BUTTON_MASK = 0b10
+        private const val LEFT_MOUSE_BUTTON_ID = 0
     }
 }

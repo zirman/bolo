@@ -103,8 +103,6 @@ kotlin {
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
-            implementation(libs.kotlinxDatetime)
-            implementation(libs.kotlinxCollectionsImmutable)
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }

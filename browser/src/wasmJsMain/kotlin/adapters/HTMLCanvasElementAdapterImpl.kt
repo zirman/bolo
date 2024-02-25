@@ -64,9 +64,9 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
         }
     }
 
-    override fun setOnmouseup(callback: (buttons: Short, Int, Int) -> Boolean) {
+    override fun setOnmouseup(callback: (button: Short, Int, Int) -> Boolean) {
         canvas.onmouseup = { event ->
-            if (callback(event.buttons, event.clientX, event.clientY)) {
+            if (callback(event.button, event.clientX, event.clientY)) {
                 event.preventDefault()
             }
         }

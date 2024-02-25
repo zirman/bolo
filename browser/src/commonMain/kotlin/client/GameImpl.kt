@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -62,7 +61,7 @@ class GameImpl(
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
 ) : Game, KoinComponent {
-    override val random = Random(Clock.System.now().toEpochMilliseconds())
+    override val random = Random.Default
     override var center: V2 = V2_ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
     private val frameRegulator: MutableSet<Float> = mutableSetOf()
