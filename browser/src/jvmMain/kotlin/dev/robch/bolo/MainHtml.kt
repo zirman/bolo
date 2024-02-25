@@ -91,10 +91,12 @@ fun FlowContent.builderMode(id: String, value: String, text: String) {
     radioInput(name = "builder") {
         this.id = id
         this.value = value
+
         label {
             attributes["for"] = value
             +text
         }
+
         br()
     }
 }

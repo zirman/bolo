@@ -6,7 +6,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.WheelEvent
 
 class WindowAdapterImpl : WindowAdapter {
-    override fun setOnkeydown(callback: (keyCode: Int) -> Boolean) {
+    override fun setOnkeydown(callback: (keycode: Int) -> Boolean) {
         window.onkeydown = { event ->
             if (callback(event.which)) {
                 event.preventDefault()
@@ -14,7 +14,7 @@ class WindowAdapterImpl : WindowAdapter {
         }
     }
 
-    override fun setOnkeyup(callback: (keyCode: Int) -> Boolean) {
+    override fun setOnkeyup(callback: (keycode: Int) -> Boolean) {
         window.onkeyup = { event ->
             if (callback(event.which)) {
                 event.preventDefault()

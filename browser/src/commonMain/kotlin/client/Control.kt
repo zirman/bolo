@@ -77,8 +77,8 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
     private var mouseUpEvent: MouseEvent.Up? = null
 
     init {
-        window.setOnkeydown { keyCode ->
-            when (keyCode) {
+        window.setOnkeydown { keycode ->
+            when (keycode) {
                 TAB_KEYCODE -> {
                     // ignore tab
                 }
@@ -151,8 +151,12 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             true
         }
 
-        window.setOnkeyup { keyCode ->
-            when (keyCode) {
+        window.setOnkeyup { keycode ->
+            when (keycode) {
+                TAB_KEYCODE -> {
+                    // ignore tab
+                }
+
                 SHIFT_KEYCODE -> {
                     keyShift = false
                 }
