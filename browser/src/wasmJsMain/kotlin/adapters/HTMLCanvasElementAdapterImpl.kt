@@ -8,6 +8,7 @@ import org.khronos.webgl.WebGLRenderingContext.Companion.DEPTH_TEST
 import org.khronos.webgl.WebGLRenderingContext.Companion.ONE_MINUS_SRC_ALPHA
 import org.khronos.webgl.WebGLRenderingContext.Companion.SRC_ALPHA
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.events.MouseEvent
 
 class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTMLCanvasElementAdapter {
     override val width: Int get() = canvas.width
@@ -50,7 +51,9 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
 
     override fun setOnmousedown(callback: (buttons: Short, x: Int, y: Int) -> Boolean) {
         canvas.onmousedown = { event ->
-            if (callback(event.buttons, event.clientX, event.clientY)) {
+            val (x, y) = event.toCanvasCoordinates()
+
+            if (callback(event.buttons, x, y)) {
                 event.preventDefault()
             }
         }
@@ -58,7 +61,9 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
 
     override fun setOnmousemove(callback: (buttons: Short, Int, Int) -> Boolean) {
         canvas.onmousemove = { event ->
-            if (callback(event.buttons, event.clientX, event.clientY)) {
+            val (x, y) = event.toCanvasCoordinates()
+
+            if (callback(event.buttons, x, y)) {
                 event.preventDefault()
             }
         }
@@ -66,9 +71,16 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
 
     override fun setOnmouseup(callback: (button: Short, Int, Int) -> Boolean) {
         canvas.onmouseup = { event ->
-            if (callback(event.button, event.clientX, event.clientY)) {
+            val (x, y) = event.toCanvasCoordinates()
+
+            if (callback(event.button, x, y)) {
                 event.preventDefault()
             }
         }
+    }
+
+    private fun MouseEvent.toCanvasCoordinates(): Pair<Int, Int> {
+        val rect = canvas.getBoundingClientRect()
+        return Pair((clientX - rect.left.toInt()), (clientY - rect.top.toInt()))
     }
 }
