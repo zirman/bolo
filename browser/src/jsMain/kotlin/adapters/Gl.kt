@@ -1,10 +1,10 @@
 package adapters
 
-import bmap.worldHeight
+import bmap.WORLD_HEIGHT
+import client.SPRITE_SHEET_HEIGHT
+import client.SPRITE_SHEET_WIDTH
 import client.Sprite
 import client.SpriteInstance
-import client.spriteSheetHeight
-import client.spriteSheetWidth
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.WebGLProgram
@@ -49,11 +49,11 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
 
     for (i in sprites.indices) {
         val x: Float = sprites[i].x
-        val y: Float = worldHeight.toFloat() - sprites[i].y
+        val y: Float = WORLD_HEIGHT.toFloat() - sprites[i].y
         val sprite: Sprite = sprites[i].sprite
 
-        val s: Float = ((sprite.int.toFloat().mod(spriteSheetWidth.toFloat())) / spriteSheetWidth.toFloat())
-        val t: Float = floor(sprite.int.toFloat() / spriteSheetWidth.toFloat()) / spriteSheetHeight.toFloat()
+        val s: Float = ((sprite.int.toFloat().mod(SPRITE_SHEET_WIDTH.toFloat())) / SPRITE_SHEET_WIDTH.toFloat())
+        val t: Float = floor(sprite.int.toFloat() / SPRITE_SHEET_HEIGHT.toFloat()) / SPRITE_SHEET_HEIGHT.toFloat()
 
         vertex[(i * 8) + 0] = x - .5f
         vertex[(i * 8) + 1] = y - .5f
@@ -65,10 +65,10 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
         vertex[(i * 8) + 7] = y + .5f
 
         coordinate[(i * 8) + 0] = s
-        coordinate[(i * 8) + 1] = t + (1f / spriteSheetHeight.toFloat())
-        coordinate[(i * 8) + 2] = s + (1f / spriteSheetWidth.toFloat())
-        coordinate[(i * 8) + 3] = t + (1f / spriteSheetHeight.toFloat())
-        coordinate[(i * 8) + 4] = s + (1f / spriteSheetWidth.toFloat())
+        coordinate[(i * 8) + 1] = t + (1f / SPRITE_SHEET_HEIGHT.toFloat())
+        coordinate[(i * 8) + 2] = s + (1f / SPRITE_SHEET_WIDTH.toFloat())
+        coordinate[(i * 8) + 3] = t + (1f / SPRITE_SHEET_HEIGHT.toFloat())
+        coordinate[(i * 8) + 4] = s + (1f / SPRITE_SHEET_WIDTH.toFloat())
         coordinate[(i * 8) + 5] = t
         coordinate[(i * 8) + 6] = s
         coordinate[(i * 8) + 7] = t

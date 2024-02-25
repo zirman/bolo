@@ -30,25 +30,25 @@ kotlin {
         }
     }
 
-//    js(IR) {
-//        moduleName = "jsClient"
-//        useEsModules()
-//
-//        compilations.all {
-//            kotlinOptions {
-//                useEsClasses = true
-//            }
-//        }
-//
-//        browser {
-//            commonWebpackConfig {
-//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-//                outputFileName = "bolo.js"
-//            }
-//        }
-//
-//        binaries.executable()
-//    }
+    js(IR) {
+        moduleName = "jsClient"
+        useEsModules()
+
+        compilations.all {
+            kotlinOptions {
+                useEsClasses = true
+            }
+        }
+
+        browser {
+            commonWebpackConfig {
+                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+                outputFileName = "bolo.js"
+            }
+        }
+
+        binaries.executable()
+    }
 
     wasmJs {
         moduleName = "wasmClient"
@@ -63,7 +63,7 @@ kotlin {
         browser {
             commonWebpackConfig {
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-                outputFileName = "bolo.js"
+                outputFileName = "boloWasm.js"
             }
         }
 
@@ -133,13 +133,13 @@ kotlin {
             implementation(libs.logbackClassic)
         }
 
-//        jsMain.dependencies {
-//            implementation(libs.kotlinxCoroutinesCoreJs)
-//            implementation(libs.koinCore)
-//            implementation(libs.ktorClientJs)
-//            implementation(libs.ktorClientJsonJs)
-//            implementation(libs.ktorClientSerializationJs)
-//        }
+        jsMain.dependencies {
+            implementation(libs.kotlinxCoroutinesCoreJs)
+            implementation(libs.koinCore)
+            implementation(libs.ktorClientJs)
+            implementation(libs.ktorClientJsonJs)
+            implementation(libs.ktorClientSerializationJs)
+        }
 
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)
@@ -152,7 +152,7 @@ kotlin {
 }
 
 tasks.named<Copy>("jvmProcessResources") {
-//    from(tasks.named<Copy>("jsBrowserDistribution"))
+    from(tasks.named<Copy>("jsBrowserDistribution"))
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")

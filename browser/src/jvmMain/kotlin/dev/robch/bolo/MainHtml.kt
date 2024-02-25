@@ -50,7 +50,7 @@ fun HTML.mainHtml() {
     body {
         canvas { id = CANVAS_ID }
         statusPanel()
-        script { src = "/bolo.js" }
+        script { src = "/boloWasm.js" }
     }
 }
 

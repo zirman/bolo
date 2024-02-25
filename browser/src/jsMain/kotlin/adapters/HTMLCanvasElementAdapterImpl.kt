@@ -48,25 +48,25 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
             .let { WebGlRenderingContextAdapterImpl(it) }
     }
 
-    override fun setOnmousedown(callback: (Int, Int) -> Boolean) {
+    override fun setOnmousedown(callback: (button: Short, x: Int, y: Int) -> Boolean) {
         canvas.onmousedown = { event ->
-            if (callback(event.clientX, event.clientY)) {
+            if (callback(event.button, event.clientX, event.clientY)) {
                 event.preventDefault()
             }
         }
     }
 
-    override fun setOnmousemove(callback: (Int, Int) -> Boolean) {
+    override fun setOnmousemove(callback: (button: Short, x: Int, y: Int) -> Boolean) {
         canvas.onmousemove = { event ->
-            if (callback(event.clientX, event.clientY)) {
+            if (callback(event.button, event.clientX, event.clientY)) {
                 event.preventDefault()
             }
         }
     }
 
-    override fun setOnmouseup(callback: (Int, Int) -> Boolean) {
+    override fun setOnmouseup(callback: (button: Short, x: Int, y: Int) -> Boolean) {
         canvas.onmouseup = { event ->
-            if (callback(event.clientX, event.clientY)) {
+            if (callback(event.button, event.clientX, event.clientY)) {
                 event.preventDefault()
             }
         }

@@ -30,7 +30,7 @@ actual fun getLocationHost(): String = window.location.host
 actual val windowAdapter: WindowAdapter = WindowAdapterImpl()
 
 actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
-    document.getElementById(canvasId).assertNotNull("Canvas not found") as HTMLCanvasElement,
+    document.getElementById(CANVAS_ID).assertNotNull("Canvas not found") as HTMLCanvasElement,
 )
 
 actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter =
@@ -40,26 +40,26 @@ actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = Uint8Array
 
 actual fun audioAdapterFactory(src: String): AudioAdapter = AudioAdapterImpl(src)
 
-private val shellProgressElement = document.getElementById(shellsId) as HTMLProgressElement
+private val shellProgressElement = document.getElementById(SHELLS_ID) as HTMLProgressElement
 actual fun setShellsStatusBar(percent: Double) {
     shellProgressElement.value = percent
 }
 
-private val armorProgressElement = document.getElementById(armorId) as HTMLProgressElement
+private val armorProgressElement = document.getElementById(ARMOR_ID) as HTMLProgressElement
 actual fun setArmorStatusBar(percent: Double) {
     armorProgressElement.value = percent
 }
 
-private val minesProgressElement = document.getElementById(minesId) as HTMLProgressElement
+private val minesProgressElement = document.getElementById(MINES_ID) as HTMLProgressElement
 actual fun setMinesStatusBar(percent: Double) {
     minesProgressElement.value = percent
 }
 
-private val builderModeTreeElement = document.getElementById(builderModeTreeId) as HTMLInputElement
-private val builderModeRoadElement = document.getElementById(builderModeRoadId) as HTMLInputElement
-private val builderModeWallElement = document.getElementById(builderModeWallId) as HTMLInputElement
-private val builderModePillElement = document.getElementById(builderModePillId) as HTMLInputElement
-private val builderModeMineElement = document.getElementById(builderModeMineId) as HTMLInputElement
+private val builderModeTreeElement = document.getElementById(BUILDER_MODE_TREE_ID) as HTMLInputElement
+private val builderModeRoadElement = document.getElementById(BUILDER_MODE_ROAD_ID) as HTMLInputElement
+private val builderModeWallElement = document.getElementById(BUILDER_MODE_WALL_ID) as HTMLInputElement
+private val builderModePillElement = document.getElementById(BUILDER_MODE_PILL_ID) as HTMLInputElement
+private val builderModeMineElement = document.getElementById(BUILDER_MODE_MINE_ID) as HTMLInputElement
 actual fun setBuilderMode(builderMode: BuilderMode) {
     when (builderMode) {
         BuilderMode.Tree -> {

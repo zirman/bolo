@@ -95,7 +95,7 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
                     keyUp = true
                 }
 
-                RIGHT_MOUSE_BUTTON_ID -> {
+                RIGHT_ARROW_KEYCODE -> {
                     keyRight = true
                 }
 
@@ -197,18 +197,18 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             true
         }
 
-        canvas.setOnmousedown { button, x, y ->
+        canvas.setOnmousedown { buttons, x, y ->
             this.x = x
             this.y = y
             dragX = x
             dragY = y
 
-            when (button.toInt()) {
-                LEFT_MOUSE_BUTTON_ID -> {
+            when {
+                buttons.toInt().and(LEFT_MOUSE_BUTTON_MASK) != 0 -> {
                     true
                 }
 
-                RIGHT_MOUSE_BUTTON_ID -> {
+                buttons.toInt().and(RIGHT_MOUSE_BUTTON_MASK) != 0 -> {
                     rightMouseDown = true
                     true
                 }
@@ -219,14 +219,24 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             }
         }
 
-        canvas.setOnmousemove { _, x, y ->
-            dragX = x
-            dragY = y
-            true
+        canvas.setOnmousemove { buttons, x, y ->
+            when {
+                buttons.toInt().and(LEFT_MOUSE_BUTTON_MASK) != 0 ||
+                        buttons.toInt().and(RIGHT_MOUSE_BUTTON_MASK) != 0 -> {
+                    dragX = x
+                    dragY = y
+                    true
+                }
+
+                else -> {
+                    rightMouseDown = false
+                    false
+                }
+            }
         }
 
         canvas.setOnmouseup { button, x, y ->
-            if (button.toInt() == LEFT_MOUSE_BUTTON_ID) {
+            if (button.toInt().and(LEFT_MOUSE_BUTTON_MASK) != 0) {
                 mouseUpEvent = MouseEvent.Up(x, y, this.x, this.y)
             }
 
@@ -234,9 +244,8 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             true
         }
 
-        // do not show context menu
         window.setOncontextmenu { _, _ ->
-            true
+            true // do not show context menu
         }
 
         window.setOnInputElementChecked(BUILDER_MODE_TREE_ID) {
@@ -281,7 +290,7 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
         private const val D_KEYCODE = 68
         private const val S_KEYCODE = 83
         private const val W_KEYCODE = 87
-        private const val LEFT_MOUSE_BUTTON_ID = 0
-        private const val RIGHT_MOUSE_BUTTON_ID = 2
+        private const val LEFT_MOUSE_BUTTON_MASK = 0b01
+        private const val RIGHT_MOUSE_BUTTON_MASK = 0b10
     }
 }

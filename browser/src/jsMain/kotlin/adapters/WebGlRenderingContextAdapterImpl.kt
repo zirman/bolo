@@ -1,19 +1,19 @@
 package adapters
 
 import assert.assertNotNull
+import bmap.WORLD_HEIGHT
+import bmap.WORLD_WIDTH
 import bmap.ind
-import bmap.worldHeight
-import bmap.worldWidth
 import client.ImageTileArray
+import client.SPRITE_SHEET_SRC
 import client.SpriteInstance
 import client.SpriteProgram
+import client.TILES_COUNT
+import client.TILE_SHEET_HEIGHT
+import client.TILE_SHEET_SRC
+import client.TILE_SHEET_WIDTH
 import client.TileProgram
 import client.imageTileIndex
-import client.spriteSheetSrc
-import client.tileSheetHeight
-import client.tileSheetSrc
-import client.tileSheetWidth
-import client.tilesCount
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -54,7 +54,7 @@ class WebGlRenderingContextAdapterImpl(
     private fun WebGLRenderingContext.tileProgramFactory(
         coroutineScope: CoroutineScope,
     ): Deferred<TileProgram> = coroutineScope.async {
-        val image = loadImage(tileSheetSrc)
+        val image = loadImage(TILE_SHEET_SRC)
         val program = createProgram().assertNotNull("createProgram() returned null")
 
         createShader(
@@ -169,12 +169,12 @@ class WebGlRenderingContextAdapterImpl(
 
         // initialize source to origin texture
         val sourceToOriginTexture = createTexture().assertNotNull("createTexture() failed")
-        val sourceToOriginArray = Float32Array(tilesCount * 3)
+        val sourceToOriginArray = Float32Array(TILES_COUNT * 3)
 
-        for (y in 0..<tileSheetHeight) {
-            for (x in 0..<tileSheetWidth) {
-                sourceToOriginArray[(imageTileIndex(x, y) * 3)] = x.toFloat() / tileSheetWidth.toFloat()      // s offset
-                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] = y.toFloat() / tileSheetHeight.toFloat() // t offset
+        for (y in 0..<TILE_SHEET_HEIGHT) {
+            for (x in 0..<TILE_SHEET_WIDTH) {
+                sourceToOriginArray[(imageTileIndex(x, y) * 3)] = x.toFloat() / TILE_SHEET_WIDTH.toFloat()      // s offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] = y.toFloat() / TILE_SHEET_HEIGHT.toFloat() // t offset
             }
         }
 
@@ -184,7 +184,7 @@ class WebGlRenderingContextAdapterImpl(
             target = TEXTURE_2D,
             level = 0,
             internalformat = RGB,
-            width = tilesCount,
+            width = TILES_COUNT,
             height = 1,
             border = 0,
             format = RGB,
@@ -195,12 +195,12 @@ class WebGlRenderingContextAdapterImpl(
         setTextureParameters()
 
         // initialize origin to destination texture
-        val originToDestinationArray = Float32Array((worldWidth * worldHeight) * 3)
+        val originToDestinationArray = Float32Array((WORLD_WIDTH * WORLD_HEIGHT) * 3)
 
-        for (y in 0..<worldHeight) {
-            for (x in 0..<worldWidth) {
-                originToDestinationArray[(ind(x, y) * 3)] = -x.toFloat() / worldWidth.toFloat()      // s offset
-                originToDestinationArray[(ind(x, y) * 3) + 1] = -y.toFloat() / worldHeight.toFloat() // t offset
+        for (y in 0..<WORLD_HEIGHT) {
+            for (x in 0..<WORLD_WIDTH) {
+                originToDestinationArray[(ind(x, y) * 3)] = -x.toFloat() / WORLD_WIDTH.toFloat()      // s offset
+                originToDestinationArray[(ind(x, y) * 3) + 1] = -y.toFloat() / WORLD_HEIGHT.toFloat() // t offset
             }
         }
 
@@ -210,8 +210,8 @@ class WebGlRenderingContextAdapterImpl(
             target = TEXTURE_2D,
             level = 0,
             internalformat = RGB,
-            width = worldWidth,
-            height = worldHeight,
+            width = WORLD_WIDTH,
+            height = WORLD_HEIGHT,
             border = 0,
             format = RGB,
             type = FLOAT,
@@ -228,9 +228,9 @@ class WebGlRenderingContextAdapterImpl(
             ARRAY_BUFFER,
             float32ArrayOf(
                 0f, 0f,
-                worldWidth.toFloat(), 0f,
-                worldWidth.toFloat(), worldHeight.toFloat(),
-                0f, worldHeight.toFloat(),
+                WORLD_WIDTH.toFloat(), 0f,
+                WORLD_WIDTH.toFloat(), WORLD_HEIGHT.toFloat(),
+                0f, WORLD_HEIGHT.toFloat(),
             ),
             STATIC_DRAW,
         )
@@ -248,8 +248,8 @@ class WebGlRenderingContextAdapterImpl(
                 target = TEXTURE_2D,
                 level = 0,
                 internalformat = ALPHA,
-                width = worldWidth,
-                height = worldHeight,
+                width = WORLD_WIDTH,
+                height = WORLD_HEIGHT,
                 border = 0,
                 format = ALPHA,
                 type = UNSIGNED_BYTE,
@@ -275,8 +275,8 @@ class WebGlRenderingContextAdapterImpl(
                 location = uScale,
                 transpose = false,
                 float32ArrayOf(
-                    (worldWidth.toFloat() / tileSheetWidth.toFloat()), 0f,
-                    0f, (worldHeight.toFloat() / tileSheetHeight.toFloat()),
+                    (WORLD_WIDTH.toFloat() / TILE_SHEET_WIDTH.toFloat()), 0f,
+                    0f, (WORLD_HEIGHT.toFloat() / TILE_SHEET_HEIGHT.toFloat()),
                 ),
             )
 
@@ -324,7 +324,7 @@ class WebGlRenderingContextAdapterImpl(
     private fun WebGLRenderingContext.spriteProgramFactory(
         coroutineScope: CoroutineScope,
     ): Deferred<SpriteProgram> = coroutineScope.async {
-        val image = loadImage(spriteSheetSrc)
+        val image = loadImage(SPRITE_SHEET_SRC)
         val program = createProgram().assertNotNull("createProgram() returned null")
 
         createShader(
