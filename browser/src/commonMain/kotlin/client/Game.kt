@@ -17,6 +17,7 @@ interface Game {
     var center: V2
     val tank: Tank?
     val builder: Builder?
+    val zoomLevel: Float
     fun launchTank(hasBuilder: Boolean)
     fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
     fun launchBuilder(startPosition: V2, builderMission: BuilderMission)

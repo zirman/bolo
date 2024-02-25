@@ -42,6 +42,8 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             }
         }
 
+    private var deltaY = 0f
+
     fun getControlState(): ControlState {
         val controlState = ControlState(
             builderMode = builderMode,
@@ -50,8 +52,10 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             fireButton = fireButton,
             layMineButton = layMineButton,
             mouseEvent = mouseEvent,
+            deltaY = deltaY,
         )
 
+        deltaY = 0f
         return controlState
     }
 
@@ -194,6 +198,11 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
                 }
             }
 
+            true
+        }
+
+        window.setOnwheel { delta: Float ->
+            deltaY += delta
             true
         }
 

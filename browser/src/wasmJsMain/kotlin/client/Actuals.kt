@@ -26,11 +26,11 @@ actual fun alert(message: String) {
     window.alert(message)
 }
 
-actual suspend fun awaitAnimationFrame(): Double = suspendCoroutine { continuation ->
-    window.requestAnimationFrame { continuation.resume(it) }
+actual suspend fun awaitAnimationFrame(): Float = suspendCoroutine { continuation ->
+    window.requestAnimationFrame { continuation.resume(it.toFloat()) }
 }
 
-actual fun getDevicePixelRatio(): Double = window.devicePixelRatio
+actual fun getDevicePixelRatio(): Float = window.devicePixelRatio.toFloat()
 actual fun getLocationHost(): String = window.location.host
 actual val windowAdapter: WindowAdapter = WindowAdapterImpl()
 
@@ -46,18 +46,18 @@ actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = Uint8Array
 actual fun audioAdapterFactory(src: String): AudioAdapter = AudioAdapterImpl(src)
 
 private val shellProgressElement = document.getElementById(SHELLS_ID) as HTMLProgressElement
-actual fun setShellsStatusBar(percent: Double) {
-    shellProgressElement.value = percent
+actual fun setShellsStatusBar(percent: Float) {
+    shellProgressElement.value = percent.toDouble()
 }
 
 private val armorProgressElement = document.getElementById(ARMOR_ID) as HTMLProgressElement
-actual fun setArmorStatusBar(percent: Double) {
-    armorProgressElement.value = percent
+actual fun setArmorStatusBar(percent: Float) {
+    armorProgressElement.value = percent.toDouble()
 }
 
 private val minesProgressElement = document.getElementById(MINES_ID) as HTMLProgressElement
-actual fun setMinesStatusBar(percent: Double) {
-    minesProgressElement.value = percent
+actual fun setMinesStatusBar(percent: Float) {
+    minesProgressElement.value = percent.toDouble()
 }
 
 private val builderModeTreeElement = document.getElementById(BUILDER_MODE_TREE_ID) as HTMLInputElement

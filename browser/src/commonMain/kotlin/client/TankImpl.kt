@@ -4,15 +4,16 @@ import bmap.Base
 import bmap.Entity
 import bmap.StartInfo
 import bmap.TerrainTile
+import bmap.WORLD_HEIGHT
 import bmap.isMinedTerrain
 import bmap.isSolid
-import bmap.WORLD_HEIGHT
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
+import math.V2_ORIGIN
 import math.add
 import math.clamp
 import math.dirToVec
@@ -23,7 +24,6 @@ import math.prj
 import math.scale
 import math.tau
 import math.v2
-import math.V2_ORIGIN
 import math.x
 import math.y
 import kotlin.math.max
@@ -68,14 +68,18 @@ class TankImpl(
 
     init {
         center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
-        setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
-        setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
-        setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
+        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
+        setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
+        setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
     }
 
     override suspend fun launch() {
         doWhile { tick ->
             val terrainKernel = TerrainKernel(tick)
+            val devicePixelRatio = getDevicePixelRatio()
+
+            sightRange = (sightRange - (tick.control.deltaY * devicePixelRatio / (zoomLevel * 128)))
+                .clamp(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
 
             // check for destruction
             when {
@@ -310,7 +314,7 @@ class TankImpl(
             launchShell(bearing, onBoat, position, sightRange)
             reload = 0f
             tankShells--
-            setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
+            setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
             tankShotAudioManager.play()
         }
         reload += delta
@@ -334,21 +338,21 @@ class TankImpl(
                 if (tankArmor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
                     if (refuelingTime >= REFUEL_ARMOR_TIME) {
                         tankArmor = (tankArmor + ARMOR_UNIT).clamp(0, TANK_ARMOR_MAX)
-                        setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
+                        setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
                         entity.ref.armor -= ARMOR_UNIT
                         refuelingTime = 0f
                     }
                 } else if (tankShells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
                     if (refuelingTime >= REFUEL_SHELL_TIME) {
                         tankShells = (tankShells + SHELL_UNIT).clamp(0, TANK_SHELLS_MAX)
-                        setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
+                        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
                         entity.ref.shells -= SHELL_UNIT
                         refuelingTime = 0f
                     }
                 } else if (tankMines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
                     if (refuelingTime >= REFUEL_MINE_TIME) {
                         tankMines = (tankMines + MIENS_UNIT).clamp(0, TANK_MINES_MAX)
-                        setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
+                        setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
                         entity.ref.mines -= MIENS_UNIT
                         refuelingTime = 0f
                     }
@@ -439,6 +443,7 @@ class TankImpl(
         private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
         private const val MAX_TURN_RATE: Float = 5f / 2f
         private const val TURN_RATE_PER_SEC2 = 12.566370f
+        private const val MIN_SIGHT_RANGE: Float = 1f
         private const val MAX_SIGHT_RANGE: Float = 6f
         // private const val FORCE_KICK: Float = 25f / 8f
     }

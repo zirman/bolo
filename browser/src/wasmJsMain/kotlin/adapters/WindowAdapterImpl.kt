@@ -3,6 +3,7 @@ package adapters
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.events.WheelEvent
 
 class WindowAdapterImpl : WindowAdapter {
     override fun setOnkeydown(callback: (keyCode: Int) -> Boolean) {
@@ -16,6 +17,16 @@ class WindowAdapterImpl : WindowAdapter {
     override fun setOnkeyup(callback: (keyCode: Int) -> Boolean) {
         window.onkeyup = { event ->
             if (callback(event.which)) {
+                event.preventDefault()
+            }
+        }
+    }
+
+    override fun setOnwheel(callback: (delta: Float) -> Boolean) {
+        window.onwheel = { event ->
+            if (event.deltaMode == WheelEvent.DOM_DELTA_PIXEL &&
+                callback(event.deltaY.toFloat())
+            ) {
                 event.preventDefault()
             }
         }

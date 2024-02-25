@@ -32,4 +32,5 @@ data class ControlState(
     val fireButton: Boolean,
     val layMineButton: Boolean,
     val mouseEvent: MouseEvent?,
+    val deltaY: Float,
 )

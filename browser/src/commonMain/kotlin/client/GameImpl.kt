@@ -65,9 +65,9 @@ class GameImpl(
     override val random = Random(Clock.System.now().toEpochMilliseconds())
     override var center: V2 = V2_ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
-    private val frameRegulator: MutableSet<Double> = mutableSetOf()
+    private val frameRegulator: MutableSet<Float> = mutableSetOf()
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
-    private val zoomLevel: Float = 2f
+    override val zoomLevel: Float = 2f
 
     override var tank: Tank? = null
         private set
@@ -411,17 +411,17 @@ class GameImpl(
         when (val mouse = tick.control.mouseEvent) {
             // updates viewport
             is MouseEvent.Drag -> {
-                center.x -= ((mouse.dx.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                center.y += ((mouse.dy.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+                center.x -= ((mouse.dx.toFloat() / 16f) / zoomLevel) * devicePixelRatio
+                center.y += ((mouse.dy.toFloat() / 16f) / zoomLevel) * devicePixelRatio
             }
             // builder actions
             is MouseEvent.Up -> {
                 fun Int.toRow(): Int {
-                    return (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - this) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+                    return (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - this) * (devicePixelRatio / (zoomLevel * 16f))) - center.y).toInt()
                 }
 
                 fun Int.toCol(): Int {
-                    return (((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+                    return (((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio / (zoomLevel * 16f))) + center.x).toInt()
                 }
 
                 val row = mouse.y.toRow()
