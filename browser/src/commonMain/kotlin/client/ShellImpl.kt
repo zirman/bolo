@@ -5,12 +5,11 @@ import bmap.TerrainTile
 import kotlinx.coroutines.CoroutineScope
 import math.V2
 import math.add
+import math.clamp
 import math.dirToVec
 import math.scale
 import math.x
 import math.y
-import kotlin.math.max
-import kotlin.math.min
 
 class ShellImpl(
     scope: CoroutineScope,
@@ -34,7 +33,7 @@ class ShellImpl(
         var timer: Float = (sightRange - LEAD) / SHELL_VEL
 
         doWhile { tick ->
-            val delta = min(max(0f, timer), tick.delta)
+            val delta = timer.clamp(0f, tick.delta)
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
 

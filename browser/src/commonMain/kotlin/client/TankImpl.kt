@@ -137,7 +137,7 @@ class TankImpl(
     }
 
     private fun Tick.accelerating(terrainKernel: TerrainKernel) {
-        val max: Float = if (onBoat || terrainKernel.onBase != null) MAX_SPEED else terrainKernel.onTerrain.getSpeedMax()
+        val max = if (onBoat || terrainKernel.onBase != null) MAX_SPEED else terrainKernel.onTerrain.getSpeedMax()
 
         when {
             speed > max ->
@@ -333,21 +333,21 @@ class TankImpl(
             is Entity.Base -> {
                 if (tankArmor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
                     if (refuelingTime >= REFUEL_ARMOR_TIME) {
-                        tankArmor = (tankArmor + ARMOR_UNIT).clamp(0..TANK_ARMOR_MAX)
+                        tankArmor = (tankArmor + ARMOR_UNIT).clamp(0, TANK_ARMOR_MAX)
                         setArmorStatusBar(tankArmor.toDouble() / TANK_ARMOR_MAX)
                         entity.ref.armor -= ARMOR_UNIT
                         refuelingTime = 0f
                     }
                 } else if (tankShells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
                     if (refuelingTime >= REFUEL_SHELL_TIME) {
-                        tankShells = (tankShells + SHELL_UNIT).clamp(0..TANK_SHELLS_MAX)
+                        tankShells = (tankShells + SHELL_UNIT).clamp(0, TANK_SHELLS_MAX)
                         setShellsStatusBar(tankShells.toDouble() / TANK_SHELLS_MAX)
                         entity.ref.shells -= SHELL_UNIT
                         refuelingTime = 0f
                     }
                 } else if (tankMines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
                     if (refuelingTime >= REFUEL_MINE_TIME) {
-                        tankMines = (tankMines + MIENS_UNIT).clamp(0..TANK_MINES_MAX)
+                        tankMines = (tankMines + MIENS_UNIT).clamp(0, TANK_MINES_MAX)
                         setMinesStatusBar(tankMines.toDouble() / TANK_MINES_MAX)
                         entity.ref.mines -= MIENS_UNIT
                         refuelingTime = 0f

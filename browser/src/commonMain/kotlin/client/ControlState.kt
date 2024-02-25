@@ -12,9 +12,9 @@ enum class DirectionHorizontal {
     Right,
 }
 
-sealed interface Mouse {
-    data class Drag(val x: Int, val y: Int) : Mouse
-    data class Up(val x: Int, val y: Int) : Mouse
+sealed interface MouseEvent {
+    data class Drag(val dx: Int, val dy : Int) : MouseEvent
+    data class Up(val x: Int, val y: Int, val downX: Int, val downY: Int) : MouseEvent
 }
 
 enum class BuilderMode {
@@ -31,5 +31,5 @@ data class ControlState(
     val directionVertical: DirectionVertical,
     val fireButton: Boolean,
     val layMineButton: Boolean,
-    val mouse: Mouse?,
+    val mouseEvent: MouseEvent?,
 )

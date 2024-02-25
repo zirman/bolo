@@ -25,14 +25,21 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
         }
 
     private val fireButton: Boolean get() = keySpace
-
     private val layMineButton: Boolean get() = keyShift
 
-    private val mouse: Mouse?
-        get() = when {
-            mouseUp -> Mouse.Up(mouseX, mouseY)
-            mouseDrag -> Mouse.Drag(mouseDragX, mouseDragY)
-            else -> null
+    private val mouseEvent: MouseEvent?
+        get() {
+            return if (mouseUpEvent != null) {
+                mouseUpEvent.also { mouseUpEvent = null }
+            } else if (rightMouseDown) {
+                val dx = dragX - x
+                val dy = dragY - y
+                x = dragX
+                y = dragY
+                MouseEvent.Drag(dx, dy)
+            } else {
+                null
+            }
         }
 
     fun getControlState(): ControlState {
@@ -42,12 +49,8 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             directionVertical = directionVertical,
             fireButton = fireButton,
             layMineButton = layMineButton,
-            mouse = mouse,
+            mouseEvent = mouseEvent,
         )
-
-        mouseUp = false
-        mouseDragX = 0
-        mouseDragY = 0
 
         return controlState
     }
@@ -62,78 +65,77 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
     private var keyRight: Boolean = false
     private var keySpace: Boolean = false
     private var keyShift: Boolean = false
-    private var mouseDown = false
-    private var mouseX: Int = 0
-    private var mouseY: Int = 0
-    private var mouseDrag = false
-    private var mouseDragX: Int = 0
-    private var mouseDragY: Int = 0
-    private var mouseUp = false
+    private var rightMouseDown = false
+    private var x: Int = 0
+    private var y: Int = 0
+    private var dragX: Int = 0
+    private var dragY: Int = 0
+    private var mouseUpEvent: MouseEvent.Up? = null
 
     init {
         window.setOnkeydown { keyCode ->
             when (keyCode) {
-                9 -> {
+                TAB_KEYCODE -> {
                     // ignore tab
                 }
 
-                16 -> {
+                SHIFT_KEYCODE -> {
                     keyShift = true
                 }
 
-                32 -> {
+                SPACE_KEYCODE -> {
                     keySpace = true
                 }
 
-                37 -> {
+                LEFT_ARROW_KEYCODE -> {
                     keyLeft = true
                 }
 
-                38 -> {
+                UP_ARROW_KEYCODE -> {
                     keyUp = true
                 }
 
-                39 -> {
+                RIGHT_MOUSE_BUTTON_ID -> {
                     keyRight = true
                 }
 
-                40 -> {
+                DOWN_ARROW_KEYCODE -> {
                     keyDown = true
                 }
 
-                49 -> {
+                ONE_KEYCODE -> {
                     builderMode = BuilderMode.Tree
                 }
 
-                50 -> {
+                TWO_KEYCODE -> {
                     builderMode = BuilderMode.Road
                 }
 
-                51 -> {
+                THREE_KEYCODE -> {
                     builderMode = BuilderMode.Wall
                 }
 
-                52 -> {
+                FOUR_KEYCODE -> {
                     builderMode = BuilderMode.Pill
                 }
 
-                54 -> {
+                FIVE_KEYCODE -> {
                     builderMode = BuilderMode.Mine
                 }
 
-                65 -> {
+                A_KEYCODE -> {
                     keyA = true
                 }
 
-                68 -> {
+                D_KEYCODE -> {
                     keyD = true
                 }
 
-                87 -> {
+                W_KEYCODE -> {
                     keyW = true
                 }
 
-                83 -> {
+                S_KEYCODE -> {
                     keyS = true
                 }
 
@@ -147,43 +149,43 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
 
         window.setOnkeyup { keyCode ->
             when (keyCode) {
-                16 -> {
+                SHIFT_KEYCODE -> {
                     keyShift = false
                 }
 
-                32 -> {
+                SPACE_KEYCODE -> {
                     keySpace = false
                 }
 
-                37 -> {
+                LEFT_ARROW_KEYCODE -> {
                     keyLeft = false
                 }
 
-                38 -> {
+                UP_ARROW_KEYCODE -> {
                     keyUp = false
                 }
 
-                39 -> {
+                RIGHT_ARROW_KEYCODE -> {
                     keyRight = false
                 }
 
-                40 -> {
+                DOWN_ARROW_KEYCODE -> {
                     keyDown = false
                 }
 
-                65 -> {
+                A_KEYCODE -> {
                     keyA = false
                 }
 
-                68 -> {
+                D_KEYCODE -> {
                     keyD = false
                 }
 
-                83 -> {
+                S_KEYCODE -> {
                     keyS = false
                 }
 
-                87 -> {
+                W_KEYCODE -> {
                     keyW = false
                 }
 
@@ -195,35 +197,44 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
             true
         }
 
-        canvas.setOnmousedown { x, y ->
-            mouseDown = true
-            mouseX = x
-            mouseY = y
-            mouseDrag = false
-            mouseDragX = 0
-            mouseDragY = 0
+        canvas.setOnmousedown { button, x, y ->
+            this.x = x
+            this.y = y
+            dragX = x
+            dragY = y
+
+            when (button.toInt()) {
+                LEFT_MOUSE_BUTTON_ID -> {
+                    true
+                }
+
+                RIGHT_MOUSE_BUTTON_ID -> {
+                    rightMouseDown = true
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
+        }
+
+        canvas.setOnmousemove { _, x, y ->
+            dragX = x
+            dragY = y
             true
         }
 
-        canvas.setOnmousemove { x, y ->
-            if (mouseDown) {
-                mouseDrag = true
-                mouseDragX += x - mouseX
-                mouseDragY += y - mouseY
+        canvas.setOnmouseup { button, x, y ->
+            if (button.toInt() == LEFT_MOUSE_BUTTON_ID) {
+                mouseUpEvent = MouseEvent.Up(x, y, this.x, this.y)
             }
 
-            mouseX = x
-            mouseY = y
+            rightMouseDown = false
             true
         }
 
-        canvas.setOnmouseup { _, _ ->
-            mouseDown = false
-            mouseUp = mouseDrag.not()
-            true
-        }
-
-        // ignore right clicking
+        // do not show context menu
         window.setOncontextmenu { _, _ ->
             true
         }
@@ -251,5 +262,26 @@ class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
         window.setGamepadconnect {
             // TODO: gamepad support
         }
+    }
+
+    companion object {
+        private const val TAB_KEYCODE = 9
+        private const val SHIFT_KEYCODE = 16
+        private const val SPACE_KEYCODE = 32
+        private const val LEFT_ARROW_KEYCODE = 37
+        private const val UP_ARROW_KEYCODE = 38
+        private const val RIGHT_ARROW_KEYCODE = 39
+        private const val DOWN_ARROW_KEYCODE = 40
+        private const val ONE_KEYCODE = 49
+        private const val TWO_KEYCODE = 50
+        private const val THREE_KEYCODE = 51
+        private const val FOUR_KEYCODE = 52
+        private const val FIVE_KEYCODE = 53
+        private const val A_KEYCODE = 65
+        private const val D_KEYCODE = 68
+        private const val S_KEYCODE = 83
+        private const val W_KEYCODE = 87
+        private const val LEFT_MOUSE_BUTTON_ID = 0
+        private const val RIGHT_MOUSE_BUTTON_ID = 2
     }
 }

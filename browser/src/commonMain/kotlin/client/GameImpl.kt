@@ -408,79 +408,88 @@ class GameImpl(
     private fun handleMouseEvents(tick: Tick) {
         val devicePixelRatio = getDevicePixelRatio()
 
-        when (val mouse = tick.control.mouse) {
+        when (val mouse = tick.control.mouseEvent) {
             // updates viewport
-            is Mouse.Drag -> {
-                center.x -= ((mouse.x.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
-                center.y += ((mouse.y.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+            is MouseEvent.Drag -> {
+                center.x -= ((mouse.dx.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
+                center.y += ((mouse.dy.toFloat() / 16f) / zoomLevel) * devicePixelRatio.toFloat()
             }
             // builder actions
-            is Mouse.Up -> {
-                val sqrX: Int =
-                    (((mouse.x.toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+            is MouseEvent.Up -> {
+                fun Int.toRow(): Int {
+                    return (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - this) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+                }
 
-                val sqrY: Int =
-                    (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - mouse.y) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) - center.y).toInt()
+                fun Int.toCol(): Int {
+                    return (((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio.toFloat() / (zoomLevel * 16f))) + center.x).toInt()
+                }
 
-                tank?.run {
-                    if (sqrX in BORDER..<(WORLD_WIDTH - BORDER) &&
-                        sqrY in BORDER..<(WORLD_HEIGHT - BORDER)
-                    ) {
-                        when (tick.control.builderMode) {
-                            BuilderMode.Tree -> when (bmap[sqrX, sqrY]) {
-                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
-                                else -> null
-                            }
+                val row = mouse.y.toRow()
+                val col = mouse.x.toCol()
+                val downRow = mouse.downY.toRow()
+                val downCol = mouse.downX.toCol()
 
-                            BuilderMode.Road -> when (bmap[sqrX, sqrY]) {
-                                TerrainTile.Grass0,
-                                TerrainTile.Grass1,
-                                TerrainTile.Grass2,
-                                TerrainTile.Grass3,
-                                TerrainTile.Swamp0,
-                                TerrainTile.Swamp1,
-                                TerrainTile.Swamp2,
-                                TerrainTile.Swamp3,
-                                TerrainTile.Road,
-                                TerrainTile.Crater,
-                                TerrainTile.Rubble0,
-                                TerrainTile.Rubble1,
-                                TerrainTile.Rubble2,
-                                TerrainTile.Rubble3,
-                                -> BuilderMission.BuildRoad(sqrX, sqrY)
+                // make sure mouse down and up are in the same square
+                if (downCol == col && downRow == row) {
+                    tank?.run {
+                        if (col in BORDER..<(WORLD_WIDTH - BORDER) &&
+                            row in BORDER..<(WORLD_HEIGHT - BORDER)
+                        ) {
+                            when (tick.control.builderMode) {
+                                BuilderMode.Tree -> when (bmap[col, row]) {
+                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
+                                    else -> null
+                                }
 
-                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
-                                else -> null
-                            }
+                                BuilderMode.Road -> when (bmap[col, row]) {
+                                    TerrainTile.Grass0,
+                                    TerrainTile.Grass1,
+                                    TerrainTile.Grass2,
+                                    TerrainTile.Grass3,
+                                    TerrainTile.Swamp0,
+                                    TerrainTile.Swamp1,
+                                    TerrainTile.Swamp2,
+                                    TerrainTile.Swamp3,
+                                    TerrainTile.Road,
+                                    TerrainTile.Crater,
+                                    TerrainTile.Rubble0,
+                                    TerrainTile.Rubble1,
+                                    TerrainTile.Rubble2,
+                                    TerrainTile.Rubble3,
+                                    -> BuilderMission.BuildRoad(col, row)
 
-                            BuilderMode.Wall -> when (bmap[sqrX, sqrY]) {
-                                TerrainTile.Grass0,
-                                TerrainTile.Grass1,
-                                TerrainTile.Grass2,
-                                TerrainTile.Grass3,
-                                TerrainTile.Swamp0,
-                                TerrainTile.Swamp1,
-                                TerrainTile.Swamp2,
-                                TerrainTile.Swamp3,
-                                TerrainTile.Road,
-                                TerrainTile.Crater,
-                                TerrainTile.Rubble0,
-                                TerrainTile.Rubble1,
-                                TerrainTile.Rubble2,
-                                TerrainTile.Rubble3,
-                                TerrainTile.WallDamaged0,
-                                TerrainTile.WallDamaged1,
-                                TerrainTile.WallDamaged2,
-                                TerrainTile.WallDamaged3,
-                                -> BuilderMission.BuildWall(sqrX, sqrY)
+                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
+                                    else -> null
+                                }
 
-                                TerrainTile.Tree -> BuilderMission.HarvestTree(sqrX, sqrY)
-                                TerrainTile.River -> BuilderMission.BuildBoat(sqrX, sqrY)
-                                else -> null
-                            }
+                                BuilderMode.Wall -> when (bmap[col, row]) {
+                                    TerrainTile.Grass0,
+                                    TerrainTile.Grass1,
+                                    TerrainTile.Grass2,
+                                    TerrainTile.Grass3,
+                                    TerrainTile.Swamp0,
+                                    TerrainTile.Swamp1,
+                                    TerrainTile.Swamp2,
+                                    TerrainTile.Swamp3,
+                                    TerrainTile.Road,
+                                    TerrainTile.Crater,
+                                    TerrainTile.Rubble0,
+                                    TerrainTile.Rubble1,
+                                    TerrainTile.Rubble2,
+                                    TerrainTile.Rubble3,
+                                    TerrainTile.WallDamaged0,
+                                    TerrainTile.WallDamaged1,
+                                    TerrainTile.WallDamaged2,
+                                    TerrainTile.WallDamaged3,
+                                    -> BuilderMission.BuildWall(col, row)
 
-                            BuilderMode.Pill -> {
-                                null
+                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
+                                    TerrainTile.River -> BuilderMission.BuildBoat(col, row)
+                                    else -> null
+                                }
+
+                                BuilderMode.Pill -> {
+                                    null
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -501,34 +510,35 @@ class GameImpl(
 ////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
 //                                    }
 //                                }
-                            }
+                                }
 
-                            BuilderMode.Mine -> when (bmap[sqrX, sqrY]) {
-                                TerrainTile.Tree,
-                                TerrainTile.Grass0,
-                                TerrainTile.Grass1,
-                                TerrainTile.Grass2,
-                                TerrainTile.Grass3,
-                                TerrainTile.Swamp0,
-                                TerrainTile.Swamp1,
-                                TerrainTile.Swamp2,
-                                TerrainTile.Swamp3,
-                                TerrainTile.Road,
-                                TerrainTile.Crater,
-                                TerrainTile.Rubble0,
-                                TerrainTile.Rubble1,
-                                TerrainTile.Rubble2,
-                                TerrainTile.Rubble3,
-                                -> BuilderMission.PlaceMine(sqrX, sqrY)
+                                BuilderMode.Mine -> when (bmap[col, row]) {
+                                    TerrainTile.Tree,
+                                    TerrainTile.Grass0,
+                                    TerrainTile.Grass1,
+                                    TerrainTile.Grass2,
+                                    TerrainTile.Grass3,
+                                    TerrainTile.Swamp0,
+                                    TerrainTile.Swamp1,
+                                    TerrainTile.Swamp2,
+                                    TerrainTile.Swamp3,
+                                    TerrainTile.Road,
+                                    TerrainTile.Crater,
+                                    TerrainTile.Rubble0,
+                                    TerrainTile.Rubble1,
+                                    TerrainTile.Rubble2,
+                                    TerrainTile.Rubble3,
+                                    -> BuilderMission.PlaceMine(col, row)
 
-                                else -> null
-                            }
-                        }?.run {
-                            if (hasBuilder) {
-                                launchBuilder(position, this)
-                                hasBuilder = false
-                            } else {
-                                nextBuilderMission = this
+                                    else -> null
+                                }
+                            }?.run {
+                                if (hasBuilder) {
+                                    launchBuilder(position, this)
+                                    hasBuilder = false
+                                } else {
+                                    nextBuilderMission = this
+                                }
                             }
                         }
                     }
