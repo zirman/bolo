@@ -8,7 +8,7 @@ import bmap.toBmapExtra
 import frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.ws
+import io.ktor.client.plugins.websocket.wss
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CoroutineScope
@@ -28,10 +28,10 @@ class ClientApplicationImpl(
 ) : ClientApplication, KoinComponent {
     init {
         coroutineScope.launch {
-            httpClient.ws(
+            httpClient.wss(
                 host = getLocationHost(),
 //            port = window.location.port.toInt(),
-                path = "/ws",
+                path = "/wss",
             ) {
                 handleSession()
             }

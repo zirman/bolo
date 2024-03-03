@@ -7,7 +7,7 @@ kotlinWrappersBom = "1.0.0-pre.700"
 koinBom = "3.6.0-wasm-alpha2"
 kotlinxDatetime = "0.5.0-wasm0"
 kotlinxCollectionsImmutable = "0.4-wasm1"
-logbackClassic = "1.5.0"
+logbackClassic = "1.5.1"
 slf4jSimple = "2.0.7"
 junit = "4.13.2"
 versions = "0.51.0"
@@ -40,6 +40,7 @@ ktorServerCompression = { group = "io.ktor", name = "ktor-server-compression", v
 ktorServerWebsockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 ktorSerialization = { group = "io.ktor", name = "ktor-serialization", version.ref = "ktor" }
 ktorSerializationKotlinxJson = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktorNetworkTlsCertificates = { group = "io.ktor", name = "ktor-network-tls-certificates", version.ref = "ktor" }
 ktorWebsockets = { group = "io.ktor", name = "ktor-websockets", version.ref = "ktor" }
 logbackClassic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logbackClassic" }
 ktorClientJs = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor" }

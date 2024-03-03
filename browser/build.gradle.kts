@@ -126,6 +126,7 @@ kotlin {
             implementation(libs.ktorServerWebsockets)
             implementation(libs.ktorSerialization)
             implementation(libs.ktorSerializationKotlinxJson)
+            implementation(libs.ktorNetworkTlsCertificates)
             implementation(libs.ktorWebsockets)
             implementation(libs.kotlinCss)
             implementation(libs.logbackClassic)

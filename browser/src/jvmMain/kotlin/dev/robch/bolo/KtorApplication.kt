@@ -77,7 +77,7 @@ fun Application.ktorModule() {
 
         val boloServer: BoloServer = koinApp.koin.get() // by inject()
 
-        webSocket("/ws") {
+        webSocket("/wss") {
             boloServer.handleWebSocket(this)
         }
     }
