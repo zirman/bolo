@@ -1,0 +1,40 @@
+            Terrain                      Tank   Turning
+                                         Speed    Rate
+0       Building        (impassable)       -       -
+1       River   (destroys shells)          3       1/2
+2       Swamp   (slows the tank down)      3       1/2
+3       Crater  (can flood with water)     3       1/2
+4       Road    (for fast travel)         16       2
+5       Forest  (conceals the player)      6       1
+6       Rubble  (destroyed building)       3       1/2
+7       Grass   (everywhere else)         12       1
+8       1/2 destroyed building             -       -
+9       River   --      with boat on it   16       2
+A       Swamp   --      with mine on it
+B       Crater  --      with mine on it
+C       Road    --      with mine on it
+D       Forest  --      with mine on it
+E       Rubble  --      with mine on it
+F       Grass   --      with mine on it
+
+Tank speeds are given in W-coordinate units (1/16 pixel) per 1/50 second.
+Turning rates are given in bradians[11] per 1/50 second.
+
+
+
+When the same square has been remembered for a full 10 seconds without a better one being found, it is decided that it is a suitable location to grow a new tree
+
+
+Various objects, such as hostile tanks and pillboxes, are checked to see if any are close enough to the player's tank to pose a potential threat. If any are, and it is possible to do so, then the screen is scrolled to bring them onto the screen. If there is a conflict, then the following order of priority is used:
+
+Hostile tanks which are actually firing at this player. 
+Hostile pillboxes which are actually firing at this player. 
+Other hostile tanks. 
+Other hostile pillboxes. 
+If none of these apply, then the routine checks to see if the tank is travelling at a reasonable speed in a straight line. If it is, then the routine attempts to scroll the screen to show the area in front of the tank, in the direction it is travelling, in preference to the area it has just come from.
+
+All of these movements are subject to the restriction that the player's tank can never be moved off the screen. It is not possible to move the screen to look at any part of the map the player wishes, he can only see the region in the immediate vicinity of his tank. 
+
+This causes the flooding to progress at a leisurely rate of about 21/2 squares per second.
+
+The time delay is to produce a pleasing looking flood, which proceeds along a trench of craters at a sensible rate. Any tank which is in the water also gets pushed along in the direction of the `flooding'.
