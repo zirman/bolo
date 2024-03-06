@@ -8,6 +8,7 @@ import client.BUILDER_MODE_ROAD_ID
 import client.BUILDER_MODE_TREE_ID
 import client.BUILDER_MODE_WALL_ID
 import client.CANVAS_ID
+import client.MATERIAL_ID
 import client.MINES_ID
 import client.SHELLS_ID
 import client.STATUS_PANEL_ID
@@ -59,9 +60,10 @@ fun FlowContent.statusPanel() {
         id = STATUS_PANEL_ID
 
         div {
+            statusBar(id = ARMOR_ID)
             statusBar(id = SHELLS_ID)
             statusBar(id = MINES_ID)
-            statusBar(id = ARMOR_ID)
+            statusBar(id = MATERIAL_ID)
         }
 
         builderModes()

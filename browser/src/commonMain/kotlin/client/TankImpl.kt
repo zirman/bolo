@@ -70,9 +70,10 @@ class TankImpl(
 
     init {
         center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
-        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
         setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
+        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
         setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
+        setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
         launchIn(scope)
     }
 

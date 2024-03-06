@@ -17,7 +17,8 @@ expect fun getLocationHost(): String
 expect fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter
 expect fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter
 expect fun audioAdapterFactory(src: String): AudioAdapter
-expect fun setShellsStatusBar(percent: Float)
 expect fun setArmorStatusBar(percent: Float)
+expect fun setShellsStatusBar(percent: Float)
 expect fun setMinesStatusBar(percent: Float)
+expect fun setMaterialStatusBar(percent: Float)
 expect fun setBuilderMode(builderMode: BuilderMode)

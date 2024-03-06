@@ -267,12 +267,13 @@ class BuilderImpl(
             if (mag >= move) {
                 position = diff.scale(move / mag).add(position).collisionDetect()
             } else {
-                material += material
-
+                tank.material += material
+                setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
                 val nextBuilderMission = tank.nextBuilderMission
+
                 if (nextBuilderMission != null) {
-                    tick.set(get<Builder> { parametersOf(position, nextBuilderMission) })
                     tank.nextBuilderMission = null
+                    tick.set(get<Builder> { parametersOf(position, nextBuilderMission) })
                 } else {
                     tank.hasBuilder = true
                     tick.remove()

@@ -40,19 +40,24 @@ actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = Uint8Array
 
 actual fun audioAdapterFactory(src: String): AudioAdapter = AudioAdapterImpl(src)
 
-private val shellProgressElement = document.getElementById(SHELLS_ID) as HTMLProgressElement
-actual fun setShellsStatusBar(percent: Float) {
-    shellProgressElement.value = percent.toDouble()
-}
-
 private val armorProgressElement = document.getElementById(ARMOR_ID) as HTMLProgressElement
 actual fun setArmorStatusBar(percent: Float) {
     armorProgressElement.value = percent.toDouble()
 }
 
+private val shellProgressElement = document.getElementById(SHELLS_ID) as HTMLProgressElement
+actual fun setShellsStatusBar(percent: Float) {
+    shellProgressElement.value = percent.toDouble()
+}
+
 private val minesProgressElement = document.getElementById(MINES_ID) as HTMLProgressElement
 actual fun setMinesStatusBar(percent: Float) {
     minesProgressElement.value = percent.toDouble()
+}
+
+private val materialProgressElement = document.getElementById(MATERIAL_ID) as HTMLProgressElement
+actual fun setMaterialStatusBar(percent: Float) {
+    materialProgressElement.value = percent.toDouble()
 }
 
 private val builderModeTreeElement = document.getElementById(BUILDER_MODE_TREE_ID) as HTMLInputElement
