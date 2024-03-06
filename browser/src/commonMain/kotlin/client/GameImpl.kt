@@ -3,11 +3,11 @@ package client
 import adapters.HTMLCanvasElementAdapter
 import adapters.RTCPeerConnectionAdapter
 import assert.never
+import bmap.BORDER
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
 import bmap.TerrainTile
-import bmap.BORDER
 import bmap.WORLD_HEIGHT
 import bmap.WORLD_WIDTH
 import frame.FrameClient
@@ -16,14 +16,15 @@ import frame.Owner
 import frame.toFrame
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
@@ -33,11 +34,11 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.M4
 import math.V2
+import math.V2_ORIGIN
 import math.add
 import math.dirToVec
 import math.orthographicProj2d
 import math.scale
-import math.V2_ORIGIN
 import math.x
 import math.y
 import org.koin.core.component.KoinComponent
@@ -312,7 +313,7 @@ class GameImpl(
         return Entity.Terrain(bmap[x, y])
     }
 
-    private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch {
+    private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch(CoroutineName("launchGameLoop")) {
         for (frameCount in 0..Int.MAX_VALUE) {
             gameLoop(frameCount)
         }
@@ -527,171 +528,175 @@ class GameImpl(
 
     private fun launchReceiverFlow(scope: CoroutineScope): Job {
         // emit decoded server frames to game
-        return receiveChannel
-            .consumeAsFlow()
-            .transform { frame ->
-                when (frame) {
-                    is Frame.Binary -> emit(frame)
-                    is Frame.Text -> throw IllegalStateException("unexpected text frame")
-                    is Frame.Close -> throw IllegalStateException("connection closed by server")
-                    is Frame.Ping -> Unit
-                    is Frame.Pong -> Unit
-                    else -> never()
+        return scope.launch(CoroutineName("launchReceiverFlow")) {
+            receiveChannel
+                .consumeAsFlow()
+                .transform { frame ->
+                    when (frame) {
+                        is Frame.Binary -> emit(frame)
+                        is Frame.Text -> throw IllegalStateException("unexpected text frame")
+                        is Frame.Close -> throw IllegalStateException("connection closed by server")
+                        is Frame.Ping -> Unit
+                        is Frame.Pong -> Unit
+                        else -> never()
+                    }
                 }
-            }
-            .map { ProtoBuf.decodeFromByteArray(FrameServer.serializer(), it.readBytes()) }
-            .map { frameServerFlow.emit(it) }
-            .launchIn(scope)
+                .map { ProtoBuf.decodeFromByteArray(FrameServer.serializer(), it.readBytes()) }
+                .map { frameServerFlow.emit(it) }
+                .collect()
+        }
     }
 
     private fun launchServerFlow(scope: CoroutineScope): Job {
-        return frameServerFlow
-            .map { frameServer ->
-                when (frameServer) {
-                    is FrameServer.Signal -> {
-                        val peerConnection = getPeer(frameServer.from).peerConnection
+        return scope.launch(CoroutineName("launchServerFlow")) {
+            frameServerFlow
+                .map { frameServer ->
+                    when (frameServer) {
+                        is FrameServer.Signal -> {
+                            val peerConnection = getPeer(frameServer.from).peerConnection
 
-                        when (frameServer) {
-                            is FrameServer.Signal.NewPeer -> {
-                                // RTCPeerConnection created above
-                            }
+                            when (frameServer) {
+                                is FrameServer.Signal.NewPeer -> {
+                                    // RTCPeerConnection created above
+                                }
 
-                            is FrameServer.Signal.Offer -> {
-                                peerConnection.setRemoteDescription(frameServer.sessionDescription)
-                                val localDescription = peerConnection.createAnswer()
-                                peerConnection.setLocalDescription(localDescription)
+                                is FrameServer.Signal.Offer -> {
+                                    peerConnection.setRemoteDescription(frameServer.sessionDescription)
+                                    val localDescription = peerConnection.createAnswer()
+                                    peerConnection.setLocalDescription(localDescription)
 
-                                FrameClient.Signal
-                                    .Answer(
-                                        owner = frameServer.from,
-                                        sessionDescription = peerConnection.localDescription!!,
-                                    )
-                                    .toFrame()
-                                    .run { sendChannel.send(this) }
-                            }
+                                    FrameClient.Signal
+                                        .Answer(
+                                            owner = frameServer.from,
+                                            sessionDescription = peerConnection.localDescription!!,
+                                        )
+                                        .toFrame()
+                                        .run { sendChannel.send(this) }
+                                }
 
-                            is FrameServer.Signal.Answer -> {
-                                peerConnection.setRemoteDescription(frameServer.sessionDescription)
-                            }
+                                is FrameServer.Signal.Answer -> {
+                                    peerConnection.setRemoteDescription(frameServer.sessionDescription)
+                                }
 
-                            is FrameServer.Signal.IceCandidate -> {
-                                peerConnection.addIceCandidate(frameServer.iceCandidate)
-                            }
+                                is FrameServer.Signal.IceCandidate -> {
+                                    peerConnection.addIceCandidate(frameServer.iceCandidate)
+                                }
 
-                            is FrameServer.Signal.Disconnect -> {
-                                peers.remove(frameServer.from)
+                                is FrameServer.Signal.Disconnect -> {
+                                    peers.remove(frameServer.from)
+                                }
                             }
                         }
-                    }
 
-                    is FrameServer.TerrainBuild -> {
-                        // build from other players
-                        bmap[frameServer.x, frameServer.y] = frameServer.terrain
-                        bmapCode.inc(frameServer.x, frameServer.y)
-                        tileArray.update(frameServer.x, frameServer.y)
-                    }
+                        is FrameServer.TerrainBuild -> {
+                            // build from other players
+                            bmap[frameServer.x, frameServer.y] = frameServer.terrain
+                            bmapCode.inc(frameServer.x, frameServer.y)
+                            tileArray.update(frameServer.x, frameServer.y)
+                        }
 
-                    is FrameServer.TerrainBuildSuccess -> {
-                        val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                        bmap[buildOp.x, buildOp.y] = buildOp.terrain
-                        bmapCode.inc(buildOp.x, buildOp.y)
-                        tileArray.update(buildOp.x, buildOp.y)
-                        buildOp.result(true)
-                    }
+                        is FrameServer.TerrainBuildSuccess -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                            bmap[buildOp.x, buildOp.y] = buildOp.terrain
+                            bmapCode.inc(buildOp.x, buildOp.y)
+                            tileArray.update(buildOp.x, buildOp.y)
+                            buildOp.result(true)
+                        }
 
-                    is FrameServer.TerrainBuildFailed -> {
-                        val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                        buildOp.result(false)
-                    }
+                        is FrameServer.TerrainBuildFailed -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                            buildOp.result(false)
+                        }
 
-                    is FrameServer.TerrainDamage -> {
-                        // damage from other players
-                        bmap.damage(frameServer.x, frameServer.y)
-                        tileArray.update(frameServer.x, frameServer.y)
-                    }
+                        is FrameServer.TerrainDamage -> {
+                            // damage from other players
+                            bmap.damage(frameServer.x, frameServer.y)
+                            tileArray.update(frameServer.x, frameServer.y)
+                        }
 
-                    is FrameServer.TerrainMine -> {
-                        // mines from other players
-                        bmap.mine(frameServer.x, frameServer.y)
-                        tileArray.update(frameServer.x, frameServer.y)
-                    }
+                        is FrameServer.TerrainMine -> {
+                            // mines from other players
+                            bmap.mine(frameServer.x, frameServer.y)
+                            tileArray.update(frameServer.x, frameServer.y)
+                        }
 
-                    is FrameServer.BaseTake -> {
-                        val base = bmap.bases[frameServer.index]
-                        base.code++
-                        base.owner = frameServer.owner
-                        base.armor = frameServer.armor
-                        base.shells = frameServer.shells
-                        base.mines = frameServer.mines
-                        tileArray.update(base.x, base.y)
-                    }
+                        is FrameServer.BaseTake -> {
+                            val base = bmap.bases[frameServer.index]
+                            base.code++
+                            base.owner = frameServer.owner
+                            base.armor = frameServer.armor
+                            base.shells = frameServer.shells
+                            base.mines = frameServer.mines
+                            tileArray.update(base.x, base.y)
+                        }
 
-                    is FrameServer.BaseDamage -> {
-                        val base = bmap.bases[frameServer.index]
-                        base.armor = max(0, base.armor - 8)
-                    }
+                        is FrameServer.BaseDamage -> {
+                            val base = bmap.bases[frameServer.index]
+                            base.armor = max(0, base.armor - 8)
+                        }
 
-                    is FrameServer.PillDamage -> {
-                        val pill = bmap.pills[frameServer.index]
-                        pill.armor = max(0, pill.armor - 1)
-                        tileArray.update(pill.x, pill.y)
-                    }
+                        is FrameServer.PillDamage -> {
+                            val pill = bmap.pills[frameServer.index]
+                            pill.armor = max(0, pill.armor - 1)
+                            tileArray.update(pill.x, pill.y)
+                        }
 
-                    is FrameServer.PillRepair -> {
-                        val pill = bmap.pills[frameServer.index]
-                        pill.armor = frameServer.armor
-                        pill.code++
-                        tileArray.update(pill.x, pill.y)
-                    }
+                        is FrameServer.PillRepair -> {
+                            val pill = bmap.pills[frameServer.index]
+                            pill.armor = frameServer.armor
+                            pill.code++
+                            tileArray.update(pill.x, pill.y)
+                        }
 
-                    is FrameServer.PillRepairSuccess -> {
-                        // buildQueue.removeAt(0) as BuildOp.PillRepair
-                        // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
-                    }
+                        is FrameServer.PillRepairSuccess -> {
+                            // buildQueue.removeAt(0) as BuildOp.PillRepair
+                            // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
+                        }
 
-                    is FrameServer.PillRepairFailed -> {
-                        // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
-                        // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
-                    }
+                        is FrameServer.PillRepairFailed -> {
+                            // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
+                            // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
+                        }
 
-                    is FrameServer.PillTake -> {
-                        val pill = bmap.pills[frameServer.index]
-                        pill.owner = frameServer.owner
-                        pill.isPlaced = false
-                        tileArray.update(pill.x, pill.y)
-                    }
+                        is FrameServer.PillTake -> {
+                            val pill = bmap.pills[frameServer.index]
+                            pill.owner = frameServer.owner
+                            pill.isPlaced = false
+                            tileArray.update(pill.x, pill.y)
+                        }
 
-                    is FrameServer.PillDrop -> {
-                        val pill = bmap.pills[frameServer.index]
-                        pill.owner = frameServer.owner
-                        pill.x = frameServer.x
-                        pill.y = frameServer.y
-                        pill.isPlaced = true
-                        tileArray.update(pill.x, pill.y)
-                    }
+                        is FrameServer.PillDrop -> {
+                            val pill = bmap.pills[frameServer.index]
+                            pill.owner = frameServer.owner
+                            pill.x = frameServer.x
+                            pill.y = frameServer.y
+                            pill.isPlaced = true
+                            tileArray.update(pill.x, pill.y)
+                        }
 
-                    is FrameServer.PillPlacement -> {
-                        val pill = bmap.pills[frameServer.index]
-                        pill.armor = frameServer.armor
-                        pill.x = frameServer.x
-                        pill.y = frameServer.y
-                        pill.isPlaced = true
-                        pill.code++
-                        tileArray.update(pill.x, pill.y)
-                    }
+                        is FrameServer.PillPlacement -> {
+                            val pill = bmap.pills[frameServer.index]
+                            pill.armor = frameServer.armor
+                            pill.x = frameServer.x
+                            pill.y = frameServer.y
+                            pill.isPlaced = true
+                            pill.code++
+                            tileArray.update(pill.x, pill.y)
+                        }
 
-                    is FrameServer.PillPlacementSuccess -> {
-                        // buildQueue.removeAt(0) is BuildOp.PillPlacement
-                        // Unit
-                    }
+                        is FrameServer.PillPlacementSuccess -> {
+                            // buildQueue.removeAt(0) is BuildOp.PillPlacement
+                            // Unit
+                        }
 
-                    is FrameServer.PillPlacementFailed -> {
-                        // buildQueue.removeAt(0) is BuildOp.PillPlacement
-                        // tankMaterial = (tankMaterial + pillPerMaterial).clampRange(0, tankMaterialMax)
+                        is FrameServer.PillPlacementFailed -> {
+                            // buildQueue.removeAt(0) is BuildOp.PillPlacement
+                            // tankMaterial = (tankMaterial + pillPerMaterial).clampRange(0, tankMaterialMax)
+                        }
                     }
                 }
-            }
-            .launchIn(scope)
+                .collect()
+        }
     }
 
     private fun getPeer(from: Owner): Peer {
@@ -701,7 +706,7 @@ class GameImpl(
             peerConnection.setOnnegotiationneeded { event ->
                 println("PeerConnection.onnegotiationneeded: $from $event")
 
-                scope.launch {
+                scope.launch(CoroutineName("setOnnegotiationneeded")) {
                     val offer = peerConnection.createOffer()
                     peerConnection.setLocalDescription(offer)
 
@@ -745,7 +750,7 @@ class GameImpl(
                 println("PeerConnection.onicecandidate: $from $candidate")
                 if (candidate == null) return@setOnicecandidate
 
-                scope.launch {
+                scope.launch(CoroutineName("setOnicecandidate")) {
                     FrameClient.Signal
                         .IceCandidate(
                             owner = from,

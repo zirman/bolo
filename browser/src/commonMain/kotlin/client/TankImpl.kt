@@ -87,6 +87,7 @@ class TankImpl(
 
             // check for destruction
             when {
+                // superboom
                 bmap.getEntity(terrainKernel.onX, terrainKernel.onY).isSolid(owner.int) -> {
                     // TODO: super boom
                     // TODO: drop pills
@@ -99,6 +100,7 @@ class TankImpl(
                     return tick
                 }
 
+                // sink
                 onBoat.not() &&
                         (terrainKernel.onTerrain == TerrainTile.Sea ||
                                 terrainKernel.onTerrain == TerrainTile.SeaMined) -> {
@@ -112,6 +114,7 @@ class TankImpl(
                     return tick
                 }
 
+                // armor depleted
                 tankArmor <= 0 -> {
                     // TODO: fireball
                     // TODO: drop pills

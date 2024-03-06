@@ -45,15 +45,15 @@ import org.khronos.webgl.set
 class WebGlRenderingContextAdapterImpl(
     private val renderingContext: WebGLRenderingContext,
 ) : WebGlRenderingContextAdapter {
-    override fun tileProgramFactory(coroutineScope: CoroutineScope): Deferred<TileProgram> =
-        renderingContext.tileProgramFactory(coroutineScope)
+    override fun tileProgramFactory(scope: CoroutineScope): Deferred<TileProgram> =
+        renderingContext.tileProgramFactory(scope)
 
-    override fun spriteProgramFactory(coroutineScope: CoroutineScope): Deferred<SpriteProgram> =
-        renderingContext.spriteProgramFactory(coroutineScope)
+    override fun spriteProgramFactory(scope: CoroutineScope): Deferred<SpriteProgram> =
+        renderingContext.spriteProgramFactory(scope)
 
     private fun WebGLRenderingContext.tileProgramFactory(
-        coroutineScope: CoroutineScope,
-    ): Deferred<TileProgram> = coroutineScope.async {
+        scope: CoroutineScope,
+    ): Deferred<TileProgram> = scope.async {
         val image = loadImage(TILE_SHEET_SRC)
         val program = createProgram().assertNotNull("createProgram() returned null")
 
@@ -322,8 +322,8 @@ class WebGlRenderingContextAdapterImpl(
     }
 
     private fun WebGLRenderingContext.spriteProgramFactory(
-        coroutineScope: CoroutineScope,
-    ): Deferred<SpriteProgram> = coroutineScope.async {
+        scope: CoroutineScope,
+    ): Deferred<SpriteProgram> = scope.async {
         val image = loadImage(SPRITE_SHEET_SRC)
         val program = createProgram().assertNotNull("createProgram() returned null")
 

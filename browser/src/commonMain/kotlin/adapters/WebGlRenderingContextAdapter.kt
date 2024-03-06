@@ -6,6 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 
 interface WebGlRenderingContextAdapter {
-    fun tileProgramFactory(coroutineScope: CoroutineScope): Deferred<TileProgram>
-    fun spriteProgramFactory(coroutineScope: CoroutineScope): Deferred<SpriteProgram>
+    fun tileProgramFactory(scope: CoroutineScope): Deferred<TileProgram>
+    fun spriteProgramFactory(scope: CoroutineScope): Deferred<SpriteProgram>
 }

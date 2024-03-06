@@ -1,5 +1,6 @@
 package client
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -12,7 +13,7 @@ abstract class AbstractGameProcess : GameProcess {
 
     final override fun launchIn(scope: CoroutineScope) {
         // Unconfined allows the step() method to resume the run() method
-        scope.launch(Dispatchers.Unconfined) {
+        scope.launch(CoroutineName("${this::class.simpleName}") + Dispatchers.Unconfined) {
             try {
                 run()
             } finally {
