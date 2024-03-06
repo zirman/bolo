@@ -27,11 +27,11 @@ class ShellImpl(
     override var position: V2 = startPosition.add(direction.scale(LEAD))
         private set
 
-    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
+    override val consumer: Consumer<Tick> = consumer {
         var timer: Float = (sightRange - LEAD) / SHELL_VEL
 
         while (true) {
-            val tick = yieldGet(Unit)
+            val tick = next()
             val delta = timer.clamp(0f, tick.delta)
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
@@ -45,13 +45,13 @@ class ShellImpl(
                     is Entity.Pill -> {
                         pillDamage(bmap.pills.indexOfFirst { it === entity.ref })
                         tick.remove()
-                        return@duplexIterator
+                        return@consumer
                     }
 
                     is Entity.Base -> {
                         baseDamage(bmap.bases.indexOfFirst { it === entity.ref })
                         tick.remove()
-                        return@duplexIterator
+                        return@consumer
                     }
 
                     is Entity.Terrain -> {
@@ -64,12 +64,12 @@ class ShellImpl(
                         }
 
                         tick.remove()
-                        return@duplexIterator
+                        return@consumer
                     }
                 }
             } else if (timer <= 0f) {
                 tick.remove()
-                return@duplexIterator
+                return@consumer
             }
         }
     }

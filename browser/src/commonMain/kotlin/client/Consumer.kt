@@ -9,23 +9,23 @@ import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
 import kotlin.coroutines.startCoroutine
 
-interface DuplexIterator<in I : Any, out T : Any> {
-    fun next(input: I): T?
+interface Consumer<in T> {
+    fun yield(input: T)
 }
 
 @RestrictsSuspension
-abstract class DuplexScope<T : Any, I : Any> internal constructor() : Continuation<Unit>, DuplexIterator<I, T> {
-    abstract suspend fun yieldGet(value: T): I
+abstract class ConsumerScope<T> internal constructor() : Continuation<Unit>, Consumer<T> {
+    abstract val done: Boolean
+    abstract suspend fun next(): T
 }
 
-class DuplexScopeImpl<I : Any, T : Any> : DuplexScope<I, T>() {
-    private var done = false
-    private var output: I? = null
+class ConsumerScopeImpl<T> : ConsumerScope<T>() {
+    override var done = false
+        private set
+
     private lateinit var nextStep: Continuation<T>
 
-    override suspend fun yieldGet(value: I): T {
-        output = value
-
+    override suspend fun next(): T {
         return suspendCoroutineUninterceptedOrReturn { continuation ->
             nextStep = continuation
             COROUTINE_SUSPENDED
@@ -39,17 +39,14 @@ class DuplexScopeImpl<I : Any, T : Any> : DuplexScope<I, T>() {
         result.getOrThrow()
     }
 
-    override fun next(input: T): I? {
-        if (done) return null
+    override fun yield(input: T) {
+        if (done) throw IllegalStateException("called yield() on a completed Consumer")
         nextStep.resume(input)
-        val o = output
-        output = null
-        return o
     }
 }
 
-fun <I : Any, T : Any> duplexIterator(block: suspend DuplexScope<I, T>.() -> Unit): DuplexIterator<T, I> {
-    val receiver = DuplexScopeImpl<I, T>()
+fun <T> consumer(block: suspend ConsumerScope<T>.() -> Unit): Consumer<T> {
+    val receiver = ConsumerScopeImpl<T>()
     block.startCoroutine(receiver = receiver, completion = receiver)
     return receiver
 }

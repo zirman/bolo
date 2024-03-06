@@ -1,9 +1,9 @@
 package client
 
 class LogicGameProcess(
-    private val block: suspend DuplexScope<Unit, Tick>.() -> Tick,
+    private val block: suspend ConsumerScope<Tick>.() -> Tick,
 ) : AbstractGameProcess() {
-    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
+    override val consumer: Consumer<Tick> = consumer {
         block()
     }
 }

@@ -74,9 +74,9 @@ class TankImpl(
         setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
     }
 
-    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
+    override val consumer: Consumer<Tick> = consumer {
         while (true) {
-            val tick = yieldGet(Unit)
+            val tick = next()
             val terrainKernel = TerrainKernel(tick)
             val devicePixelRatio = getDevicePixelRatio()
 
@@ -95,7 +95,7 @@ class TankImpl(
                         }
                     })
 
-                    return@duplexIterator
+                    return@consumer
                 }
 
                 // sink
@@ -109,7 +109,7 @@ class TankImpl(
                         }
                     })
 
-                    return@duplexIterator
+                    return@consumer
                 }
 
                 // armor depleted
@@ -122,7 +122,7 @@ class TankImpl(
                         }
                     })
 
-                    return@duplexIterator
+                    return@consumer
                 }
 
                 else -> {

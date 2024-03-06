@@ -73,7 +73,7 @@ class GameImpl(
 
     private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess {
         // creates tank on first frame
-        yieldGet(Unit).apply {
+        next().apply {
             set(get<Tank> { parametersOf(true) })
         }
     })
@@ -339,9 +339,9 @@ class GameImpl(
         tick.render(tileProgram.await(), spriteProgram.await())
     }
 
-    private suspend fun Tick.stepGameProcesses() {
+    private fun Tick.stepGameProcesses() {
         for (gameProcess in this) {
-            gameProcess.step(this)
+            gameProcess.consumer.yield(this)
         }
     }
 

@@ -119,7 +119,7 @@ class BuilderImpl(
 
     private var material: Int = 0
 
-    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
+    override val consumer: Consumer<Tick> = consumer {
         moveTo(v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
 
         when (buildMission) {
@@ -137,7 +137,7 @@ class BuilderImpl(
                 wait(1f)
 
                 while (true) {
-                    yieldGet(Unit)
+                    next()
 
                     if (completed) {
                         break
@@ -159,7 +159,7 @@ class BuilderImpl(
                 wait(1f)
 
                 while (true) {
-                    yieldGet(Unit)
+                    next()
                     if (completed) break
                 }
             }
@@ -178,7 +178,7 @@ class BuilderImpl(
                 wait(1f)
 
                 while (true) {
-                    yieldGet(Unit)
+                    next()
                     if (completed) break
                 }
             }
@@ -197,7 +197,7 @@ class BuilderImpl(
                 wait(1f)
 
                 while (true) {
-                    yieldGet(Unit)
+                    next()
                     if (completed) break
                 }
             }
@@ -215,9 +215,9 @@ class BuilderImpl(
         moveToTank()
     }
 
-    private suspend fun DuplexScope<Unit, Tick>.moveTo(targetPosition: V2): Tick {
+    private suspend fun ConsumerScope<Tick>.moveTo(targetPosition: V2): Tick {
         while (true) {
-            val tick = yieldGet(Unit)
+            val tick = next()
             val diff = targetPosition.sub(position)
             val mag = diff.mag()
             val x = position.x.toInt()
@@ -241,9 +241,9 @@ class BuilderImpl(
         }
     }
 
-    private suspend fun DuplexScope<Unit, Tick>.moveToTank(): Tick {
+    private suspend fun ConsumerScope<Tick>.moveToTank(): Tick {
         while (true) {
-            val tick = yieldGet(Unit)
+            val tick = next()
             val tank = tank ?: continue
             val diff = tank.position.sub(position)
             val mag = diff.mag()

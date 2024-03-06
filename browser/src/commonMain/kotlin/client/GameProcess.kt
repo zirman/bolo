@@ -1,5 +1,5 @@
 package client
 
 interface GameProcess {
-    suspend fun step(tick: Tick)
+    val consumer: Consumer<Tick>
 }
