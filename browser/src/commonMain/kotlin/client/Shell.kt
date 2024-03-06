@@ -2,7 +2,7 @@ package client
 
 import math.V2
 
-interface Shell : GeneratorLoop<Tick> {
+interface Shell : EntityLoop {
     val position: V2
     val bearing: Float
 }

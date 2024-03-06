@@ -2,7 +2,7 @@ package client
 
 import math.V2
 
-interface Tank : GeneratorLoop<Tick> {
+interface Tank : EntityLoop {
     val position: V2
     val bearing: Float
     val sightRange: Float

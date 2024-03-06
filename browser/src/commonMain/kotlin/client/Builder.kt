@@ -2,6 +2,6 @@ package client
 
 import math.V2
 
-interface Builder : GeneratorLoop<Tick> {
+interface Builder : EntityLoop {
     val position: V2
 }

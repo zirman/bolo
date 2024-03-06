@@ -18,10 +18,14 @@ class ShellImpl(
     override val bearing: Float,
     private val fromBoat: Boolean,
     private val sightRange: Float,
-) : GeneratorLoopImpl<Tick>(scope), Shell, Game by game {
+) : EntityLoopImpl(), Shell, Game by game {
     companion object {
         private const val SHELL_VEL: Float = 7f
         private const val LEAD = 1f / 2f
+    }
+
+    init {
+        launchIn(scope)
     }
 
     private val direction: V2 = dirToVec(bearing)
@@ -29,10 +33,11 @@ class ShellImpl(
     override var position: V2 = startPosition.add(direction.scale(LEAD))
         private set
 
-    override suspend fun launch() {
+    override suspend fun run(): Tick {
         var timer: Float = (sightRange - LEAD) / SHELL_VEL
 
-        doWhile { tick ->
+        while (true) {
+            val tick = tickChannel.receive()
             val delta = timer.clamp(0f, tick.delta)
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
@@ -43,8 +48,18 @@ class ShellImpl(
 
             if ((fromBoat && entity.isShore(owner.int)) || entity.isShellable(owner.int)) {
                 when (entity) {
-                    is Entity.Pill -> pillDamage(bmap.pills.indexOfFirst { it === entity.ref })
-                    is Entity.Base -> baseDamage(bmap.bases.indexOfFirst { it === entity.ref })
+                    is Entity.Pill -> {
+                        pillDamage(bmap.pills.indexOfFirst { it === entity.ref })
+                        tick.remove()
+                        return tick
+                    }
+
+                    is Entity.Base -> {
+                        baseDamage(bmap.bases.indexOfFirst { it === entity.ref })
+                        tick.remove()
+                        return tick
+                    }
+
                     is Entity.Terrain -> {
                         // only damage road if it is a bridge
                         if (entity.terrain != TerrainTile.Road ||
@@ -52,15 +67,15 @@ class ShellImpl(
                                     ((isWater(bmap[x, y - 1]) && isWater(bmap[x, y + 1]))))
                         ) {
                             terrainDamage(x, y)
-//                        } else {
-                            // TODO: detonate
                         }
+
+                        tick.remove()
+                        return tick
                     }
                 }
-
-                false
-            } else {
-                timer > 0f
+            } else if (timer <= 0f) {
+                tick.remove()
+                return tick
             }
         }
     }

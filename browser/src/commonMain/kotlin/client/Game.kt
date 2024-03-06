@@ -16,11 +16,7 @@ interface Game {
     val sendChannel: SendChannel<Frame>
     var center: V2
     val tank: Tank?
-    val builder: Builder?
     val zoomLevel: Float
-    fun launchTank(hasBuilder: Boolean)
-    fun launchShell(bearing: Float, onBoat: Boolean, startPosition: V2, sightRange: Float)
-    fun launchBuilder(startPosition: V2, builderMission: BuilderMission)
     suspend fun terrainDamage(x: Int, y: Int)
     suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
     suspend fun mineTerrain(x: Int, y: Int)

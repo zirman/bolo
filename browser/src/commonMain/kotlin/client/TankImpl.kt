@@ -10,7 +10,7 @@ import bmap.isSolid
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
 import math.V2_ORIGIN
@@ -26,16 +26,29 @@ import math.tau
 import math.v2
 import math.x
 import math.y
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+class BlockEntity(scope: CoroutineScope, private val block: suspend ReceiveChannel<Tick>.() -> Tick) : EntityLoopImpl() {
+    init {
+        launchIn(scope)
+    }
+
+    override suspend fun run(): Tick {
+        return tickChannel.block()
+    }
+}
+
 class TankImpl(
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
     private val tankShotAudioManager: AudioManager,
     game: Game,
     override var hasBuilder: Boolean,
-) : GeneratorLoopImpl<Tick>(scope), Tank, Game by game {
+) : EntityLoopImpl(), Tank, Game by game, KoinComponent {
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
     override var position: V2 = v2(x = start.x.toFloat() + 0.5f, y = start.y.toFloat() + 0.5f)
@@ -71,10 +84,12 @@ class TankImpl(
         setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
         setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
         setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
+        launchIn(scope)
     }
 
-    override suspend fun launch() {
-        doWhile { tick ->
+    override suspend fun run(): Tick {
+        while (true) {
+            val tick = tickChannel.receive()
             val terrainKernel = TerrainKernel(tick)
             val devicePixelRatio = getDevicePixelRatio()
 
@@ -84,17 +99,17 @@ class TankImpl(
             // check for destruction
             when {
                 bmap.getEntity(terrainKernel.onX, terrainKernel.onY).isSolid(owner.int) -> {
-                    superBoom()
+                    return tick.superBoom()
                 }
 
                 onBoat.not() &&
                         (terrainKernel.onTerrain == TerrainTile.Sea ||
                                 terrainKernel.onTerrain == TerrainTile.SeaMined) -> {
-                    sink()
+                    return tick.sink()
                 }
 
                 tankArmor <= 0 -> {
-                    fireball()
+                    return tick.fireball()
                 }
 
                 else -> {
@@ -110,7 +125,6 @@ class TankImpl(
                     terrainKernel.mineLaying(tick)
                     terrainKernel.refueling(tick)
                     terrainKernel.updateServerPosition()
-                    true
                 }
             }
         }
@@ -311,7 +325,7 @@ class TankImpl(
 
     private fun Tick.firing() {
         if (control.fireButton && tankShells > 0 && reload >= RELOAD_SEC) {
-            launchShell(bearing, onBoat, position, sightRange)
+            add(get<Shell> { parametersOf(position, bearing, onBoat, sightRange) })
             reload = 0f
             tankShells--
             setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
@@ -379,45 +393,40 @@ class TankImpl(
         }
     }
 
-    private suspend fun superBoom(): Boolean {
-        var time = 0f
+    private suspend fun Tick.superBoom(): Tick {
         // TODO: super boom
         // TODO: drop pills
 
-        doWhile { tick ->
-            time += tick.delta
-            time < 5f
-        }
+        set(BlockEntity(get()) {
+            wait(5f).apply {
+                add(get<Tank> { parametersOf(hasBuilder) })
+            }
+        })
 
-        scope.launch { launchTank(hasBuilder) }
-        return false
+        return this
     }
 
-    private suspend fun sink(): Boolean {
-        var time = 0f
+    private suspend fun Tick.sink(): Tick {
         // TODO: drop pills
+        set(BlockEntity(get()) {
+            wait(5f).apply {
+                add(get<Tank> { parametersOf(hasBuilder) })
+            }
+        })
 
-        doWhile { tick ->
-            time += tick.delta
-            time < 5f
-        }
-
-        scope.launch { launchTank(hasBuilder) }
-        return false
+        return this
     }
 
-    private suspend fun fireball(): Boolean {
-        var time = 0f
+    private suspend fun Tick.fireball(): Tick {
         // TODO: fireball
         // TODO: drop pills
+        set(BlockEntity(get()) {
+            wait(5f).apply {
+                add(get<Tank> { parametersOf(hasBuilder) })
+            }
+        })
 
-        doWhile { tick ->
-            time += tick.delta
-            time < 5f
-        }
-
-        scope.launch { launchTank(hasBuilder) }
-        return false
+        return this
     }
 
     inner class TerrainKernel(val tick: Tick) {

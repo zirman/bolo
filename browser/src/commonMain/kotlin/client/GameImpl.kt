@@ -68,22 +68,22 @@ class GameImpl(
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
     override val zoomLevel: Float = 2f
 
-    override var tank: Tank? = null
-        private set
+    override val tank: Tank? get() = entities.filterIsInstance<Tank>().firstOrNull()
+    private val builder: Builder? get() = entities.filterIsInstance<Builder>().firstOrNull()
+    private val shells: List<Shell> get() = entities.filterIsInstance<Shell>()
 
-    override var builder: Builder? = null
-        private set
-
-    private val shells = mutableListOf<Shell>()
+    private val entities: MutableList<EntityLoop> = mutableListOf()
 
     init {
         launchReceiverFlow(scope)
         launchServerFlow(scope)
         launchGameLoop(scope)
-        // allow Game to finish instantiating before injecting game into Tank
-        scope.launch {
-            launchTank(hasBuilder = true)
-        }
+
+        entities.add(BlockEntity(get()) {
+            receive().apply {
+                set(get<Tank> { parametersOf(true) })
+            }
+        })
     }
 
 //    private suspend fun treeHarvest(x: Int, y: Int) {
@@ -375,30 +375,13 @@ class GameImpl(
             control = control.getControlState(),
             ticksPerSec = ticksPerSec,
             delta = 1f / ticksPerSec,
+            listIterator = entities.listIterator(),
         )
 
         handleMouseEvents(tick)
 
-        tank?.run {
-            if (job.isCompleted) {
-                tank = null
-            } else {
-                resumeWith(tick)
-            }
-        }
-
-        builder?.run {
-            if (job.isCompleted) {
-                builder = null
-            } else {
-                resumeWith(tick)
-            }
-        }
-
-        shells.removeAll { it.job.isCompleted }
-
-        for (shell in shells) {
-            shell.resumeWith(tick)
+        for (entity in tick) {
+            entity.step(tick)
         }
 
         render(frameCount, ticksPerSec, tileProgram.await(), spriteProgram.await())
@@ -533,7 +516,8 @@ class GameImpl(
                                 }
                             }?.run {
                                 if (hasBuilder) {
-                                    launchBuilder(position, this)
+                                    if (builder != null) throw IllegalStateException("only one builder should exist at a time")
+                                    tick.add(get<Builder> { parametersOf(position, this) })
                                     hasBuilder = false
                                 } else {
                                     nextBuilderMission = this
@@ -816,28 +800,6 @@ class GameImpl(
                 dataChannel = dataChannel,
             )
         }
-    }
-
-    override fun launchTank(hasBuilder: Boolean) {
-        tank?.job?.cancel()
-        tank = get { parametersOf(hasBuilder) }
-    }
-
-    override fun launchBuilder(
-        startPosition: V2,
-        builderMission: BuilderMission,
-    ) {
-        builder?.job?.cancel()
-        builder = get { parametersOf(startPosition, builderMission) }
-    }
-
-    override fun launchShell(
-        bearing: Float,
-        onBoat: Boolean,
-        startPosition: V2,
-        sightRange: Float,
-    ) {
-        shells.add(get { parametersOf(startPosition, bearing, onBoat, sightRange) })
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {

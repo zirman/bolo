@@ -331,36 +331,36 @@ class WebGlRenderingContextAdapterImpl(
             program,
             type = VERTEX_SHADER,
             """
-                attribute vec4 aVertex;
-                attribute vec2 aCoord;
+            attribute vec4 aVertex;
+            attribute vec2 aCoord;
 
-                uniform mat4 uClipMatrix;
+            uniform mat4 uClipMatrix;
 
-                varying highp vec2 vCoord;
+            varying highp vec2 vCoord;
 
-                void main () {
-                    gl_Position = uClipMatrix * aVertex;
-                    vCoord = aCoord;
-                }
-                """.trimIndent(),
+            void main () {
+                gl_Position = uClipMatrix * aVertex;
+                vCoord = aCoord;
+            }
+            """.trimIndent(),
         )
 
         createShader(
             program,
             type = FRAGMENT_SHADER,
             """
-                precision highp float;
-                varying vec2 vCoord;
+            precision highp float;
+            varying vec2 vCoord;
 
-                uniform sampler2D uTexture;
+            uniform sampler2D uTexture;
 
-                void main () {
-                    gl_FragColor = texture2D(
-                        uTexture,
-                        vCoord
-                    );
-                }
-                """.trimIndent(),
+            void main () {
+                gl_FragColor = texture2D(
+                    uTexture,
+                    vCoord
+                );
+            }
+            """.trimIndent(),
         )
 
         linkProgram(program)

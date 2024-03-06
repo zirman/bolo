@@ -11,6 +11,9 @@ import math.sub
 import math.v2
 import math.x
 import math.y
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import kotlin.math.sqrt
 
 class BuilderImpl(
@@ -18,7 +21,7 @@ class BuilderImpl(
     game: Game,
     startPosition: V2,
     private val buildMission: BuilderMission,
-) : GeneratorLoopImpl<Tick>(scope), Builder, Game by game {
+) : EntityLoopImpl(), Builder, Game by game, KoinComponent {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
@@ -116,131 +119,167 @@ class BuilderImpl(
         }
     }
 
+    init {
+        launchIn(scope)
+    }
+
     override var position: V2 = startPosition
         private set
 
     private var material: Int = 0
 
-    override suspend fun launch() {
-        doWhile { tick ->
-            val oldPosition = position
-            val arrived = moveTo(tick.delta, v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
+    override suspend fun run(): Tick {
+        moveTo(v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
 
-            if (arrived) {
-                when (buildMission) {
-                    is BuilderMission.HarvestTree -> {
-                        var waiting = true
+        when (buildMission) {
+            is BuilderMission.HarvestTree -> {
+                var completed = false
 
-                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Grass3) { success ->
-                            if (success) {
-                                material += 4
-                            }
-
-                            waiting = false
-                        }
-
-                        wait(1f)
-                        doWhile { waiting }
+                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Grass3) { success ->
+                    if (success) {
+                        material += 4
                     }
 
-                    is BuilderMission.BuildWall -> {
-                        var waiting = true
-
-                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Wall) { success ->
-                            if (success) {
-                                material -= 2
-                            }
-
-                            waiting = false
-                        }
-
-                        wait(1f)
-                        doWhile { waiting }
-                    }
-
-                    is BuilderMission.BuildRoad -> {
-                        var waiting = true
-
-                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Road) { success ->
-                            if (success) {
-                                material -= 2
-                            }
-
-                            waiting = false
-                        }
-
-                        wait(1f)
-                        doWhile { waiting }
-                    }
-
-                    is BuilderMission.BuildBoat -> {
-                        var waiting = true
-
-                        buildTerrain(buildMission.x, buildMission.y, TerrainTile.Boat) { success ->
-                            if (success) {
-                                material -= 4
-                            }
-
-                            waiting = false
-                        }
-
-                        wait(1f)
-                        doWhile { waiting }
-                    }
-
-                    is BuilderMission.PlaceMine -> {
-                    }
-
-                    is BuilderMission.PlacePill -> {
-                    }
-
-                    is BuilderMission.RepairPill -> {
-                    }
+                    completed = true
                 }
 
-                false
-            } else {
-                // check if stuck
-                position.sub(oldPosition).mag() >= 0.001
+                wait(1f)
+
+                for (tick in tickChannel) {
+                    if (completed) {
+                        break
+                    }
+                }
+            }
+
+            is BuilderMission.BuildWall -> {
+                var completed = false
+
+                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Wall) { success ->
+                    if (success) {
+                        material -= 2
+                    }
+
+                    completed = true
+                }
+
+                wait(1f)
+
+                for (tick in tickChannel) {
+                    if (completed) break
+                }
+            }
+
+            is BuilderMission.BuildRoad -> {
+                var completed = false
+
+                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Road) { success ->
+                    if (success) {
+                        material -= 2
+                    }
+
+                    completed = true
+                }
+
+                wait(1f)
+
+                for (tick in tickChannel) {
+                    if (completed) break
+                }
+            }
+
+            is BuilderMission.BuildBoat -> {
+                var completed = false
+
+                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Boat) { success ->
+                    if (success) {
+                        material -= 4
+                    }
+
+                    completed = true
+                }
+
+                wait(1f)
+
+                for (tick in tickChannel) {
+                    if (completed) break
+                }
+            }
+
+            is BuilderMission.PlaceMine -> {
+            }
+
+            is BuilderMission.PlacePill -> {
+            }
+
+            is BuilderMission.RepairPill -> {
             }
         }
 
-        doWhile { tick ->
-            tank?.run {
-                if (moveTo(tick.delta, position)) {
-                    material += material
-                    hasBuilder = true
-                    nextBuilderMission?.run {
-                        launchBuilder(position, this)
-                        nextBuilderMission = null
-                    }
-                    false
+        return moveToTank()
+    }
+
+    private suspend fun moveTo(targetPosition: V2): Tick {
+        while (true) {
+            val tick = tickChannel.receive()
+            val diff = targetPosition.sub(position)
+            val mag = diff.mag()
+            val x = position.x.toInt()
+            val y = position.y.toInt()
+
+            val speed = this[x, y].builderSpeed(owner.int).let {
+                if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
+                    MAX_SPEED
                 } else {
-                    true
+                    it
                 }
-            } ?: true
+            }
+
+            val move = speed * tick.delta
+
+            if (mag >= move) {
+                position = diff.scale(move / mag).add(position).collisionDetect()
+            } else {
+                return tick
+            }
         }
     }
 
-    private fun moveTo(delta: Float, targetPosition: V2): Boolean {
-        val diff = targetPosition.sub(position)
-        val mag = diff.mag()
-        val x = position.x.toInt()
-        val y = position.y.toInt()
-        val speed = this[x, y].builderSpeed(owner.int).let {
-            if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
-                MAX_SPEED
-            } else {
-                it
-            }
-        }
-        val move = speed * delta
+    private suspend fun moveToTank(): Tick {
+        while (true) {
+            val tick = tickChannel.receive()
+            val tank = tank ?: continue
+            val diff = tank.position.sub(position)
+            val mag = diff.mag()
+            val x = position.x.toInt()
+            val y = position.y.toInt()
 
-        return if (mag >= move) {
-            position = diff.scale(move / mag).add(position).collisionDetect()
-            false
-        } else {
-            true
+            val speed = this[x, y].builderSpeed(owner.int).let {
+                if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
+                    MAX_SPEED
+                } else {
+                    it
+                }
+            }
+
+            val move = speed * tick.delta
+
+            if (mag >= move) {
+                position = diff.scale(move / mag).add(position).collisionDetect()
+            } else {
+                material += material
+
+                val nextBuilderMission = tank.nextBuilderMission
+                if (nextBuilderMission != null) {
+                    tick.set(get<Builder> { parametersOf(position, nextBuilderMission) })
+                    tank.nextBuilderMission = null
+                } else {
+                    tank.hasBuilder = true
+                    tick.remove()
+                }
+
+                return tick
+            }
         }
     }
 
