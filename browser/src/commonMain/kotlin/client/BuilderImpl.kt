@@ -67,10 +67,7 @@ class BuilderImpl(
                     TerrainTile.WallDamaged2,
                     TerrainTile.WallDamaged3,
                     TerrainTile.SeaMined,
-                    -> {
-
-                        0f
-                    }
+                    -> 0f
                 }
             }
 
