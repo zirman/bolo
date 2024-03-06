@@ -6,9 +6,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
-abstract class EntityLoopImpl : EntityLoop {
+abstract class AbstractGameProcess : GameProcess {
     private val _tickChannel = Channel<Tick>()
-    protected val tickChannel: ReceiveChannel<Tick> get() = _tickChannel
+    val tickChannel: ReceiveChannel<Tick> get() = _tickChannel
 
     final override fun launchIn(scope: CoroutineScope) {
         // Unconfined allows the step() method to resume the run() method

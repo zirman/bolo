@@ -10,7 +10,6 @@ import bmap.isSolid
 import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
 import math.V2_ORIGIN
@@ -33,22 +32,12 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class BlockEntity(scope: CoroutineScope, private val block: suspend ReceiveChannel<Tick>.() -> Tick) : EntityLoopImpl() {
-    init {
-        launchIn(scope)
-    }
-
-    override suspend fun run(): Tick {
-        return tickChannel.block()
-    }
-}
-
 class TankImpl(
     scope: CoroutineScope,
     private val tankShotAudioManager: AudioManager,
     game: Game,
     override var hasBuilder: Boolean,
-) : EntityLoopImpl(), Tank, Game by game, KoinComponent {
+) : AbstractGameProcess(), Tank, Game by game, KoinComponent {
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
     override var position: V2 = v2(x = start.x.toFloat() + 0.5f, y = start.y.toFloat() + 0.5f)
@@ -99,17 +88,40 @@ class TankImpl(
             // check for destruction
             when {
                 bmap.getEntity(terrainKernel.onX, terrainKernel.onY).isSolid(owner.int) -> {
-                    return tick.superBoom()
+                    // TODO: super boom
+                    // TODO: drop pills
+                    tick.set(LogicGameProcess(get()) {
+                        wait(5f).apply {
+                            set(get<Tank> { parametersOf(hasBuilder) })
+                        }
+                    })
+
+                    return tick
                 }
 
                 onBoat.not() &&
                         (terrainKernel.onTerrain == TerrainTile.Sea ||
                                 terrainKernel.onTerrain == TerrainTile.SeaMined) -> {
-                    return tick.sink()
+                    // TODO: drop pills
+                    tick.set(LogicGameProcess(get()) {
+                        wait(5f).apply {
+                            set(get<Tank> { parametersOf(hasBuilder) })
+                        }
+                    })
+
+                    return tick
                 }
 
                 tankArmor <= 0 -> {
-                    return tick.fireball()
+                    // TODO: fireball
+                    // TODO: drop pills
+                    tick.set(LogicGameProcess(get()) {
+                        wait(5f).apply {
+                            set(get<Tank> { parametersOf(hasBuilder) })
+                        }
+                    })
+
+                    return tick
                 }
 
                 else -> {
@@ -391,42 +403,6 @@ class TankImpl(
                 .let { Frame.Binary(fin = true, it) }
                 .let { sendChannel.send(it) }
         }
-    }
-
-    private suspend fun Tick.superBoom(): Tick {
-        // TODO: super boom
-        // TODO: drop pills
-
-        set(BlockEntity(get()) {
-            wait(5f).apply {
-                add(get<Tank> { parametersOf(hasBuilder) })
-            }
-        })
-
-        return this
-    }
-
-    private suspend fun Tick.sink(): Tick {
-        // TODO: drop pills
-        set(BlockEntity(get()) {
-            wait(5f).apply {
-                add(get<Tank> { parametersOf(hasBuilder) })
-            }
-        })
-
-        return this
-    }
-
-    private suspend fun Tick.fireball(): Tick {
-        // TODO: fireball
-        // TODO: drop pills
-        set(BlockEntity(get()) {
-            wait(5f).apply {
-                add(get<Tank> { parametersOf(hasBuilder) })
-            }
-        })
-
-        return this
     }
 
     inner class TerrainKernel(val tick: Tick) {

@@ -2,7 +2,7 @@ package client
 
 import math.V2
 
-interface Shell : EntityLoop {
+interface Shell : GameProcess {
     val position: V2
     val bearing: Float
 }

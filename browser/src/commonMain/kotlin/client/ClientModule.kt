@@ -13,7 +13,8 @@ val clientModule = module {
     single<CoroutineScope> {
         CoroutineScope(CoroutineExceptionHandler { _, throwable ->
             if (throwable is CancellationException) return@CoroutineExceptionHandler
-            alert("${throwable.message}\n${throwable.stackTraceToString()}")
+            throwable.printStackTrace()
+            alert(throwable.message ?: "An error occurred")
         })
     }
 

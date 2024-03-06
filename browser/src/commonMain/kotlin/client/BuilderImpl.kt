@@ -21,7 +21,7 @@ class BuilderImpl(
     game: Game,
     startPosition: V2,
     private val buildMission: BuilderMission,
-) : EntityLoopImpl(), Builder, Game by game, KoinComponent {
+) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f

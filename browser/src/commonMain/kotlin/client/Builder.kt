@@ -2,6 +2,6 @@ package client
 
 import math.V2
 
-interface Builder : EntityLoop {
+interface Builder : GameProcess {
     val position: V2
 }

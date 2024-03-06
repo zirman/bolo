@@ -18,7 +18,7 @@ class ShellImpl(
     override val bearing: Float,
     private val fromBoat: Boolean,
     private val sightRange: Float,
-) : EntityLoopImpl(), Shell, Game by game {
+) : AbstractGameProcess(), Shell, Game by game {
     companion object {
         private const val SHELL_VEL: Float = 7f
         private const val LEAD = 1f / 2f

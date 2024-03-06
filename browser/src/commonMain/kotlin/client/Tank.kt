@@ -2,7 +2,7 @@ package client
 
 import math.V2
 
-interface Tank : EntityLoop {
+interface Tank : GameProcess {
     val position: V2
     val bearing: Float
     val sightRange: Float

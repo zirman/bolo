@@ -21,8 +21,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
@@ -68,22 +66,21 @@ class GameImpl(
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
     override val zoomLevel: Float = 2f
 
-    override val tank: Tank? get() = entities.filterIsInstance<Tank>().firstOrNull()
-    private val builder: Builder? get() = entities.filterIsInstance<Builder>().firstOrNull()
-    private val shells: List<Shell> get() = entities.filterIsInstance<Shell>()
+    override val tank: Tank? get() = gameProcesses.filterIsInstance<Tank>().firstOrNull()
+    private val builder: Builder? get() = gameProcesses.filterIsInstance<Builder>().firstOrNull()
+    private val shells: List<Shell> get() = gameProcesses.filterIsInstance<Shell>()
 
-    private val entities: MutableList<EntityLoop> = mutableListOf()
+    private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess(get()) {
+        // creates tank on first frame
+        tickChannel.receive().apply {
+            set(get<Tank> { parametersOf(true) })
+        }
+    })
 
     init {
         launchReceiverFlow(scope)
         launchServerFlow(scope)
         launchGameLoop(scope)
-
-        entities.add(BlockEntity(get()) {
-            receive().apply {
-                set(get<Tank> { parametersOf(true) })
-            }
-        })
     }
 
 //    private suspend fun treeHarvest(x: Int, y: Int) {
@@ -164,7 +161,7 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    private fun render(frameCount: Int, ticksPerSec: Float, tileProgram: TileProgram, spriteProgram: SpriteProgram) {
+    private fun Tick.render(tileProgram: TileProgram, spriteProgram: SpriteProgram) {
         val windowWidth: Float = (canvas.width.toFloat() / TILE_PIXEL_WIDTH.toFloat()) / zoomLevel
         val windowHeight: Float = (canvas.height.toFloat() / TILE_PIXEL_HEIGHT.toFloat()) / zoomLevel
 
@@ -176,115 +173,77 @@ class GameImpl(
                 top = center.y + (windowHeight / 2f),
             )
 
-        try {
-            tileProgram(clipMatrix, tileArray)
-            val sprites = mutableListOf<SpriteInstance>()
+        tileProgram(clipMatrix, tileArray)
+        val sprites = mutableListOf<SpriteInstance>()
 
-            builder?.run {
+        builder?.run {
+            SpriteInstance(
+                x = position.x,
+                y = position.y,
+                sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
+                    0 -> Sprite.Lgm0
+                    1 -> Sprite.Lgm1
+                    else -> never()
+                },
+            ).run { sprites.add(this) }
+        }
+
+        for ((_, peer) in peers) {
+            val tank = peer.tank
+
+            if (tank != null) {
                 SpriteInstance(
-                    x = position.x,
-                    y = position.y,
-                    sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
-                        0 -> Sprite.Lgm0
-                        1 -> Sprite.Lgm1
-                        else -> never()
-                    },
-                ).run { sprites.add(this) }
-            }
-
-            for ((_, peer) in peers) {
-                val tank = peer.tank
-
-                if (tank != null) {
-                    SpriteInstance(
-                        x = tank.positionX,
-                        y = tank.positionY,
-                        sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
-                            .withBearing(tank.bearing),
-                    ).let { sprites.add(it) }
-                }
-
-                for (shell in peer.shells) {
-                    SpriteInstance(
-                        x = shell.positionX,
-                        y = shell.positionY,
-                        sprite = Sprite.Shell0.withBearing(shell.bearing),
-                    ).let { sprites.add(it) }
-                }
-
-                val builder = peer.builder
-
-                if (builder != null) {
-                    SpriteInstance(
-                        x = builder.positionX,
-                        y = builder.positionY,
-                        sprite = Sprite.Lgm0,
-                    ).let { sprites.add(it) }
-                }
-            }
-
-            tank?.run {
-                SpriteInstance(
-                    x = position.x,
-                    y = position.y,
-                    sprite = (if (onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(bearing),
-                ).let { sprites.add(it) }
-
-                val reticulePosition = position.add(dirToVec(bearing).scale(sightRange))
-
-                SpriteInstance(
-                    x = reticulePosition.x,
-                    y = reticulePosition.y,
-                    sprite = Sprite.Reticule,
+                    x = tank.positionX,
+                    y = tank.positionY,
+                    sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
+                        .withBearing(tank.bearing),
                 ).let { sprites.add(it) }
             }
 
-            for (shell in shells) {
+            for (shell in peer.shells) {
                 SpriteInstance(
-                    x = shell.position.x,
-                    y = shell.position.y,
+                    x = shell.positionX,
+                    y = shell.positionY,
                     sprite = Sprite.Shell0.withBearing(shell.bearing),
                 ).let { sprites.add(it) }
             }
 
-            spriteProgram(clipMatrix, sprites)
+            val builder = peer.builder
 
-            // only send to one peer per tick
-            if (peers.isNotEmpty()) {
-                val dataChannel = peers.values.toList()[frameCount.mod(peers.size)].dataChannel
-
-                if (dataChannel.readyState == "open") {
-                    dataChannel.send(
-                        PeerUpdate(
-                            tank = tank?.let { tank ->
-                                PeerTank(
-                                    positionX = tank.position.x,
-                                    positionY = tank.position.y,
-                                    bearing = tank.bearing,
-                                    onBoat = tank.onBoat,
-                                )
-                            },
-                            shells = shells.map {
-                                PeerShell(
-                                    positionX = it.position.x,
-                                    positionY = it.position.y,
-                                    bearing = it.bearing,
-                                )
-                            },
-                            builder = builder?.let { builder ->
-                                PeerBuilder(
-                                    positionX = builder.position.x,
-                                    positionY = builder.position.y,
-                                )
-                            },
-                        ).toHexString(),
-                    )
-                }
+            if (builder != null) {
+                SpriteInstance(
+                    x = builder.positionX,
+                    y = builder.positionY,
+                    sprite = Sprite.Lgm0,
+                ).let { sprites.add(it) }
             }
-        } catch (error: Throwable) {
-            error.printStackTrace()
-            throw error
         }
+
+        tank?.run {
+            SpriteInstance(
+                x = position.x,
+                y = position.y,
+                sprite = (if (onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(bearing),
+            ).let { sprites.add(it) }
+
+            val reticulePosition = position.add(dirToVec(bearing).scale(sightRange))
+
+            SpriteInstance(
+                x = reticulePosition.x,
+                y = reticulePosition.y,
+                sprite = Sprite.Reticule,
+            ).let { sprites.add(it) }
+        }
+
+        for (shell in shells) {
+            SpriteInstance(
+                x = shell.position.x,
+                y = shell.position.y,
+                sprite = Sprite.Shell0.withBearing(shell.bearing),
+            ).let { sprites.add(it) }
+        }
+
+        spriteProgram(clipMatrix, sprites)
     }
 
     override suspend fun terrainDamage(x: Int, y: Int) {
@@ -354,43 +313,75 @@ class GameImpl(
     }
 
     private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch {
-        try {
-            for (frameCount in 0..Int.MAX_VALUE) {
-                renderFrame(frameCount)
-            }
-        } catch (error: Throwable) {
-            currentCoroutineContext().ensureActive()
-            error.printStackTrace()
-            throw error
+        for (frameCount in 0..Int.MAX_VALUE) {
+            gameLoop(frameCount)
         }
     }
 
-    private suspend fun renderFrame(frameCount: Int) {
+    private suspend fun gameLoop(frameCount: Int) {
         val time = awaitAnimationFrame()
         frameRegulator.removeAll { time - it > 1000.0 }
         frameRegulator.add(time)
         val ticksPerSec = max(1, frameRegulator.size).toFloat()
 
         val tick = Tick(
+            frameCount = frameCount,
             control = control.getControlState(),
             ticksPerSec = ticksPerSec,
             delta = 1f / ticksPerSec,
-            listIterator = entities.listIterator(),
+            gameProcessesIterator = gameProcesses.listIterator(),
         )
 
-        handleMouseEvents(tick)
-
-        for (entity in tick) {
-            entity.step(tick)
-        }
-
-        render(frameCount, ticksPerSec, tileProgram.await(), spriteProgram.await())
+        tick.stepGameProcesses()
+        tick.handleMouseEvents()
+        tick.sendPeerUpdate()
+        tick.render(tileProgram.await(), spriteProgram.await())
     }
 
-    private fun handleMouseEvents(tick: Tick) {
+    private suspend fun Tick.stepGameProcesses() {
+        for (gameProcess in this) {
+            gameProcess.step(this)
+        }
+    }
+
+    private fun Tick.sendPeerUpdate() {
+        if (peers.isEmpty()) return
+        // only send to one peer per tick
+        val dataChannel = peers.values.toList()[frameCount.mod(peers.size)].dataChannel
+
+        if (dataChannel.readyState == "open") {
+            dataChannel.send(
+                PeerUpdate(
+                    tank = tank?.let { tank ->
+                        PeerTank(
+                            positionX = tank.position.x,
+                            positionY = tank.position.y,
+                            bearing = tank.bearing,
+                            onBoat = tank.onBoat,
+                        )
+                    },
+                    shells = shells.map {
+                        PeerShell(
+                            positionX = it.position.x,
+                            positionY = it.position.y,
+                            bearing = it.bearing,
+                        )
+                    },
+                    builder = builder?.let { builder ->
+                        PeerBuilder(
+                            positionX = builder.position.x,
+                            positionY = builder.position.y,
+                        )
+                    },
+                ).toHexString(),
+            )
+        }
+    }
+
+    private fun Tick.handleMouseEvents() {
         val devicePixelRatio = getDevicePixelRatio()
 
-        when (val mouse = tick.control.mouseEvent) {
+        when (val mouse = control.mouseEvent) {
             // updates viewport
             is MouseEvent.Drag -> {
                 center.x -= ((mouse.dx.toFloat() / 16f) / zoomLevel) * devicePixelRatio
@@ -417,7 +408,7 @@ class GameImpl(
                         if (col in BORDER..<(WORLD_WIDTH - BORDER) &&
                             row in BORDER..<(WORLD_HEIGHT - BORDER)
                         ) {
-                            when (tick.control.builderMode) {
+                            when (control.builderMode) {
                                 BuilderMode.Tree -> when (bmap[col, row]) {
                                     TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
                                     else -> null
@@ -517,7 +508,7 @@ class GameImpl(
                             }?.run {
                                 if (hasBuilder) {
                                     if (builder != null) throw IllegalStateException("only one builder should exist at a time")
-                                    tick.add(get<Builder> { parametersOf(position, this) })
+                                    add(get<Builder> { parametersOf(position, this) })
                                     hasBuilder = false
                                 } else {
                                     nextBuilderMission = this

@@ -30,7 +30,6 @@ class ClientApplicationImpl(
         coroutineScope.launch {
             httpClient.wss(
                 host = getLocationHost(),
-//            port = window.location.port.toInt(),
                 path = "/wss",
             ) {
                 handleSession()
