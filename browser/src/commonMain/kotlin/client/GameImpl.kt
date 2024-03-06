@@ -71,9 +71,9 @@ class GameImpl(
     private val builder: Builder? get() = gameProcesses.filterIsInstance<Builder>().firstOrNull()
     private val shells: List<Shell> get() = gameProcesses.filterIsInstance<Shell>()
 
-    private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess(get()) {
+    private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess {
         // creates tank on first frame
-        tickChannel.receive().apply {
+        yieldGet(Unit).apply {
             set(get<Tank> { parametersOf(true) })
         }
     })
@@ -100,7 +100,7 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit) {
+    override fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit) {
         buildQueue.add(BuildOp.Terrain(t, x, y, result))
 
         FrameClient
@@ -110,10 +110,10 @@ class GameImpl(
                 y = y,
             )
             .toFrame()
-            .let { sendChannel.send(it) }
+            .let { sendChannel.trySend(it).getOrThrow() }
     }
 
-    override suspend fun mineTerrain(x: Int, y: Int) {
+    override fun mineTerrain(x: Int, y: Int) {
         bmap.mine(x, y)
         tileArray.update(x, y)
 
@@ -123,7 +123,7 @@ class GameImpl(
                 y = y,
             )
             .toFrame()
-            .let { sendChannel.send(it) }
+            .let { sendChannel.trySend(it).getOrThrow() }
     }
 
 //    private suspend fun pillRepair(index: Int, material: Int) {
@@ -247,7 +247,7 @@ class GameImpl(
         spriteProgram(clipMatrix, sprites)
     }
 
-    override suspend fun terrainDamage(x: Int, y: Int) {
+    override fun terrainDamage(x: Int, y: Int) {
         bmap.damage(x, y)
         tileArray.update(x, y)
 
@@ -258,10 +258,10 @@ class GameImpl(
                 y = y,
             )
             .toFrame()
-            .run { sendChannel.send(this) }
+            .run { sendChannel.trySend(this).getOrThrow() }
     }
 
-    override suspend fun baseDamage(index: Int) {
+    override fun baseDamage(index: Int) {
         val base = bmap.bases[index]
         base.armor = max(0, base.armor - 8)
 
@@ -271,10 +271,10 @@ class GameImpl(
                 code = base.code,
             )
             .toFrame()
-            .run { sendChannel.send(this) }
+            .run { sendChannel.trySend(this).getOrThrow() }
     }
 
-    override suspend fun pillDamage(index: Int) {
+    override fun pillDamage(index: Int) {
         val pill = bmap.pills[index]
         pill.armor = max(0, pill.armor - 1)
         tileArray.update(pill.x, pill.y)
@@ -287,7 +287,7 @@ class GameImpl(
                 y = pill.y,
             )
             .toFrame()
-            .run { sendChannel.send(this) }
+            .run { sendChannel.trySend(this).getOrThrow() }
     }
 
     override operator fun get(x: Int, y: Int): Entity {

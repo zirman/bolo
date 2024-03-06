@@ -1,36 +1,17 @@
 package client
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
-
 abstract class AbstractGameProcess : GameProcess {
-    private val _tickChannel = Channel<Tick>()
-    val tickChannel: ReceiveChannel<Tick> get() = _tickChannel
-
-    final override fun launchIn(scope: CoroutineScope) {
-        // Unconfined allows the step() method to resume the run() method
-        scope.launch(CoroutineName("${this::class.simpleName}") + Dispatchers.Unconfined) {
-            try {
-                run()
-            } finally {
-                _tickChannel.close()
-            }
-        }
-    }
+    protected abstract val duplexIterator: DuplexIterator<Tick, Unit>
 
     final override suspend fun step(tick: Tick) {
-        _tickChannel.send(tick)
+        duplexIterator.next(tick)
     }
 
-    suspend fun wait(time: Float): Tick {
+    suspend fun DuplexScope<Unit, Tick>.wait(time: Float): Tick {
         var x = 0f
 
         while (true) {
-            val tick = tickChannel.receive()
+            val tick = yieldGet(Unit)
             x += tick.delta
 
             if (x >= time) {

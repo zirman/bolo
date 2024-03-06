@@ -17,10 +17,10 @@ interface Game {
     var center: V2
     val tank: Tank?
     val zoomLevel: Float
-    suspend fun terrainDamage(x: Int, y: Int)
-    suspend fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
-    suspend fun mineTerrain(x: Int, y: Int)
-    suspend fun baseDamage(index: Int)
-    suspend fun pillDamage(index: Int)
+    fun terrainDamage(x: Int, y: Int)
+    fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
+    fun mineTerrain(x: Int, y: Int)
+    fun baseDamage(index: Int)
+    fun pillDamage(index: Int)
     operator fun get(x: Int, y: Int): Entity
 }

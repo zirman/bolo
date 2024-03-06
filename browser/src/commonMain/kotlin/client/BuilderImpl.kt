@@ -2,7 +2,6 @@ package client
 
 import bmap.Entity
 import bmap.TerrainTile
-import kotlinx.coroutines.CoroutineScope
 import math.V2
 import math.add
 import math.mag
@@ -17,7 +16,6 @@ import org.koin.core.parameter.parametersOf
 import kotlin.math.sqrt
 
 class BuilderImpl(
-    scope: CoroutineScope,
     game: Game,
     startPosition: V2,
     private val buildMission: BuilderMission,
@@ -116,16 +114,12 @@ class BuilderImpl(
         }
     }
 
-    init {
-        launchIn(scope)
-    }
-
     override var position: V2 = startPosition
         private set
 
     private var material: Int = 0
 
-    override suspend fun run(): Tick {
+    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
         moveTo(v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
 
         when (buildMission) {
@@ -142,7 +136,9 @@ class BuilderImpl(
 
                 wait(1f)
 
-                for (tick in tickChannel) {
+                while (true) {
+                    yieldGet(Unit)
+
                     if (completed) {
                         break
                     }
@@ -162,7 +158,8 @@ class BuilderImpl(
 
                 wait(1f)
 
-                for (tick in tickChannel) {
+                while (true) {
+                    yieldGet(Unit)
                     if (completed) break
                 }
             }
@@ -180,7 +177,8 @@ class BuilderImpl(
 
                 wait(1f)
 
-                for (tick in tickChannel) {
+                while (true) {
+                    yieldGet(Unit)
                     if (completed) break
                 }
             }
@@ -198,7 +196,8 @@ class BuilderImpl(
 
                 wait(1f)
 
-                for (tick in tickChannel) {
+                while (true) {
+                    yieldGet(Unit)
                     if (completed) break
                 }
             }
@@ -213,18 +212,18 @@ class BuilderImpl(
             }
         }
 
-        return moveToTank()
+        moveToTank()
     }
 
-    private suspend fun moveTo(targetPosition: V2): Tick {
+    private suspend fun DuplexScope<Unit, Tick>.moveTo(targetPosition: V2): Tick {
         while (true) {
-            val tick = tickChannel.receive()
+            val tick = yieldGet(Unit)
             val diff = targetPosition.sub(position)
             val mag = diff.mag()
             val x = position.x.toInt()
             val y = position.y.toInt()
 
-            val speed = this[x, y].builderSpeed(owner.int).let {
+            val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
                 if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
                     MAX_SPEED
                 } else {
@@ -242,16 +241,16 @@ class BuilderImpl(
         }
     }
 
-    private suspend fun moveToTank(): Tick {
+    private suspend fun DuplexScope<Unit, Tick>.moveToTank(): Tick {
         while (true) {
-            val tick = tickChannel.receive()
+            val tick = yieldGet(Unit)
             val tank = tank ?: continue
             val diff = tank.position.sub(position)
             val mag = diff.mag()
             val x = position.x.toInt()
             val y = position.y.toInt()
 
-            val speed = this[x, y].builderSpeed(owner.int).let {
+            val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
                 if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
                     MAX_SPEED
                 } else {

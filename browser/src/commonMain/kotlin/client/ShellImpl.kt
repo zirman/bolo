@@ -2,7 +2,6 @@ package client
 
 import bmap.Entity
 import bmap.TerrainTile
-import kotlinx.coroutines.CoroutineScope
 import math.V2
 import math.add
 import math.clamp
@@ -12,7 +11,6 @@ import math.x
 import math.y
 
 class ShellImpl(
-    scope: CoroutineScope,
     game: Game,
     startPosition: V2,
     override val bearing: Float,
@@ -24,20 +22,16 @@ class ShellImpl(
         private const val LEAD = 1f / 2f
     }
 
-    init {
-        launchIn(scope)
-    }
-
     private val direction: V2 = dirToVec(bearing)
 
     override var position: V2 = startPosition.add(direction.scale(LEAD))
         private set
 
-    override suspend fun run(): Tick {
+    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
         var timer: Float = (sightRange - LEAD) / SHELL_VEL
 
         while (true) {
-            val tick = tickChannel.receive()
+            val tick = yieldGet(Unit)
             val delta = timer.clamp(0f, tick.delta)
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
@@ -51,13 +45,13 @@ class ShellImpl(
                     is Entity.Pill -> {
                         pillDamage(bmap.pills.indexOfFirst { it === entity.ref })
                         tick.remove()
-                        return tick
+                        return@duplexIterator
                     }
 
                     is Entity.Base -> {
                         baseDamage(bmap.bases.indexOfFirst { it === entity.ref })
                         tick.remove()
-                        return tick
+                        return@duplexIterator
                     }
 
                     is Entity.Terrain -> {
@@ -70,12 +64,12 @@ class ShellImpl(
                         }
 
                         tick.remove()
-                        return tick
+                        return@duplexIterator
                     }
                 }
             } else if (timer <= 0f) {
                 tick.remove()
-                return tick
+                return@duplexIterator
             }
         }
     }

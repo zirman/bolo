@@ -67,7 +67,6 @@ val gameModule = module {
 
     factory<Tank> { (hasBuilder: Boolean) ->
         TankImpl(
-            scope = get(),
             game = get(),
             hasBuilder = hasBuilder,
             tankShotAudioManager = get(named(Sound.TankShot)),
@@ -83,7 +82,6 @@ val gameModule = module {
             ),
         ->
         ShellImpl(
-            scope = get(),
             game = get(),
             startPosition = startPosition,
             bearing = bearing,
@@ -99,7 +97,6 @@ val gameModule = module {
             ),
         ->
         BuilderImpl(
-            scope = get(),
             game = get(),
             startPosition = startPosition,
             buildMission = buildOp,

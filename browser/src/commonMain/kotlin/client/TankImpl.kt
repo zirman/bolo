@@ -9,7 +9,6 @@ import bmap.isMinedTerrain
 import bmap.isSolid
 import frame.FrameClient
 import io.ktor.websocket.Frame
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
 import math.V2_ORIGIN
@@ -33,7 +32,6 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 class TankImpl(
-    scope: CoroutineScope,
     private val tankShotAudioManager: AudioManager,
     game: Game,
     override var hasBuilder: Boolean,
@@ -74,12 +72,11 @@ class TankImpl(
         setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
         setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
         setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
-        launchIn(scope)
     }
 
-    override suspend fun run(): Tick {
+    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
         while (true) {
-            val tick = tickChannel.receive()
+            val tick = yieldGet(Unit)
             val terrainKernel = TerrainKernel(tick)
             val devicePixelRatio = getDevicePixelRatio()
 
@@ -92,13 +89,13 @@ class TankImpl(
                 bmap.getEntity(terrainKernel.onX, terrainKernel.onY).isSolid(owner.int) -> {
                     // TODO: super boom
                     // TODO: drop pills
-                    tick.set(LogicGameProcess(get()) {
+                    tick.set(LogicGameProcess {
                         wait(5f).apply {
                             set(get<Tank> { parametersOf(hasBuilder) })
                         }
                     })
 
-                    return tick
+                    return@duplexIterator
                 }
 
                 // sink
@@ -106,26 +103,26 @@ class TankImpl(
                         (terrainKernel.onTerrain == TerrainTile.Sea ||
                                 terrainKernel.onTerrain == TerrainTile.SeaMined) -> {
                     // TODO: drop pills
-                    tick.set(LogicGameProcess(get()) {
+                    tick.set(LogicGameProcess {
                         wait(5f).apply {
                             set(get<Tank> { parametersOf(hasBuilder) })
                         }
                     })
 
-                    return tick
+                    return@duplexIterator
                 }
 
                 // armor depleted
                 tankArmor <= 0 -> {
                     // TODO: fireball
                     // TODO: drop pills
-                    tick.set(LogicGameProcess(get()) {
+                    tick.set(LogicGameProcess {
                         wait(5f).apply {
                             set(get<Tank> { parametersOf(hasBuilder) })
                         }
                     })
 
-                    return tick
+                    return@duplexIterator
                 }
 
                 else -> {
@@ -317,7 +314,7 @@ class TankImpl(
         )
     }
 
-    private suspend fun TerrainKernel.boatLogic() {
+    private fun TerrainKernel.boatLogic() {
         val x: Int = position.x.toInt()
         val y: Int = position.y.toInt()
 
@@ -350,7 +347,7 @@ class TankImpl(
         reload += delta
     }
 
-    private suspend fun TerrainKernel.mineLaying(tick: Tick) {
+    private fun TerrainKernel.mineLaying(tick: Tick) {
         if (tick.control.layMineButton && tankMines > 0 && bmap[onX, onY].isMinedTerrain().not()) {
             mineTerrain(onX, onY)
         }
@@ -394,7 +391,7 @@ class TankImpl(
         }
     }
 
-    private suspend fun TerrainKernel.updateServerPosition() {
+    private fun TerrainKernel.updateServerPosition() {
         if (position.x.toInt() != onX || position.y.toInt() != onY) {
             ProtoBuf
                 .encodeToByteArray(
@@ -405,7 +402,7 @@ class TankImpl(
                     ),
                 )
                 .let { Frame.Binary(fin = true, it) }
-                .let { sendChannel.send(it) }
+                .let { sendChannel.trySend(it).getOrThrow() }
         }
     }
 

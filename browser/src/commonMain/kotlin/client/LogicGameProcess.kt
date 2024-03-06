@@ -1,16 +1,9 @@
 package client
 
-import kotlinx.coroutines.CoroutineScope
-
 class LogicGameProcess(
-    scope: CoroutineScope,
-    private val block: suspend LogicGameProcess.() -> Tick,
+    private val block: suspend DuplexScope<Unit, Tick>.() -> Tick,
 ) : AbstractGameProcess() {
-    init {
-        launchIn(scope)
-    }
-
-    override suspend fun run(): Tick {
-        return block()
+    override val duplexIterator: DuplexIterator<Tick, Unit> = duplexIterator {
+        block()
     }
 }
