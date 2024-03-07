@@ -9,17 +9,17 @@ import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
 import kotlin.coroutines.startCoroutine
 
-interface Consumer<in T> {
+@RestrictsSuspension
+sealed interface ConsumerScope<T> {
+    suspend fun next(): T
+}
+
+interface Consumer<T> {
+    val done: Boolean
     fun yield(input: T)
 }
 
-@RestrictsSuspension
-abstract class ConsumerScope<T> internal constructor() : Continuation<Unit>, Consumer<T> {
-    abstract val done: Boolean
-    abstract suspend fun next(): T
-}
-
-class ConsumerScopeImpl<T> : ConsumerScope<T>() {
+class ConsumerImpl<T> internal constructor() : ConsumerScope<T>, Consumer<T>, Continuation<Unit> {
     override var done = false
         private set
 
@@ -46,7 +46,7 @@ class ConsumerScopeImpl<T> : ConsumerScope<T>() {
 }
 
 fun <T> consumer(block: suspend ConsumerScope<T>.() -> Unit): Consumer<T> {
-    val receiver = ConsumerScopeImpl<T>()
-    block.startCoroutine(receiver = receiver, completion = receiver)
-    return receiver
+    val consumer = ConsumerImpl<T>()
+    block.startCoroutine(receiver = consumer, completion = consumer)
+    return consumer
 }
