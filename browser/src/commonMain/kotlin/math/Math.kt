@@ -6,7 +6,7 @@ import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 
-inline val Float.Companion.degreesInTau: Float get() = 360.0f
+inline val Float.Companion.degreesInTau: Float get() = 360f
 inline val Float.Companion.pi: Float get() = PI.toFloat()
 inline val Float.Companion.tau: Float get() = pi * 2
 inline val Float.toDegrees: Float get() = this * (Float.degreesInTau / Float.tau)

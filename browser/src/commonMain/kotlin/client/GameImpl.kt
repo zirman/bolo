@@ -45,6 +45,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 class GameImpl(
@@ -100,7 +101,7 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit) {
+    override fun buildTerrain(x: Int, y: Int, t: TerrainTile, material: Int, result: (Boolean) -> Unit) {
         buildQueue.add(BuildOp.Terrain(t, x, y, result))
 
         FrameClient
@@ -108,6 +109,7 @@ class GameImpl(
                 terrain = t,
                 x = x,
                 y = y,
+                material = material,
             )
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
@@ -194,8 +196,8 @@ class GameImpl(
 
             if (tank != null) {
                 SpriteInstance(
-                    x = tank.positionX,
-                    y = tank.positionY,
+                    x = tank.x,
+                    y = tank.y,
                     sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
                         .withBearing(tank.bearing),
                 ).let { sprites.add(it) }
@@ -203,8 +205,8 @@ class GameImpl(
 
             for (shell in peer.shells) {
                 SpriteInstance(
-                    x = shell.positionX,
-                    y = shell.positionY,
+                    x = shell.x,
+                    y = shell.y,
                     sprite = Sprite.Shell0.withBearing(shell.bearing),
                 ).let { sprites.add(it) }
             }
@@ -213,8 +215,8 @@ class GameImpl(
 
             if (builder != null) {
                 SpriteInstance(
-                    x = builder.positionX,
-                    y = builder.positionY,
+                    x = builder.x,
+                    y = builder.y,
                     sprite = Sprite.Lgm0,
                 ).let { sprites.add(it) }
             }
@@ -355,23 +357,23 @@ class GameImpl(
                 PeerUpdate(
                     tank = tank?.let { tank ->
                         PeerTank(
-                            positionX = tank.position.x,
-                            positionY = tank.position.y,
+                            x = tank.position.x,
+                            y = tank.position.y,
                             bearing = tank.bearing,
                             onBoat = tank.onBoat,
                         )
                     },
                     shells = shells.map {
                         PeerShell(
-                            positionX = it.position.x,
-                            positionY = it.position.y,
+                            x = it.position.x,
+                            y = it.position.y,
                             bearing = it.bearing,
                         )
                     },
                     builder = builder?.let { builder ->
                         PeerBuilder(
-                            positionX = builder.position.x,
-                            positionY = builder.position.y,
+                            x = builder.position.x,
+                            y = builder.position.y,
                         )
                     },
                 ).toHexString(),
@@ -404,66 +406,136 @@ class GameImpl(
                 val downCol = mouse.downX.toCol()
 
                 // make sure mouse down and up are in the same square
-                if (downCol == col && downRow == row) {
-                    tank?.run {
-                        if (col in BORDER..<(WORLD_WIDTH - BORDER) &&
-                            row in BORDER..<(WORLD_HEIGHT - BORDER)
-                        ) {
-                            when (control.builderMode) {
-                                BuilderMode.Tree -> when (bmap[col, row]) {
-                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
-                                    else -> null
-                                }
+                val tank = tank
+                if (tank != null &&
+                    downCol == col &&
+                    downRow == row &&
+                    col in BORDER..<(WORLD_WIDTH - BORDER) &&
+                    row in BORDER..<(WORLD_HEIGHT - BORDER)
+                ) {
+                    if (tank.hasBuilder) {
+                        control.builderMode.tryBuilderAction(tank, col, row)?.run {
+                            if (builder != null) throw IllegalStateException("only one builder should exist at a time")
+                            add(this)
+                        }
+                    } else {
+                        tank.nextBuilderMission = NextBuilderMission(
+                            builderMode = control.builderMode,
+                            col = col,
+                            row = row,
+                        )
+                    }
+                }
+            }
 
-                                BuilderMode.Road -> when (bmap[col, row]) {
-                                    TerrainTile.Grass0,
-                                    TerrainTile.Grass1,
-                                    TerrainTile.Grass2,
-                                    TerrainTile.Grass3,
-                                    TerrainTile.Swamp0,
-                                    TerrainTile.Swamp1,
-                                    TerrainTile.Swamp2,
-                                    TerrainTile.Swamp3,
-                                    TerrainTile.Road,
-                                    TerrainTile.Crater,
-                                    TerrainTile.Rubble0,
-                                    TerrainTile.Rubble1,
-                                    TerrainTile.Rubble2,
-                                    TerrainTile.Rubble3,
-                                    -> BuilderMission.BuildRoad(col, row)
+            null -> {}
+        }
+    }
 
-                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
-                                    else -> null
-                                }
+    override fun BuilderMode.tryBuilderAction(tank: Tank, col: Int, row: Int): Builder? {
+        return when (this) {
+            BuilderMode.Tree -> when (bmap[col, row]) {
+                TerrainTile.Tree -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.HarvestTree(col, row),
+                )
 
-                                BuilderMode.Wall -> when (bmap[col, row]) {
-                                    TerrainTile.Grass0,
-                                    TerrainTile.Grass1,
-                                    TerrainTile.Grass2,
-                                    TerrainTile.Grass3,
-                                    TerrainTile.Swamp0,
-                                    TerrainTile.Swamp1,
-                                    TerrainTile.Swamp2,
-                                    TerrainTile.Swamp3,
-                                    TerrainTile.Road,
-                                    TerrainTile.Crater,
-                                    TerrainTile.Rubble0,
-                                    TerrainTile.Rubble1,
-                                    TerrainTile.Rubble2,
-                                    TerrainTile.Rubble3,
-                                    TerrainTile.WallDamaged0,
-                                    TerrainTile.WallDamaged1,
-                                    TerrainTile.WallDamaged2,
-                                    TerrainTile.WallDamaged3,
-                                    -> BuilderMission.BuildWall(col, row)
+                else -> null
+            }
 
-                                    TerrainTile.Tree -> BuilderMission.HarvestTree(col, row)
-                                    TerrainTile.River -> BuilderMission.BuildBoat(col, row)
-                                    else -> null
-                                }
+            BuilderMode.Road -> when (bmap[col, row]) {
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Crater,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildRoad(col = col, row = row),
+                )
 
-                                BuilderMode.Pill -> {
-                                    null
+                TerrainTile.Tree -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.HarvestTree(col = col, row = row),
+                )
+
+                else -> null
+            }
+
+            BuilderMode.Wall -> when (bmap[col, row]) {
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Road,
+                TerrainTile.Crater,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                TerrainTile.WallDamaged0,
+                -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildWall(
+                        col = col,
+                        row = row,
+                        material = 1..BuilderImpl.WALL_MATERIAL,
+                    ),
+                )
+
+                TerrainTile.WallDamaged1 -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildWall(
+                        col = col,
+                        row = row,
+                        material = 1..BuilderImpl.WALL_MATERIAL,
+                    ),
+                )
+
+                TerrainTile.WallDamaged2 -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildWall(
+                        col = col,
+                        row = row,
+                        material = 1..1,
+                    ),
+                )
+
+                TerrainTile.WallDamaged3 -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildWall(
+                        col = col,
+                        row = row,
+                        material = 1..1,
+                    ),
+                )
+
+                TerrainTile.Tree -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.HarvestTree(col = col, row = row),
+                )
+
+                TerrainTile.River -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.BuildBoat(col = col, row = row),
+                )
+
+                else -> null
+            }
+
+            BuilderMode.Pill -> null
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -484,43 +556,48 @@ class GameImpl(
 ////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
 //                                    }
 //                                }
-                                }
 
-                                BuilderMode.Mine -> when (bmap[col, row]) {
-                                    TerrainTile.Tree,
-                                    TerrainTile.Grass0,
-                                    TerrainTile.Grass1,
-                                    TerrainTile.Grass2,
-                                    TerrainTile.Grass3,
-                                    TerrainTile.Swamp0,
-                                    TerrainTile.Swamp1,
-                                    TerrainTile.Swamp2,
-                                    TerrainTile.Swamp3,
-                                    TerrainTile.Road,
-                                    TerrainTile.Crater,
-                                    TerrainTile.Rubble0,
-                                    TerrainTile.Rubble1,
-                                    TerrainTile.Rubble2,
-                                    TerrainTile.Rubble3,
-                                    -> BuilderMission.PlaceMine(col, row)
+            BuilderMode.Mine -> when (bmap[col, row]) {
+                TerrainTile.Tree,
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Road,
+                TerrainTile.Crater,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                -> tryCreatingBuilder(
+                    tank = tank,
+                    builderMission = BuilderMission.PlaceMine(col = col, row = row),
+                )
 
-                                    else -> null
-                                }
-                            }?.run {
-                                if (hasBuilder) {
-                                    if (builder != null) throw IllegalStateException("only one builder should exist at a time")
-                                    add(get<Builder> { parametersOf(position, this) })
-                                    hasBuilder = false
-                                } else {
-                                    nextBuilderMission = this
-                                }
-                            }
-                        }
-                    }
-                }
+                else -> null
             }
+        }
+    }
 
-            null -> {}
+    private fun tryCreatingBuilder(
+        tank: Tank,
+        builderMission: BuilderMission,
+    ): Builder? {
+        return if (tank.material >= builderMission.material.first && tank.mines >= builderMission.mines) {
+            val mat = min(tank.material, builderMission.material.last)
+            tank.material -= mat
+            setMaterialStatusBar(tank.material.toFloat() / TankImpl.TANK_MATERIAL_MAX)
+            tank.mines -= builderMission.mines
+            setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
+            tank.hasBuilder = false
+            get<Builder> { parametersOf(tank.position, builderMission, mat, builderMission.mines) }
+        } else {
+            // TODO: print message
+            null
         }
     }
 

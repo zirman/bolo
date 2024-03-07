@@ -27,6 +27,7 @@ sealed interface FrameClient {
         val terrain: TerrainTile,
         val x: Int,
         val y: Int,
+        val material: Int,
     ) : FrameClient
 
     @Serializable

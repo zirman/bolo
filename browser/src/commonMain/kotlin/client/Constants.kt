@@ -16,11 +16,6 @@ const val BUILDER_MODE_WALL_ID = "wall"
 const val BUILDER_MODE_PILL_ID = "pill"
 const val BUILDER_MODE_MINE_ID = "mine"
 
-const val TANK_SHELLS_MAX = 40
-const val TANK_MINES_MAX = 40
-const val TANK_ARMOR_MAX = 40
-const val TANK_MATERIAL_MAX = 40
-
 const val PILLS_MAX = 16
 const val BASES_MAX = 16
 const val STARTS_MAX = 16
@@ -29,11 +24,6 @@ const val PILL_ARMOR_MAX = 15
 const val PILL_SPEED_MAX = 50
 
 const val MATERIAL_PER_TREE = 4
-
-const val ROAD_PER_MATERIAL = 2
-const val WALL_PER_MATERIAL = 2
-const val BOAT_PER_MATERIAL = 20
-const val PILL_PER_MATERIAL = 4
 
 const val BASE_ARMOR_MAX = 90
 const val BASE_SHELLS_MAX = 90

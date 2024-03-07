@@ -94,12 +94,16 @@ val gameModule = module {
             (
                 startPosition: V2,
                 buildOp: BuilderMission,
+                material: Int,
+                mines: Int,
             ),
         ->
         BuilderImpl(
             game = get(),
             startPosition = startPosition,
             buildMission = buildOp,
+            material = material,
+            mines = mines,
         )
     }
 

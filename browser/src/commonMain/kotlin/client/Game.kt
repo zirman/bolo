@@ -18,9 +18,10 @@ interface Game {
     val tank: Tank?
     val zoomLevel: Float
     fun terrainDamage(x: Int, y: Int)
-    fun buildTerrain(x: Int, y: Int, t: TerrainTile, result: (Boolean) -> Unit)
+    fun buildTerrain(x: Int, y: Int, t: TerrainTile, material: Int, result: (Boolean) -> Unit)
     fun mineTerrain(x: Int, y: Int)
     fun baseDamage(index: Int)
     fun pillDamage(index: Int)
     operator fun get(x: Int, y: Int): Entity
+    fun BuilderMode.tryBuilderAction(tank: Tank, col: Int, row: Int): Builder?
 }

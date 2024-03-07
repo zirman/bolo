@@ -36,9 +36,26 @@ class TankImpl(
     game: Game,
     override var hasBuilder: Boolean,
 ) : AbstractGameProcess(), Tank, Game by game, KoinComponent {
+    companion object {
+        private const val TANK_RADIUS: Float = 3f / 8f
+        private const val FORCE_PUSH: Float = 25f / 16f
+        private const val RELOAD_SEC: Float = 1f / 3f
+        private const val MAX_SPEED: Float = 25f / 8f
+        private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
+        private const val MAX_TURN_RATE: Float = 5f / 2f
+        private const val TURN_RATE_PER_SEC2 = 12.566370f
+        private const val MIN_SIGHT_RANGE: Float = 1f
+        private const val MAX_SIGHT_RANGE: Float = 6f
+        const val TANK_SHELLS_MAX = 40
+        const val TANK_MINES_MAX = 40
+        const val TANK_ARMOR_MAX = 40
+        const val TANK_MATERIAL_MAX = 40
+        // private const val FORCE_KICK: Float = 25f / 8f
+    }
+
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
-    override var position: V2 = v2(x = start.x.toFloat() + 0.5f, y = start.y.toFloat() + 0.5f)
+    override var position: V2 = v2(x = start.x.toFloat() + .5f, y = start.y.toFloat() + .5f)
         private set
 
     override var bearing: Float = start.direction.toFloat() * (Float.pi / 8f)
@@ -52,12 +69,12 @@ class TankImpl(
 
     override var material: Int = 0
 
-    override var nextBuilderMission: BuilderMission? = null
+    override var nextBuilderMission: NextBuilderMission? = null
 
     private var reload: Float = 0f
-    private var tankShells: Int = TANK_SHELLS_MAX
-    private var tankArmor: Int = TANK_ARMOR_MAX
-    private var tankMines: Int = 0
+    private var shells: Int = TANK_SHELLS_MAX
+    private var armor: Int = TANK_ARMOR_MAX
+    override var mines: Int = 0
 
     private var speed: Float = 0f
 
@@ -67,10 +84,10 @@ class TankImpl(
     private var refuelingTime: Float = 0f
 
     init {
-        center = v2(x = start.x.toFloat() + 0.5f, y = WORLD_HEIGHT - (start.y.toFloat() + 0.5f))
-        setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
-        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
-        setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
+        center = v2(x = start.x.toFloat() + .5f, y = WORLD_HEIGHT - (start.y.toFloat() + .5f))
+        setArmorStatusBar(armor.toFloat() / TANK_ARMOR_MAX)
+        setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
+        setMinesStatusBar(mines.toFloat() / TANK_MINES_MAX)
         setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
     }
 
@@ -86,7 +103,7 @@ class TankImpl(
             // check for destruction
             when {
                 // superboom
-                bmap.getEntity(terrainKernel.onX, terrainKernel.onY).isSolid(owner.int) -> {
+                bmap.getEntity(terrainKernel.onCol, terrainKernel.onRow).isSolid(owner.int) -> {
                     // TODO: super boom
                     // TODO: drop pills
                     tick.set(LogicGameProcess {
@@ -113,7 +130,7 @@ class TankImpl(
                 }
 
                 // armor depleted
-                tankArmor <= 0 -> {
+                armor <= 0 -> {
                     // TODO: fireball
                     // TODO: drop pills
                     tick.set(LogicGameProcess {
@@ -199,8 +216,8 @@ class TankImpl(
         if (onBoat) {
             val push: V2
 
-            val fx: Float = position.x - onX
-            val fy: Float = position.y - onY
+            val fx: Float = position.x - onCol
+            val fy: Float = position.y - onRow
             val cx: Float = 1f - fx
             val cy: Float = 1f - fy
             val fxc: Boolean = (fx < TANK_RADIUS) && terrainLeft.isShore()
@@ -318,13 +335,13 @@ class TankImpl(
         val x: Int = position.x.toInt()
         val y: Int = position.y.toInt()
 
-        if (x != onX || y != onY) {
+        if (x != onCol || y != onRow) {
             if (onBoat) {
                 if (bmap[x, y].isDrivable()) {
                     onBoat = false
 
                     if (onTerrain == TerrainTile.River) {
-                        buildTerrain(onX, onY, TerrainTile.Boat) {}
+                        buildTerrain(onCol, onRow, TerrainTile.Boat, BuilderImpl.BOAT_MATERIAL) {}
                     }
                 } else if (bmap[x, y] == TerrainTile.Boat) {
                     terrainDamage(x, y)
@@ -337,19 +354,19 @@ class TankImpl(
     }
 
     private fun Tick.firing() {
-        if (control.fireButton && tankShells > 0 && reload >= RELOAD_SEC) {
+        if (control.fireButton && shells > 0 && reload >= RELOAD_SEC) {
             add(get<Shell> { parametersOf(position, bearing, onBoat, sightRange) })
             reload = 0f
-            tankShells--
-            setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
+            shells--
+            setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
             tankShotAudioManager.play()
         }
         reload += delta
     }
 
     private fun TerrainKernel.mineLaying(tick: Tick) {
-        if (tick.control.layMineButton && tankMines > 0 && bmap[onX, onY].isMinedTerrain().not()) {
-            mineTerrain(onX, onY)
+        if (tick.control.layMineButton && mines > 0 && bmap[onCol, onRow].isMinedTerrain().not()) {
+            mineTerrain(onCol, onRow)
         }
     }
 
@@ -360,26 +377,26 @@ class TankImpl(
             refuelingTime = 0f
         }
 
-        when (val entity = bmap.getEntity(onX, onY)) {
+        when (val entity = bmap.getEntity(onCol, onRow)) {
             is Entity.Base -> {
-                if (tankArmor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
+                if (armor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
                     if (refuelingTime >= REFUEL_ARMOR_TIME) {
-                        tankArmor = (tankArmor + ARMOR_UNIT).clamp(0, TANK_ARMOR_MAX)
-                        setArmorStatusBar(tankArmor.toFloat() / TANK_ARMOR_MAX)
+                        armor = (armor + ARMOR_UNIT).clamp(0, TANK_ARMOR_MAX)
+                        setArmorStatusBar(armor.toFloat() / TANK_ARMOR_MAX)
                         entity.ref.armor -= ARMOR_UNIT
                         refuelingTime = 0f
                     }
-                } else if (tankShells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
+                } else if (shells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
                     if (refuelingTime >= REFUEL_SHELL_TIME) {
-                        tankShells = (tankShells + SHELL_UNIT).clamp(0, TANK_SHELLS_MAX)
-                        setShellsStatusBar(tankShells.toFloat() / TANK_SHELLS_MAX)
+                        shells = (shells + SHELL_UNIT).clamp(0, TANK_SHELLS_MAX)
+                        setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
                         entity.ref.shells -= SHELL_UNIT
                         refuelingTime = 0f
                     }
-                } else if (tankMines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
+                } else if (mines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
                     if (refuelingTime >= REFUEL_MINE_TIME) {
-                        tankMines = (tankMines + MIENS_UNIT).clamp(0, TANK_MINES_MAX)
-                        setMinesStatusBar(tankMines.toFloat() / TANK_MINES_MAX)
+                        mines = (mines + MIENS_UNIT).clamp(0, TANK_MINES_MAX)
+                        setMinesStatusBar(mines.toFloat() / TANK_MINES_MAX)
                         entity.ref.mines -= MIENS_UNIT
                         refuelingTime = 0f
                     }
@@ -392,7 +409,7 @@ class TankImpl(
     }
 
     private fun TerrainKernel.updateServerPosition() {
-        if (position.x.toInt() != onX || position.y.toInt() != onY) {
+        if (position.x.toInt() != onCol || position.y.toInt() != onRow) {
             ProtoBuf
                 .encodeToByteArray(
                     FrameClient.serializer(),
@@ -407,30 +424,17 @@ class TankImpl(
     }
 
     inner class TerrainKernel(val tick: Tick) {
-        val onX: Int = position.x.toInt()
-        val onY: Int = position.y.toInt()
-        val onBase: Base? = bmap.bases.firstOrNull { it.x == onX && it.y == onY }
-        val onTerrain: TerrainTile = bmap[onX, onY]
-        val terrainUpLeft: TerrainTile = bmap[onX - 1, onY - 1]
-        val terrainUp: TerrainTile = bmap[onX, onY - 1]
-        val terrainUpRight: TerrainTile = bmap[onX + 1, onY - 1]
-        val terrainLeft: TerrainTile = bmap[onX - 1, onY]
-        val terrainRight: TerrainTile = bmap[onX + 1, onY]
-        val terrainDownLeft: TerrainTile = bmap[onX - 1, onY + 1]
-        val terrainDown: TerrainTile = bmap[onX, onY + 1]
-        val terrainDownRight: TerrainTile = bmap[onX + 1, onY + 1]
-    }
-
-    companion object {
-        private const val TANK_RADIUS: Float = 3f / 8f
-        private const val FORCE_PUSH: Float = 25f / 16f
-        private const val RELOAD_SEC: Float = 1f / 3f
-        private const val MAX_SPEED: Float = 25f / 8f
-        private const val ACC_PER_SEC2: Float = MAX_SPEED * (3f / 4f)
-        private const val MAX_TURN_RATE: Float = 5f / 2f
-        private const val TURN_RATE_PER_SEC2 = 12.566370f
-        private const val MIN_SIGHT_RANGE: Float = 1f
-        private const val MAX_SIGHT_RANGE: Float = 6f
-        // private const val FORCE_KICK: Float = 25f / 8f
+        val onCol: Int = position.x.toInt()
+        val onRow: Int = position.y.toInt()
+        val onBase: Base? = bmap.bases.firstOrNull { it.x == onCol && it.y == onRow }
+        val onTerrain: TerrainTile = bmap[onCol, onRow]
+        val terrainUpLeft: TerrainTile = bmap[onCol - 1, onRow - 1]
+        val terrainUp: TerrainTile = bmap[onCol, onRow - 1]
+        val terrainUpRight: TerrainTile = bmap[onCol + 1, onRow - 1]
+        val terrainLeft: TerrainTile = bmap[onCol - 1, onRow]
+        val terrainRight: TerrainTile = bmap[onCol + 1, onRow]
+        val terrainDownLeft: TerrainTile = bmap[onCol - 1, onRow + 1]
+        val terrainDown: TerrainTile = bmap[onCol, onRow + 1]
+        val terrainDownRight: TerrainTile = bmap[onCol + 1, onRow + 1]
     }
 }

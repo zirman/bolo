@@ -11,18 +11,25 @@ import math.v2
 import math.x
 import math.y
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
+import kotlin.math.min
 import kotlin.math.sqrt
 
 class BuilderImpl(
     game: Game,
     startPosition: V2,
     private val buildMission: BuilderMission,
+    private var material: Int,
+    private var mines: Int,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
     companion object {
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
+        private const val BUILD_TIME = .25f
+        const val TREE_MATERIAL = 4
+        const val ROAD_MATERIAL = 2
+        const val WALL_MATERIAL = 2
+        const val BOAT_MATERIAL = 20
+        const val PILL_MATERIAL = 4
 
         private fun Entity.builderSpeed(owner: Int): Float =
             when (this) {
@@ -117,105 +124,34 @@ class BuilderImpl(
     override var position: V2 = startPosition
         private set
 
-    private var material: Int = 0
+    private suspend fun ConsumerScope<Tick>.build(col: Int, row: Int, terrainTile: TerrainTile, block: () -> Unit) {
+        var completed = false
 
-    override val consumer: Consumer<Tick> = consumer {
-        moveTo(v2(buildMission.x + 0.5f, buildMission.y + 0.5f))
+        buildTerrain(col, row, terrainTile, material) { success ->
+            completed = true
 
-        when (buildMission) {
-            is BuilderMission.HarvestTree -> {
-                var completed = false
-
-                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Grass3) { success ->
-                    if (success) {
-                        material += 4
-                    }
-
-                    completed = true
-                }
-
-                wait(1f)
-
-                while (true) {
-                    next()
-
-                    if (completed) {
-                        break
-                    }
-                }
-            }
-
-            is BuilderMission.BuildWall -> {
-                var completed = false
-
-                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Wall) { success ->
-                    if (success) {
-                        material -= 2
-                    }
-
-                    completed = true
-                }
-
-                wait(1f)
-
-                while (true) {
-                    next()
-                    if (completed) break
-                }
-            }
-
-            is BuilderMission.BuildRoad -> {
-                var completed = false
-
-                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Road) { success ->
-                    if (success) {
-                        material -= 2
-                    }
-
-                    completed = true
-                }
-
-                wait(1f)
-
-                while (true) {
-                    next()
-                    if (completed) break
-                }
-            }
-
-            is BuilderMission.BuildBoat -> {
-                var completed = false
-
-                buildTerrain(buildMission.x, buildMission.y, TerrainTile.Boat) { success ->
-                    if (success) {
-                        material -= 4
-                    }
-
-                    completed = true
-                }
-
-                wait(1f)
-
-                while (true) {
-                    next()
-                    if (completed) break
-                }
-            }
-
-            is BuilderMission.PlaceMine -> {
-            }
-
-            is BuilderMission.PlacePill -> {
-            }
-
-            is BuilderMission.RepairPill -> {
+            if (success) {
+                block()
             }
         }
 
-        moveToTank()
+        wait(BUILD_TIME)
+
+        // wait for servers response
+        while (true) {
+            next()
+            if (completed) break
+        }
     }
 
-    private suspend fun ConsumerScope<Tick>.moveTo(targetPosition: V2): Tick {
+    override val consumer: Consumer<Tick> = consumer {
+        gotoTarget(buildMission.col, buildMission.row)
+        gotoTank()
+    }
+
+    private suspend fun ConsumerScope<Tick>.gotoTarget(col: Int, row: Int): Tick {
+        val targetPosition: V2 = v2(col + .5f, row + .5f)
+
         while (true) {
             val tick = next()
             val diff = targetPosition.sub(position)
@@ -224,7 +160,7 @@ class BuilderImpl(
             val y = position.y.toInt()
 
             val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
-                if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
+                if (it == 0f && x == buildMission.col && y == buildMission.row) {
                     MAX_SPEED
                 } else {
                     it
@@ -233,15 +169,56 @@ class BuilderImpl(
 
             val move = speed * tick.delta
 
-            if (mag >= move) {
+            if (mag > move) {
+                val oldPosition = position
                 position = diff.scale(move / mag).add(position).collisionDetect()
+
+                // check if stuck
+                if (position.sub(oldPosition).mag() < 0.001) {
+                    return tick
+                }
             } else {
+                when (buildMission) {
+                    is BuilderMission.HarvestTree -> {
+                        build(buildMission.col, buildMission.row, TerrainTile.Grass3) {
+                            material += TREE_MATERIAL
+                        }
+                    }
+
+                    is BuilderMission.BuildWall -> {
+                        build(buildMission.col, buildMission.row, TerrainTile.Wall) {
+                            material -= WALL_MATERIAL
+                        }
+                    }
+
+                    is BuilderMission.BuildRoad -> {
+                        build(buildMission.col, buildMission.row, TerrainTile.Road) {
+                            material -= ROAD_MATERIAL
+                        }
+                    }
+
+                    is BuilderMission.BuildBoat -> {
+                        build(buildMission.col, buildMission.row, TerrainTile.Boat) {
+                            material -= BOAT_MATERIAL
+                        }
+                    }
+
+                    is BuilderMission.PlaceMine -> {
+                    }
+
+                    is BuilderMission.PlacePill -> {
+                    }
+
+                    is BuilderMission.RepairPill -> {
+                    }
+                }
+
                 return tick
             }
         }
     }
 
-    private suspend fun ConsumerScope<Tick>.moveToTank(): Tick {
+    private suspend fun ConsumerScope<Tick>.gotoTank(): Tick {
         while (true) {
             val tick = next()
             val tank = tank ?: continue
@@ -251,7 +228,7 @@ class BuilderImpl(
             val y = position.y.toInt()
 
             val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
-                if (it == 0.0f && x == buildMission.x && y == buildMission.y) {
+                if (it == 0f && x == buildMission.col && y == buildMission.row) {
                     MAX_SPEED
                 } else {
                     it
@@ -263,13 +240,23 @@ class BuilderImpl(
             if (mag >= move) {
                 position = diff.scale(move / mag).add(position).collisionDetect()
             } else {
-                tank.material += material
-                setMaterialStatusBar(material.toFloat() / TANK_MATERIAL_MAX)
-                val nextBuilderMission = tank.nextBuilderMission
+                tank.material = min(tank.material + material, TankImpl.TANK_MATERIAL_MAX)
+                setMaterialStatusBar(tank.material.toFloat() / TankImpl.TANK_MATERIAL_MAX)
+                material = 0
 
+                tank.mines = min(tank.mines + mines, TankImpl.TANK_MINES_MAX)
+                setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
+                mines = 0
+
+                val nextBuilderMission = tank.nextBuilderMission
                 if (nextBuilderMission != null) {
                     tank.nextBuilderMission = null
-                    tick.set(get<Builder> { parametersOf(position, nextBuilderMission) })
+
+                    nextBuilderMission.builderMode.tryBuilderAction(
+                        tank = tank,
+                        col = nextBuilderMission.col,
+                        row = nextBuilderMission.row,
+                    )?.run { tick.set(this) }
                 } else {
                     tank.hasBuilder = true
                     tick.remove()
@@ -291,8 +278,8 @@ class BuilderImpl(
         val hy: Float = 1f - ly
 
         fun isSolid(x: Int, y: Int): Boolean {
-            return (x != buildMission.x ||
-                    y != buildMission.y) && bmap.getEntity(x, y).isSolid(owner.int)
+            return (x != buildMission.col ||
+                    y != buildMission.row) && bmap.getEntity(x, y).isSolid(owner.int)
         }
 
         val lxc: Boolean = lx < BUILDER_RADIUS && isSolid(fx - 1, fy)

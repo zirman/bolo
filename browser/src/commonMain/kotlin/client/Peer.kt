@@ -24,23 +24,23 @@ data class PeerUpdate(
 
 @Serializable
 data class PeerTank(
-    val positionX: Float,
-    val positionY: Float,
+    val x: Float,
+    val y: Float,
     val bearing: Float,
     val onBoat: Boolean,
 )
 
 @Serializable
 data class PeerShell(
-    val positionX: Float,
-    val positionY: Float,
+    val x: Float,
+    val y: Float,
     val bearing: Float,
 )
 
 @Serializable
 data class PeerBuilder(
-    val positionX: Float,
-    val positionY: Float,
+    val x: Float,
+    val y: Float,
 )
 
 fun PeerUpdate.toHexString(): String {

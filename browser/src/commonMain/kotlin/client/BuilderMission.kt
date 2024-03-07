@@ -1,14 +1,50 @@
 package client
 
 sealed interface BuilderMission {
-    val x: Int
-    val y: Int
+    val col: Int
+    val row: Int
+    val material: IntRange
+    val mines: Int
 
-    data class HarvestTree(override val x: Int, override val y: Int) : BuilderMission
-    data class BuildWall(override val x: Int, override val y: Int) : BuilderMission
-    data class BuildRoad(override val x: Int, override val y: Int) : BuilderMission
-    data class BuildBoat(override val x: Int, override val y: Int) : BuilderMission
-    data class PlaceMine(override val x: Int, override val y: Int) : BuilderMission
-    data class PlacePill(override val x: Int, override val y: Int, val index: Int, val material: Int) : BuilderMission
-    data class RepairPill(override val x: Int, override val y: Int, val index: Int, val material: Int) : BuilderMission
+    data class HarvestTree(override val col: Int, override val row: Int) : BuilderMission {
+        override val material: IntRange = 0..0
+        override val mines: Int = 0
+    }
+
+    data class BuildWall(override val col: Int, override val row: Int, override val material: IntRange) : BuilderMission {
+        override val mines: Int = 0
+    }
+
+    data class BuildRoad(override val col: Int, override val row: Int) : BuilderMission {
+        override val material: IntRange = 2..2
+        override val mines: Int = 0
+    }
+
+    data class BuildBoat(override val col: Int, override val row: Int) : BuilderMission {
+        override val material: IntRange = 8..8
+        override val mines: Int = 0
+    }
+
+    data class PlaceMine(override val col: Int, override val row: Int) : BuilderMission {
+        override val material: IntRange = 0..0
+        override val mines: Int = 1
+    }
+
+    data class PlacePill(
+        override val col: Int,
+        override val row: Int,
+        val index: Int,
+        override val material: IntRange,
+    ) : BuilderMission {
+        override val mines: Int = 0
+    }
+
+    data class RepairPill(
+        override val col: Int,
+        override val row: Int,
+        val index: Int,
+        override val material: IntRange,
+    ) : BuilderMission {
+        override val mines: Int = 0
+    }
 }
