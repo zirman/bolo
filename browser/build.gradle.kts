@@ -6,6 +6,7 @@ plugins {
     application
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.kotlinxAtomicfu)
 }
 
 group = "dev.robch.bolo"
@@ -103,6 +104,7 @@ kotlin {
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
+            implementation(libs.kotlinxAtomicfu)
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }

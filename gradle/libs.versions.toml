@@ -6,6 +6,7 @@ kotlinxSerialization = "1.6.3"
 ktor = "3.0.0-wasm2"
 kotlinWrappersBom = "1.0.0-pre.700"
 koinBom = "3.6.0-wasm-alpha2"
+kotlinxAtomicfu = "0.22.0-wasm2"
 kotlinxDatetime = "0.5.0-wasm0"
 kotlinxCollectionsImmutable = "0.4-wasm1"
 logbackClassic = "1.5.1"
@@ -16,6 +17,7 @@ versions = "0.51.0"
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinxAtomicfu = { id = "org.jetbrains.kotlin.plugin.atomicfu", version.ref = "kotlin" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versions" }
 
 [libraries]
@@ -31,6 +33,7 @@ kotlinTestAnnotationsCommon = { group = "org.jetbrains.kotlin", name = "kotlin-t
 kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlin" }
 kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinxSerializationProtobuf = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-protobuf", version.ref = "kotlinxSerialization" }
+kotlinxAtomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinxAtomicfu" }
 kotlinxDatetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxCollectionsImmutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 ktorServerCore = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
