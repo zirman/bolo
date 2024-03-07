@@ -36,9 +36,9 @@ class ShellImpl(
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
 
-            val x: Int = position.x.toInt()
-            val y: Int = position.y.toInt()
-            val entity = bmap.getEntity(x, y)
+            val col: Int = position.x.toInt()
+            val row: Int = position.y.toInt()
+            val entity = bmap.getEntity(col, row)
 
             if ((fromBoat && entity.isShore(owner.int)) || entity.isShellable(owner.int)) {
                 when (entity) {
@@ -57,10 +57,10 @@ class ShellImpl(
                     is Entity.Terrain -> {
                         // only damage road if it is a bridge
                         if (entity.terrain != TerrainTile.Road ||
-                            ((isWater(bmap[x - 1, y]) && isWater(bmap[x + 1, y])) ||
-                                    ((isWater(bmap[x, y - 1]) && isWater(bmap[x, y + 1]))))
+                            ((isWater(bmap[col - 1, row]) && isWater(bmap[col + 1, row])) ||
+                                    ((isWater(bmap[col, row - 1]) && isWater(bmap[col, row + 1]))))
                         ) {
-                            terrainDamage(x, y)
+                            terrainDamage(col, row)
                         }
 
                         tick.remove()

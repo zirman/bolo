@@ -29,8 +29,8 @@ sealed interface FrameServer {
     @Serializable
     data class TerrainBuild(
         val terrain: TerrainTile,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameServer
 
     @Serializable
@@ -40,15 +40,18 @@ sealed interface FrameServer {
     data object TerrainBuildFailed : FrameServer
 
     @Serializable
+    data object TerrainBuildMined : FrameServer
+
+    @Serializable
     data class TerrainDamage(
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameServer
 
     @Serializable
     data class TerrainMine(
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameServer
 
     @Serializable
@@ -94,8 +97,8 @@ sealed interface FrameServer {
     data class PillPlacement(
         val index: Int,
         val armor: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameServer
 
     @Serializable
@@ -108,7 +111,7 @@ sealed interface FrameServer {
     data class PillDrop(
         val index: Int,
         val owner: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameServer
 }

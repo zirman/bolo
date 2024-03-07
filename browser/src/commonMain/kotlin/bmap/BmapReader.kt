@@ -50,7 +50,7 @@ enum class TerrainTile {
     GrassMined,
 }
 
-fun ind(x: Int, y: Int): Int = (WORLD_WIDTH * y) + x
+fun ind(col: Int, row: Int): Int = (WORLD_WIDTH * row) + col
 
 class Bmap(
     val pills: Array<Pill>,
@@ -66,29 +66,29 @@ class Bmap(
             }
         }
 
-    operator fun get(x: Int, y: Int): TerrainTile =
-        if (x < BORDER || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) TerrainTile.SeaMined
-        else TerrainTile.entries[terrain[ind(x, y)].toInt()]
+    operator fun get(col: Int, row: Int): TerrainTile =
+        if (col < BORDER || col >= WORLD_WIDTH || row < 0 || row >= WORLD_HEIGHT) TerrainTile.SeaMined
+        else TerrainTile.entries[terrain[ind(col, row)].toInt()]
 
-    operator fun set(x: Int, y: Int, t: TerrainTile) {
-        if (x >= BORDER && x < WORLD_WIDTH - BORDER && y >= BORDER && y < WORLD_HEIGHT - BORDER) {
-            terrain[ind(x, y)] = t.ordinal.toUByte()
+    operator fun set(col: Int, row: Int, t: TerrainTile) {
+        if (col >= BORDER && col < WORLD_WIDTH - BORDER && row >= BORDER && row < WORLD_HEIGHT - BORDER) {
+            terrain[ind(col, row)] = t.ordinal.toUByte()
         }
     }
 
-    fun damage(x: Int, y: Int) {
-        this[x, y] = this[x, y].toTerrainDamage()
+    fun damage(col: Int, row: Int) {
+        this[col, row] = this[col, row].toTerrainDamage()
     }
 
-    fun mine(x: Int, y: Int) {
-        this[x, y].toMinedTerrain()?.let {
-            this[x, y] = it
+    fun mine(col: Int, row: Int) {
+        this[col, row].toMinedTerrain()?.let {
+            this[col, row] = it
         }
     }
 
-    fun findPill(x: Int, y: Int): Pill? {
+    fun findPill(col: Int, row: Int): Pill? {
         for (pill in pills) {
-            if (pill.isPlaced && pill.x == x && pill.y == y) {
+            if (pill.isPlaced && pill.col == col && pill.row == row) {
                 return pill
             }
         }
@@ -96,9 +96,9 @@ class Bmap(
         return null
     }
 
-    fun findBase(x: Int, y: Int): Base? {
+    fun findBase(col: Int, row: Int): Base? {
         for (base in bases) {
-            if (base.x == x && base.y == y) {
+            if (base.col == col && base.row == row) {
                 return base
             }
         }
@@ -106,11 +106,11 @@ class Bmap(
         return null
     }
 
-    fun getEntity(x: Int, y: Int): Entity {
+    fun getEntity(col: Int, row: Int): Entity {
         for (index in pills.indices) {
             val pill = pills[index]
-            if (pill.x == x &&
-                pill.y == y &&
+            if (pill.col == col &&
+                pill.row == row &&
                 pill.isPlaced
             ) {
                 return Entity.Pill(pill)
@@ -119,14 +119,14 @@ class Bmap(
 
         for (index in bases.indices) {
             val base = bases[index]
-            if (base.x == x &&
-                base.y == y
+            if (base.col == col &&
+                base.row == row
             ) {
                 return Entity.Base(bases[index])
             }
         }
 
-        return Entity.Terrain(this[x, y])
+        return Entity.Terrain(this[col, row])
     }
 }
 
@@ -186,8 +186,8 @@ sealed interface Entity {
 }
 
 data class Pill(
-    var x: Int,
-    var y: Int,
+    var col: Int,
+    var row: Int,
     var owner: Int,
     var armor: Int,
     var speed: Int,
@@ -197,8 +197,8 @@ data class Pill(
 )
 
 data class Base(
-    val x: Int,
-    val y: Int,
+    val col: Int,
+    val row: Int,
     var owner: Int,
     var armor: Int,
     var shells: Int,
@@ -208,17 +208,17 @@ data class Base(
 )
 
 data class StartInfo(
-    val x: Int,
-    val y: Int,
+    val col: Int,
+    val row: Int,
     val direction: Int,
 )
 
 data class Run(
     val dataLength: Int,  // length of the data for this run
     // INCLUDING this 4 byte header
-    val y: Int,        // y co-ordinate of this run.
-    val startX: Int,   // first square of the run
-    val endX: Int,     // last square of run + 1
+    val row: Int,        // y co-ordinate of this run.
+    val startCol: Int,   // first square of the run
+    val endCol: Int,     // last square of run + 1
     // (ie first deep sea square after run)
     val data: NibbleReader,
 )
@@ -271,31 +271,31 @@ class BmapReader(
         while (true) {
             val run = readRun()
 
-            if (run.dataLength == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
+            if (run.dataLength == 4 && run.row == 0xff && run.startCol == 0xff && run.endCol == 0xff) {
                 break
             }
 
-            var x: Int = run.startX
+            var col: Int = run.startCol
 
-            while (x < run.endX) {
+            while (col < run.endCol) {
                 val nib: Int = run.data.readNibble()
 
                 if (nib in 0..7) { // sequence of different terrain
-                    val endX: Int = x + nib + 1
-                    endX.assertLessThanOrEqual(run.endX)
+                    val endCol: Int = col + nib + 1
+                    endCol.assertLessThanOrEqual(run.endCol)
 
-                    while (x < endX) {
-                        bmap[x, run.y] = nibbleToTerrain(run.data.readNibble())
-                        x++
+                    while (col < endCol) {
+                        bmap[col, run.row] = nibbleToTerrain(run.data.readNibble())
+                        col++
                     }
                 } else if (nib in 8..15) { // sequence of the same terrain
-                    val endX: Int = x + nib - 6
-                    endX.assertLessThanOrEqual(run.endX)
+                    val endCol: Int = col + nib - 6
+                    endCol.assertLessThanOrEqual(run.endCol)
                     val t: TerrainTile = nibbleToTerrain(run.data.readNibble())
 
-                    while (x < endX) {
-                        bmap[x, run.y] = t
-                        x++
+                    while (col < endCol) {
+                        bmap[col, run.row] = t
+                        col++
                     }
                 }
             }
@@ -359,7 +359,7 @@ class BmapReader(
         val armor = readMaxUByte(PILL_ARMOR_MAX.toUByte()).toInt() // range 0-15 (dead pillbox = 0, full strength = 15)
         val speed = readMaxUByte(PILL_SPEED_MAX.toUByte()).toInt() // typically 50. Time between shots, in 20ms units
         // Lower values makes the pillbox start off 'angry'
-        return Pill(x = x, y = y, owner = owner, armor = armor, speed = speed, code = 0, isPlaced = true)
+        return Pill(col = x, row = y, owner = owner, armor = armor, speed = speed, code = 0, isPlaced = true)
     }
 
     private fun readBase(): Base {
@@ -369,23 +369,23 @@ class BmapReader(
         val armor = readMaxUByte(BASE_ARMOR_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
         val shells = readMaxUByte(BASE_SHELLS_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
         val mines = readMaxUByte(BASE_MINES_MAX.toUByte()).toInt() // initial stocks of base. Maximum value 90
-        return Base(x = x, y = y, owner = owner, armor = armor, shells = shells, mines, code = 0)
+        return Base(col = x, row = y, owner = owner, armor = armor, shells = shells, mines, code = 0)
     }
 
     private fun readStart(): StartInfo {
         val x = readUByte().toInt()
         val y = readUByte().toInt()
         val dir = readMaxUByte(15.toUByte()).toInt()
-        return StartInfo(x = x, y = y, direction = dir)
+        return StartInfo(col = x, row = y, direction = dir)
     }
 
     private fun readRun(): Run {
         val dataLength = readUByte().toInt()
         val y = readUByte().toInt()
-        val startX = readUByte().toInt()
-        val endX = readUByte().toInt()
+        val startCol = readUByte().toInt()
+        val endCol = readUByte().toInt()
         val data = getNibbleReader(dataLength - 4)
-        return Run(dataLength = dataLength, y = y, startX = startX, endX = endX, data = data)
+        return Run(dataLength = dataLength, row = y, startCol = startCol, endCol = endCol, data = data)
     }
 }
 
@@ -410,21 +410,21 @@ fun nibbleToTerrain(nibble: Int): TerrainTile =
         else -> throw IllegalStateException("invalid nibble")
     }
 
-fun defaultTerrain(x: Int, y: Int): TerrainTile =
-    if (x < BORDER || y < BORDER || x >= WORLD_WIDTH - BORDER || y >= WORLD_HEIGHT - BORDER) TerrainTile.SeaMined
+fun defaultTerrain(col: Int, row: Int): TerrainTile =
+    if (col < BORDER || row < BORDER || col >= WORLD_WIDTH - BORDER || row >= WORLD_HEIGHT - BORDER) TerrainTile.SeaMined
     else TerrainTile.Sea
 
 class BmapCode {
     private val code = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
 
-    operator fun get(x: Int, y: Int): Int = code[ind(x, y)].toInt()
+    operator fun get(col: Int, row: Int): Int = code[ind(col, row)].toInt()
 
-    operator fun set(x: Int, y: Int, t: Int) {
-        code[ind(x, y)] = t.toUByte()
+    operator fun set(col: Int, row: Int, t: Int) {
+        code[ind(col, row)] = t.toUByte()
     }
 
-    fun inc(x: Int, y: Int): Int {
-        val i = ind(x, y)
+    fun inc(col: Int, row: Int): Int {
+        val i = ind(col, row)
         val c = code[i].toInt()
         code[i] = (c + 1).mod(16).toUByte()
         return c

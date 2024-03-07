@@ -88,16 +88,16 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     }
 
     fun writePill(pill: Pill) {
-        writeUByte(pill.x.toUByte())
-        writeUByte(pill.y.toUByte())
+        writeUByte(pill.col.toUByte())
+        writeUByte(pill.row.toUByte())
         writeUByte(pill.owner.toUByte())
         writeUByte(pill.armor.toUByte())
         writeUByte(pill.speed.toUByte())
     }
 
     fun writeBase(base: Base) {
-        writeUByte(base.x.toUByte())
-        writeUByte(base.y.toUByte())
+        writeUByte(base.col.toUByte())
+        writeUByte(base.row.toUByte())
         writeUByte(base.owner.toUByte())
         writeUByte(base.armor.toUByte())
         writeUByte(base.shells.toUByte())
@@ -105,8 +105,8 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     }
 
     fun writeStart(start: StartInfo) {
-        writeUByte(start.x.toUByte())
-        writeUByte(start.y.toUByte())
+        writeUByte(start.col.toUByte())
+        writeUByte(start.row.toUByte())
         writeUByte(start.direction.toUByte())
     }
 
@@ -119,56 +119,56 @@ fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
     writeMulti(bmap.bases.asIterable()) { writeBase(it) }
     writeMulti(bmap.starts.asIterable()) { writeStart(it) }
 
-    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
-        var x: Int = BORDER
+    for (row in BORDER..<WORLD_HEIGHT - BORDER) {
+        var col: Int = BORDER
 
-        while (x < WORLD_WIDTH - BORDER) {
+        while (col < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < WORLD_WIDTH - BORDER) {
-                if (bmap[x, y] != defaultTerrain(x, y)) {
-                    val startX = x
+            while (col < WORLD_WIDTH - BORDER) {
+                if (bmap[col, row] != defaultTerrain(col, row)) {
+                    val startCol = col
                     val nibbleWriter = NibbleWriter()
 
                     do {
-                        val beginX = x
+                        val beginX = col
 
-                        if (bmap[x, y] == bmap[x + 1, y]) { // sequence of same terrain
-                            val t = bmap[x, y]
+                        if (bmap[col, row] == bmap[col + 1, row]) { // sequence of same terrain
+                            val t = bmap[col, row]
 
-                            x += 2
-                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && bmap[x, y] == t) {
-                                x++
+                            col += 2
+                            while (col - beginX < 9 && col < WORLD_WIDTH - BORDER && bmap[col, row] == t) {
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) + 6)
+                            nibbleWriter.writeNibble((col - beginX) + 6)
                             nibbleWriter.writeNibble(terrainToNibble(t))
                         } else { // sequence of different terrain
-                            x++
-                            while (x - beginX < 8 &&
-                                x < WORLD_WIDTH - BORDER &&
-                                bmap[x, y] != bmap[x - 1, y] &&
-                                bmap[x, y] != defaultTerrain(x, y)
+                            col++
+                            while (col - beginX < 8 &&
+                                col < WORLD_WIDTH - BORDER &&
+                                bmap[col, row] != bmap[col - 1, row] &&
+                                bmap[col, row] != defaultTerrain(col, row)
                             ) {
-                                x++
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) - 1)
+                            nibbleWriter.writeNibble((col - beginX) - 1)
 
-                            for (i in beginX..<x) {
-                                nibbleWriter.writeNibble(terrainToNibble(bmap[i, y]))
+                            for (i in beginX..<col) {
+                                nibbleWriter.writeNibble(terrainToNibble(bmap[i, row]))
                             }
                         }
-                    } while (x < WORLD_WIDTH - BORDER && bmap[x, y] != defaultTerrain(x, y))
+                    } while (col < WORLD_WIDTH - BORDER && bmap[col, row] != defaultTerrain(col, row))
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
-                    writeUByte(y.toUByte())
-                    writeUByte(startX.toUByte())
-                    writeUByte(x.toUByte())
+                    writeUByte(row.toUByte())
+                    writeUByte(startCol.toUByte())
+                    writeUByte(col.toUByte())
                     writeBuffer(buf)
                 }
 
-                x++
+                col++
             }
         }
     }
@@ -200,58 +200,58 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
     writeString("BMAPDAMG")
     writeUByte(1.toUByte())
 
-    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
-        var x: Int = BORDER
+    for (row in BORDER..<WORLD_HEIGHT - BORDER) {
+        var col: Int = BORDER
 
-        while (x < WORLD_WIDTH - BORDER) {
+        while (col < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < WORLD_WIDTH - BORDER) {
-                if (getDamageLevel(bmap[x, y]) != 0) {
-                    val startX = x
+            while (col < WORLD_WIDTH - BORDER) {
+                if (getDamageLevel(bmap[col, row]) != 0) {
+                    val startCol = col
                     val nibbleWriter = NibbleWriter()
 
                     do {
-                        val beginX = x
+                        val beginX = col
 
                         // sequence of same damage
-                        if (getDamageLevel(bmap[x, y]) == getDamageLevel(bmap[x + 1, y])) {
-                            val t = getDamageLevel(bmap[x, y])
+                        if (getDamageLevel(bmap[col, row]) == getDamageLevel(bmap[col + 1, row])) {
+                            val t = getDamageLevel(bmap[col, row])
 
-                            x += 2
-                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && getDamageLevel(bmap[x, y]) == t) {
-                                x++
+                            col += 2
+                            while (col - beginX < 9 && col < WORLD_WIDTH - BORDER && getDamageLevel(bmap[col, row]) == t) {
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) + 6)
+                            nibbleWriter.writeNibble((col - beginX) + 6)
                             nibbleWriter.writeNibble(t)
                         } else { // sequence of different terrain
-                            x++
+                            col++
                             while (
-                                x - beginX < 8 &&
-                                x < WORLD_WIDTH - BORDER &&
-                                getDamageLevel(bmap[x, y]) != getDamageLevel(bmap[x - 1, y]) &&
-                                getDamageLevel(bmap[x, y]) != 0
+                                col - beginX < 8 &&
+                                col < WORLD_WIDTH - BORDER &&
+                                getDamageLevel(bmap[col, row]) != getDamageLevel(bmap[col - 1, row]) &&
+                                getDamageLevel(bmap[col, row]) != 0
                             ) {
-                                x++
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) - 1)
+                            nibbleWriter.writeNibble((col - beginX) - 1)
 
-                            for (i in beginX..<x) {
-                                nibbleWriter.writeNibble(getDamageLevel(bmap[i, y]))
+                            for (i in beginX..<col) {
+                                nibbleWriter.writeNibble(getDamageLevel(bmap[i, row]))
                             }
                         }
-                    } while (x < WORLD_WIDTH - BORDER && getDamageLevel(bmap[x, y]) != 0)
+                    } while (col < WORLD_WIDTH - BORDER && getDamageLevel(bmap[col, row]) != 0)
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
-                    writeUByte(y.toUByte())
-                    writeUByte(startX.toUByte())
-                    writeUByte(x.toUByte())
+                    writeUByte(row.toUByte())
+                    writeUByte(startCol.toUByte())
+                    writeUByte(col.toUByte())
                     writeBuffer(buf)
                 }
 
-                x++
+                col++
             }
         }
     }
@@ -283,56 +283,56 @@ fun MutableList<UByte>.writeBmapCode(bmapCode: BmapCode): MutableList<UByte> {
     writeString("BMAPCODE")
     writeUByte(1.toUByte())
 
-    for (y in BORDER..<WORLD_HEIGHT - BORDER) {
-        var x: Int = BORDER
+    for (row in BORDER..<WORLD_HEIGHT - BORDER) {
+        var col: Int = BORDER
 
-        while (x < WORLD_WIDTH - BORDER) {
+        while (col < WORLD_WIDTH - BORDER) {
             // find run
-            while (x < WORLD_WIDTH - BORDER) {
-                if (bmapCode[x, y] != 0) {
-                    val startX = x
+            while (col < WORLD_WIDTH - BORDER) {
+                if (bmapCode[col, row] != 0) {
+                    val startCol = col
                     val nibbleWriter = NibbleWriter()
 
                     do {
-                        val beginX = x
+                        val beginX = col
 
-                        if (bmapCode[x, y] == bmapCode[x + 1, y]) { // sequence of same code
-                            val t = bmapCode[x, y]
+                        if (bmapCode[col, row] == bmapCode[col + 1, row]) { // sequence of same code
+                            val t = bmapCode[col, row]
 
-                            x += 2
-                            while (x - beginX < 9 && x < WORLD_WIDTH - BORDER && bmapCode[x, y] == t) {
-                                x++
+                            col += 2
+                            while (col - beginX < 9 && col < WORLD_WIDTH - BORDER && bmapCode[col, row] == t) {
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) + 6)
+                            nibbleWriter.writeNibble((col - beginX) + 6)
                             nibbleWriter.writeNibble(t)
                         } else { // sequence of different terrain
-                            x++
-                            while (x - beginX < 8 &&
-                                x < WORLD_WIDTH - BORDER &&
-                                bmapCode[x, y] != bmapCode[x - 1, y] &&
-                                bmapCode[x, y] != 0
+                            col++
+                            while (col - beginX < 8 &&
+                                col < WORLD_WIDTH - BORDER &&
+                                bmapCode[col, row] != bmapCode[col - 1, row] &&
+                                bmapCode[col, row] != 0
                             ) {
-                                x++
+                                col++
                             }
 
-                            nibbleWriter.writeNibble((x - beginX) - 1)
+                            nibbleWriter.writeNibble((col - beginX) - 1)
 
-                            for (i in beginX..<x) {
-                                nibbleWriter.writeNibble(bmapCode[i, y])
+                            for (i in beginX..<col) {
+                                nibbleWriter.writeNibble(bmapCode[i, row])
                             }
                         }
-                    } while (x < WORLD_WIDTH - BORDER && bmapCode[x, y] != 0)
+                    } while (col < WORLD_WIDTH - BORDER && bmapCode[col, row] != 0)
 
                     val buf = nibbleWriter.finish()
                     writeUByte((buf.size + 4).toUByte())
-                    writeUByte(y.toUByte())
-                    writeUByte(startX.toUByte())
-                    writeUByte(x.toUByte())
+                    writeUByte(row.toUByte())
+                    writeUByte(startCol.toUByte())
+                    writeUByte(col.toUByte())
                     writeBuffer(buf)
                 }
 
-                x++
+                col++
             }
         }
     }

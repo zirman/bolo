@@ -14,6 +14,12 @@ import org.koin.core.component.KoinComponent
 import kotlin.math.min
 import kotlin.math.sqrt
 
+enum class BuildResult {
+    Success,
+    Failed,
+    Mined,
+}
+
 class BuilderImpl(
     game: Game,
     startPosition: V2,
@@ -277,9 +283,9 @@ class BuilderImpl(
         val ly: Float = y - fy.toFloat()
         val hy: Float = 1f - ly
 
-        fun isSolid(x: Int, y: Int): Boolean {
-            return (x != buildMission.col ||
-                    y != buildMission.row) && bmap.getEntity(x, y).isSolid(owner.int)
+        fun isSolid(col: Int, row: Int): Boolean {
+            return (col != buildMission.col ||
+                    row != buildMission.row) && bmap.getEntity(col, row).isSolid(owner.int)
         }
 
         val lxc: Boolean = lx < BUILDER_RADIUS && isSolid(fx - 1, fy)

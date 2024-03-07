@@ -25,22 +25,21 @@ sealed interface FrameClient {
     @Serializable
     data class TerrainBuild(
         val terrain: TerrainTile,
-        val x: Int,
-        val y: Int,
-        val material: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameClient
 
     @Serializable
     data class TerrainDamage(
         val code: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameClient
 
     @Serializable
     data class TerrainMine(
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameClient
 
     @Serializable
@@ -53,31 +52,31 @@ sealed interface FrameClient {
     data class PillDamage(
         val index: Int,
         val code: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameClient
 
     @Serializable
     data class PillRepair(
         val index: Int,
         val owner: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
         val material: Int,
     ) : FrameClient
 
     @Serializable
     data class PillPlacement(
         val index: Int,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
         val material: Int,
     ) : FrameClient
 
     @Serializable
     data class Position(
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
     ) : FrameClient
 }
 

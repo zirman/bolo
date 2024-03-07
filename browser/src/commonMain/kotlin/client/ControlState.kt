@@ -14,7 +14,7 @@ enum class DirectionHorizontal {
 
 sealed interface MouseEvent {
     data class Drag(val dx: Int, val dy : Int) : MouseEvent
-    data class Up(val x: Int, val y: Int, val downX: Int, val downY: Int) : MouseEvent
+    data class Up(val col: Int, val row: Int, val downCol: Int, val downRow: Int) : MouseEvent
 }
 
 enum class BuilderMode {

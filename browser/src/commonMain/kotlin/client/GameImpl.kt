@@ -101,28 +101,27 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override fun buildTerrain(x: Int, y: Int, t: TerrainTile, material: Int, result: (Boolean) -> Unit) {
-        buildQueue.add(BuildOp.Terrain(t, x, y, result))
+    override fun buildTerrain(col: Int, row: Int, t: TerrainTile, material: Int, result: (Boolean) -> Unit) {
+        buildQueue.add(BuildOp.Terrain(t, col, row, result))
 
         FrameClient
             .TerrainBuild(
                 terrain = t,
-                x = x,
-                y = y,
-                material = material,
+                col = col,
+                row = row,
             )
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
     }
 
-    override fun mineTerrain(x: Int, y: Int) {
-        bmap.mine(x, y)
-        tileArray.update(x, y)
+    override fun mineTerrain(col: Int, row: Int) {
+        bmap.mine(col, row)
+        tileArray.update(col, row)
 
         FrameClient
             .TerrainMine(
-                x = x,
-                y = y,
+                col = col,
+                row = row,
             )
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
@@ -249,15 +248,15 @@ class GameImpl(
         spriteProgram(clipMatrix, sprites)
     }
 
-    override fun terrainDamage(x: Int, y: Int) {
-        bmap.damage(x, y)
-        tileArray.update(x, y)
+    override fun terrainDamage(col: Int, row: Int) {
+        bmap.damage(col, row)
+        tileArray.update(col, row)
 
         FrameClient
             .TerrainDamage(
-                code = bmapCode[x, y],
-                x = x,
-                y = y,
+                code = bmapCode[col, row],
+                col = col,
+                row = row,
             )
             .toFrame()
             .run { sendChannel.trySend(this).getOrThrow() }
@@ -279,24 +278,24 @@ class GameImpl(
     override fun pillDamage(index: Int) {
         val pill = bmap.pills[index]
         pill.armor = max(0, pill.armor - 1)
-        tileArray.update(pill.x, pill.y)
+        tileArray.update(pill.col, pill.row)
 
         FrameClient
             .PillDamage(
                 index = index,
                 code = pill.code,
-                x = pill.x,
-                y = pill.y,
+                col = pill.col,
+                row = pill.row,
             )
             .toFrame()
             .run { sendChannel.trySend(this).getOrThrow() }
     }
 
-    override operator fun get(x: Int, y: Int): Entity {
+    override operator fun get(col: Int, row: Int): Entity {
         for (index in bmap.pills.indices) {
             val pill = bmap.pills[index]
-            if (pill.x == x &&
-                pill.y == y &&
+            if (pill.col == col &&
+                pill.row == row &&
                 pill.isPlaced
             ) {
                 return Entity.Pill(pill)
@@ -305,14 +304,14 @@ class GameImpl(
 
         for (index in bmap.bases.indices) {
             val base = bmap.bases[index]
-            if (base.x == x &&
-                base.y == y
+            if (base.col == col &&
+                base.row == row
             ) {
                 return Entity.Base(bmap.bases[index])
             }
         }
 
-        return Entity.Terrain(bmap[x, y])
+        return Entity.Terrain(bmap[col, row])
     }
 
     private fun launchGameLoop(scope: CoroutineScope): Job = scope.launch(CoroutineName("launchGameLoop")) {
@@ -400,10 +399,10 @@ class GameImpl(
                     return (((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio / (zoomLevel * 16f))) + center.x).toInt()
                 }
 
-                val row = mouse.y.toRow()
-                val col = mouse.x.toCol()
-                val downRow = mouse.downY.toRow()
-                val downCol = mouse.downX.toCol()
+                val row = mouse.row.toRow()
+                val col = mouse.col.toCol()
+                val downRow = mouse.downRow.toRow()
+                val downCol = mouse.downCol.toCol()
 
                 // make sure mouse down and up are in the same square
                 val tank = tank
@@ -491,7 +490,7 @@ class GameImpl(
                     builderMission = BuilderMission.BuildWall(
                         col = col,
                         row = row,
-                        material = 1..BuilderImpl.WALL_MATERIAL,
+                        material = BuilderImpl.WALL_MATERIAL,
                     ),
                 )
 
@@ -500,7 +499,7 @@ class GameImpl(
                     builderMission = BuilderMission.BuildWall(
                         col = col,
                         row = row,
-                        material = 1..BuilderImpl.WALL_MATERIAL,
+                        material = BuilderImpl.WALL_MATERIAL,
                     ),
                 )
 
@@ -509,7 +508,7 @@ class GameImpl(
                     builderMission = BuilderMission.BuildWall(
                         col = col,
                         row = row,
-                        material = 1..1,
+                        material = BuilderImpl.WALL_MATERIAL,
                     ),
                 )
 
@@ -518,7 +517,7 @@ class GameImpl(
                     builderMission = BuilderMission.BuildWall(
                         col = col,
                         row = row,
-                        material = 1..1,
+                        material = BuilderImpl.WALL_MATERIAL,
                     ),
                 )
 
@@ -587,8 +586,8 @@ class GameImpl(
         tank: Tank,
         builderMission: BuilderMission,
     ): Builder? {
-        return if (tank.material >= builderMission.material.first && tank.mines >= builderMission.mines) {
-            val mat = min(tank.material, builderMission.material.last)
+        return if (tank.material >= builderMission.material && tank.mines >= builderMission.mines) {
+            val mat = min(tank.material, builderMission.material)
             tank.material -= mat
             setMaterialStatusBar(tank.material.toFloat() / TankImpl.TANK_MATERIAL_MAX)
             tank.mines -= builderMission.mines
@@ -667,16 +666,16 @@ class GameImpl(
 
                         is FrameServer.TerrainBuild -> {
                             // build from other players
-                            bmap[frameServer.x, frameServer.y] = frameServer.terrain
-                            bmapCode.inc(frameServer.x, frameServer.y)
-                            tileArray.update(frameServer.x, frameServer.y)
+                            bmap[frameServer.col, frameServer.row] = frameServer.terrain
+                            bmapCode.inc(frameServer.col, frameServer.row)
+                            tileArray.update(frameServer.col, frameServer.row)
                         }
 
                         is FrameServer.TerrainBuildSuccess -> {
                             val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            bmap[buildOp.x, buildOp.y] = buildOp.terrain
-                            bmapCode.inc(buildOp.x, buildOp.y)
-                            tileArray.update(buildOp.x, buildOp.y)
+                            bmap[buildOp.col, buildOp.row] = buildOp.terrain
+                            bmapCode.inc(buildOp.col, buildOp.row)
+                            tileArray.update(buildOp.col, buildOp.row)
                             buildOp.result(true)
                         }
 
@@ -685,16 +684,21 @@ class GameImpl(
                             buildOp.result(false)
                         }
 
+                        is FrameServer.TerrainBuildMined -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                            buildOp.result(false)
+                        }
+
                         is FrameServer.TerrainDamage -> {
                             // damage from other players
-                            bmap.damage(frameServer.x, frameServer.y)
-                            tileArray.update(frameServer.x, frameServer.y)
+                            bmap.damage(frameServer.col, frameServer.row)
+                            tileArray.update(frameServer.col, frameServer.row)
                         }
 
                         is FrameServer.TerrainMine -> {
                             // mines from other players
-                            bmap.mine(frameServer.x, frameServer.y)
-                            tileArray.update(frameServer.x, frameServer.y)
+                            bmap.mine(frameServer.col, frameServer.row)
+                            tileArray.update(frameServer.col, frameServer.row)
                         }
 
                         is FrameServer.BaseTake -> {
@@ -704,7 +708,7 @@ class GameImpl(
                             base.armor = frameServer.armor
                             base.shells = frameServer.shells
                             base.mines = frameServer.mines
-                            tileArray.update(base.x, base.y)
+                            tileArray.update(base.col, base.row)
                         }
 
                         is FrameServer.BaseDamage -> {
@@ -715,14 +719,14 @@ class GameImpl(
                         is FrameServer.PillDamage -> {
                             val pill = bmap.pills[frameServer.index]
                             pill.armor = max(0, pill.armor - 1)
-                            tileArray.update(pill.x, pill.y)
+                            tileArray.update(pill.col, pill.row)
                         }
 
                         is FrameServer.PillRepair -> {
                             val pill = bmap.pills[frameServer.index]
                             pill.armor = frameServer.armor
                             pill.code++
-                            tileArray.update(pill.x, pill.y)
+                            tileArray.update(pill.col, pill.row)
                         }
 
                         is FrameServer.PillRepairSuccess -> {
@@ -739,26 +743,26 @@ class GameImpl(
                             val pill = bmap.pills[frameServer.index]
                             pill.owner = frameServer.owner
                             pill.isPlaced = false
-                            tileArray.update(pill.x, pill.y)
+                            tileArray.update(pill.col, pill.row)
                         }
 
                         is FrameServer.PillDrop -> {
                             val pill = bmap.pills[frameServer.index]
                             pill.owner = frameServer.owner
-                            pill.x = frameServer.x
-                            pill.y = frameServer.y
+                            pill.col = frameServer.col
+                            pill.row = frameServer.row
                             pill.isPlaced = true
-                            tileArray.update(pill.x, pill.y)
+                            tileArray.update(pill.col, pill.row)
                         }
 
                         is FrameServer.PillPlacement -> {
                             val pill = bmap.pills[frameServer.index]
                             pill.armor = frameServer.armor
-                            pill.x = frameServer.x
-                            pill.y = frameServer.y
+                            pill.col = frameServer.col
+                            pill.row = frameServer.row
                             pill.isPlaced = true
                             pill.code++
-                            tileArray.update(pill.x, pill.y)
+                            tileArray.update(pill.col, pill.row)
                         }
 
                         is FrameServer.PillPlacementSuccess -> {

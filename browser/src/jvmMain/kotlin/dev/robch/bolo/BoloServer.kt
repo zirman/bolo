@@ -8,8 +8,10 @@ import bmap.toExtra
 import bmap.writeBmap
 import bmap.writeBmapCode
 import bmap.writeDamage
-import client.isBuildable
 import client.PILL_ARMOR_MAX
+import client.isMined
+import client.isRoadBuildable
+import client.isWallBuildable
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner
@@ -137,39 +139,51 @@ class BoloServer(
     }
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainBuild(frameClient: FrameClient.TerrainBuild) {
-        val isSuccessful =
-            when (frameClient.terrain) {
-                TerrainTile.Grass3 -> bmap[frameClient.x, frameClient.y] == TerrainTile.Tree
-                TerrainTile.Boat -> bmap[frameClient.x, frameClient.y] == TerrainTile.River
-                TerrainTile.Wall,
-                TerrainTile.Road,
-                -> bmap[frameClient.x, frameClient.y].isBuildable()
+        val terrainTile = bmap[frameClient.col, frameClient.row]
+
+        if (terrainTile.isMined()) {
+            bmap.damage(frameClient.col, frameClient.row)
+
+            val serverFrame = FrameServer
+                .TerrainDamage(
+                    col = frameClient.col,
+                    row = frameClient.row,
+                )
+                .toByteArray()
+
+            clients.forEach { (_, client) -> client.send(serverFrame) }
+            send(FrameServer.TerrainBuildMined.toByteArray())
+        } else {
+            val isSuccessful = when (frameClient.terrain) {
+                TerrainTile.Grass3 -> bmap[frameClient.col, frameClient.row] == TerrainTile.Tree
+                TerrainTile.Road -> terrainTile.isRoadBuildable()
+                TerrainTile.Wall -> terrainTile.isWallBuildable()
+                TerrainTile.Boat -> terrainTile == TerrainTile.River
 
                 else -> false
             }
 
-        run {
-            if (isSuccessful) FrameServer.TerrainBuildSuccess
-            else FrameServer.TerrainBuildFailed
-        }
-            .toByteArray()
-            .run { send(this) }
+            if (isSuccessful) {
+                bmap[frameClient.col, frameClient.row] = frameClient.terrain
+                bmapCode.inc(frameClient.col, frameClient.row)
 
-        if (isSuccessful) {
-            bmap[frameClient.x, frameClient.y] = frameClient.terrain
-            bmapCode.inc(frameClient.x, frameClient.y)
+                val serverFrame = FrameServer
+                    .TerrainBuild(
+                        terrain = frameClient.terrain,
+                        col = frameClient.col,
+                        row = frameClient.row,
+                    )
+                    .toByteArray()
 
-            val serverFrame = FrameServer
-                .TerrainBuild(
-                    terrain = frameClient.terrain,
-                    x = frameClient.x,
-                    y = frameClient.y,
-                )
-                .toByteArray()
+                clients
+                    .filter { (_, client) -> client != this }
+                    .forEach { (_, client) -> client.send(serverFrame) }
+            }
 
-            clients
-                .filter { (_, client) -> client != this }
-                .forEach { (_, client) -> client.send(serverFrame) }
+            send(
+                if (isSuccessful) FrameServer.TerrainBuildSuccess.toByteArray()
+                else FrameServer.TerrainBuildFailed.toByteArray()
+            )
         }
     }
 
@@ -197,13 +211,13 @@ class BoloServer(
     }
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainDamage(frameClient: FrameClient.TerrainDamage) {
-        bmap.damage(frameClient.x, frameClient.y)
-        val codeMatches = bmapCode[frameClient.x, frameClient.y] == frameClient.code
+        bmap.damage(frameClient.col, frameClient.row)
+        val codeMatches = bmapCode[frameClient.col, frameClient.row] == frameClient.code
 
         val serverFrame = FrameServer
             .TerrainDamage(
-                x = frameClient.x,
-                y = frameClient.y,
+                col = frameClient.col,
+                row = frameClient.row,
             )
             .toByteArray()
 
@@ -217,12 +231,12 @@ class BoloServer(
     }
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainMine(frameClient: FrameClient.TerrainMine) {
-        bmap.mine(frameClient.x, frameClient.y)
+        bmap.mine(frameClient.col, frameClient.row)
 
         val serverFrame = FrameServer
             .TerrainMine(
-                x = frameClient.x,
-                y = frameClient.y,
+                col = frameClient.col,
+                row = frameClient.row,
             )
             .toByteArray()
 
@@ -256,8 +270,8 @@ class BoloServer(
         val pill = bmap.pills[frameClient.index]
 
         if (pill.isPlaced &&
-            pill.x == frameClient.x &&
-            pill.y == frameClient.y
+            pill.col == frameClient.col &&
+            pill.row == frameClient.row
         ) {
             pill.armor = max(0, pill.armor - 1)
 
@@ -277,8 +291,8 @@ class BoloServer(
         val pill = bmap.pills[frameClient.index]
 
         if (pill.isPlaced &&
-            pill.x == frameClient.x &&
-            pill.y == frameClient.y &&
+            pill.col == frameClient.col &&
+            pill.row == frameClient.row &&
             pill.owner == frameClient.owner
         ) {
             val additionalArmor = frameClient.material * 4
@@ -314,8 +328,8 @@ class BoloServer(
         ) {
             pill.isPlaced = true
             pill.armor = min(PILL_ARMOR_MAX, frameClient.material * 4)
-            pill.x = frameClient.x
-            pill.y = frameClient.y
+            pill.col = frameClient.col
+            pill.row = frameClient.row
             pill.code++
 
             FrameServer.PillPlacementSuccess
@@ -326,8 +340,8 @@ class BoloServer(
                 .PillPlacement(
                     index = frameClient.index,
                     armor = pill.armor,
-                    x = pill.x,
-                    y = pill.y,
+                    col = pill.col,
+                    row = pill.row,
                 )
                 .toByteArray()
 
@@ -340,15 +354,15 @@ class BoloServer(
         bmap.pills
             .filter { it.owner == owner.int && it.isPlaced.not() }
             .forEach { pill ->
-                pill.x = frameClient.x
-                pill.y = frameClient.y
+                pill.col = frameClient.col
+                pill.row = frameClient.row
             }
 
         // check for pill takes
         bmap.pills.forEachIndexed { index, pill ->
             if (pill.isPlaced &&
-                pill.x == frameClient.x &&
-                pill.y == frameClient.y &&
+                pill.col == frameClient.col &&
+                pill.row == frameClient.row &&
                 pill.armor == 0
             ) {
                 pill.owner = owner.int
@@ -367,8 +381,8 @@ class BoloServer(
 
         // check for base takes
         bmap.bases.forEachIndexed { index, base ->
-            if (base.x == frameClient.x &&
-                base.y == frameClient.y &&
+            if (base.col == frameClient.col &&
+                base.row == frameClient.row &&
                 (base.owner == 0xff || base.armor == 0)
             ) {
                 if (base.owner != 0xff) {
@@ -413,8 +427,8 @@ class BoloServer(
                     .PillDrop(
                         index = index,
                         owner = pill.owner,
-                        x = pill.x,
-                        y = pill.y,
+                        col = pill.col,
+                        row = pill.row,
                     )
                     .toByteArray()
 

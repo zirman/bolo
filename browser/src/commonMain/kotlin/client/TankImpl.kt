@@ -55,7 +55,7 @@ class TankImpl(
 
     private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
 
-    override var position: V2 = v2(x = start.x.toFloat() + .5f, y = start.y.toFloat() + .5f)
+    override var position: V2 = v2(x = start.col.toFloat() + .5f, y = start.row.toFloat() + .5f)
         private set
 
     override var bearing: Float = start.direction.toFloat() * (Float.pi / 8f)
@@ -84,7 +84,7 @@ class TankImpl(
     private var refuelingTime: Float = 0f
 
     init {
-        center = v2(x = start.x.toFloat() + .5f, y = WORLD_HEIGHT - (start.y.toFloat() + .5f))
+        center = v2(x = start.col.toFloat() + .5f, y = WORLD_HEIGHT - (start.row.toFloat() + .5f))
         setArmorStatusBar(armor.toFloat() / TANK_ARMOR_MAX)
         setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
         setMinesStatusBar(mines.toFloat() / TANK_MINES_MAX)
@@ -332,23 +332,23 @@ class TankImpl(
     }
 
     private fun TerrainKernel.boatLogic() {
-        val x: Int = position.x.toInt()
-        val y: Int = position.y.toInt()
+        val col: Int = position.x.toInt()
+        val row: Int = position.y.toInt()
 
-        if (x != onCol || y != onRow) {
+        if (col != onCol || row != onRow) {
             if (onBoat) {
-                if (bmap[x, y].isDrivable()) {
+                if (bmap[col, row].isDrivable()) {
                     onBoat = false
 
                     if (onTerrain == TerrainTile.River) {
                         buildTerrain(onCol, onRow, TerrainTile.Boat, BuilderImpl.BOAT_MATERIAL) {}
                     }
-                } else if (bmap[x, y] == TerrainTile.Boat) {
-                    terrainDamage(x, y)
+                } else if (bmap[col, row] == TerrainTile.Boat) {
+                    terrainDamage(col, row)
                 }
-            } else if (bmap[x, y] == TerrainTile.Boat) {
+            } else if (bmap[col, row] == TerrainTile.Boat) {
                 onBoat = true
-                terrainDamage(x, y)
+                terrainDamage(col, row)
             }
         }
     }
@@ -414,8 +414,8 @@ class TankImpl(
                 .encodeToByteArray(
                     FrameClient.serializer(),
                     FrameClient.Position(
-                        x = position.x.toInt(),
-                        y = position.y.toInt(),
+                        col = position.x.toInt(),
+                        row = position.y.toInt(),
                     ),
                 )
                 .let { Frame.Binary(fin = true, it) }
@@ -426,7 +426,7 @@ class TankImpl(
     inner class TerrainKernel(val tick: Tick) {
         val onCol: Int = position.x.toInt()
         val onRow: Int = position.y.toInt()
-        val onBase: Base? = bmap.bases.firstOrNull { it.x == onCol && it.y == onRow }
+        val onBase: Base? = bmap.bases.firstOrNull { it.col == onCol && it.row == onRow }
         val onTerrain: TerrainTile = bmap[onCol, onRow]
         val terrainUpLeft: TerrainTile = bmap[onCol - 1, onRow - 1]
         val terrainUp: TerrainTile = bmap[onCol, onRow - 1]

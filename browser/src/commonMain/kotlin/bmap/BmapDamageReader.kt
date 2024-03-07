@@ -19,38 +19,38 @@ class BmapDamageReader(
         while (true) {
             val run = readRun()
 
-            if (run.dataLength == 4 && run.y == 0xff && run.startX == 0xff && run.endX == 0xff) {
+            if (run.dataLength == 4 && run.row == 0xff && run.startCol == 0xff && run.endCol == 0xff) {
                 break
             }
 
-            var x = run.startX
+            var col = run.startCol
 
-            while (x < run.endX) {
+            while (col < run.endCol) {
                 val nib = run.data.readNibble()
 
                 if (nib in 0..7) { // sequence of different terrain
-                    val endX = x + nib + 1
-                    endX.assertLessThanOrEqual(run.endX)
+                    val endCol = col + nib + 1
+                    endCol.assertLessThanOrEqual(run.endCol)
 
-                    while (x < endX) {
+                    while (col < endCol) {
                         val dLevel: Int = run.data.readNibble()
 
                         for (i in 0..<dLevel) {
-                            bmap.damage(x, run.y)
+                            bmap.damage(col, run.row)
                         }
-                        x++
+                        col++
                     }
                 } else if (nib in 8..15) { // sequence of the same terrain
-                    val endX = x + nib - 6
-                    endX.assertLessThanOrEqual(run.endX)
+                    val endCol = col + nib - 6
+                    endCol.assertLessThanOrEqual(run.endCol)
                     val dLevel: Int = run.data.readNibble()
 
-                    while (x < endX) {
+                    while (col < endCol) {
                         for (i in 0..<dLevel) {
-                            bmap.damage(x, run.y)
+                            bmap.damage(col, run.row)
                         }
 
-                        x++
+                        col++
                     }
                 }
             }
@@ -91,10 +91,10 @@ class BmapDamageReader(
 
     private fun readRun(): Run {
         val dataLength: Int = readUByte().toInt()
-        val y: Int = readUByte().toInt()
-        val startX: Int = readUByte().toInt()
-        val endX: Int = readUByte().toInt()
+        val row: Int = readUByte().toInt()
+        val startCol: Int = readUByte().toInt()
+        val endCol: Int = readUByte().toInt()
         val data = getNibbleReader(dataLength - 4)
-        return Run(dataLength, y, startX, endX, data)
+        return Run(dataLength, row, startCol, endCol, data)
     }
 }

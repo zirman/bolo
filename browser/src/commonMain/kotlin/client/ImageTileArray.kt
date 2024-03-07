@@ -3,7 +3,7 @@ package client
 import bmap.TypeTile
 
 interface ImageTileArray {
-    fun getTypeTile(x: Int, y: Int): TypeTile
-    fun update(x: Int, y: Int)
+    fun getTypeTile(col: Int, row: Int): TypeTile
+    fun update(col: Int, row: Int)
     val uint8Array: Any
 }

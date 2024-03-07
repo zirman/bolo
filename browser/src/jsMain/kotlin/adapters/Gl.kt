@@ -87,7 +87,8 @@ fun spriteToBuffer(sprites: List<SpriteInstance>): Triple<Float32Array, Float32A
 fun WebGLRenderingContextBase.setTextureUniform(
     location: WebGLUniformLocation,
     texture: WebGLTexture,
-    unit: Int, x: Int,
+    unit: Int,
+    x: Int,
 ) {
     activeTexture(unit + x)
     bindTexture(TEXTURE_2D, texture)

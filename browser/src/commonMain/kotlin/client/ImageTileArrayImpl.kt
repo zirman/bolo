@@ -23,15 +23,15 @@ class ImageTileArrayImpl(
     private val owner: Owner,
     private val imageTiles: Uint8ArrayAdapter,
 ) : ImageTileArray {
-    override fun getTypeTile(x: Int, y: Int): TypeTile =
-        if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) TypeTile.SeaMined
-        else TypeTile.entries[tiles[ind(x, y)].toInt()]
+    override fun getTypeTile(col: Int, row: Int): TypeTile =
+        if (col < 0 || col >= WORLD_WIDTH || row < 0 || row >= WORLD_HEIGHT) TypeTile.SeaMined
+        else TypeTile.entries[tiles[ind(col, row)].toInt()]
 
-    override fun update(x: Int, y: Int) {
+    override fun update(col: Int, row: Int) {
         run {
             for (pill in bmap.pills) {
-                if (pill.isPlaced && pill.x == x && pill.y == y) {
-                    tiles[ind(pill.x, pill.y)] = run {
+                if (pill.isPlaced && pill.col == col && pill.row == row) {
+                    tiles[ind(pill.col, pill.row)] = run {
                         if (pill.owner == owner.int) TypeTile.PillFriendly0 else TypeTile.PillHostile0
                     }
                         .ordinal
@@ -42,8 +42,8 @@ class ImageTileArrayImpl(
             }
 
             for (base in bmap.bases) {
-                if (base.x == x && base.y == y) {
-                    tiles[ind(base.x, base.y)] = when (base.owner) {
+                if (base.col == col && base.row == row) {
+                    tiles[ind(base.col, base.row)] = when (base.owner) {
                         0xff -> TypeTile.BaseNeutral
                         owner.int -> TypeTile.BaseFriendly
                         else -> TypeTile.BaseHostile
@@ -52,13 +52,13 @@ class ImageTileArrayImpl(
                 }
             }
 
-            if (x >= BORDER && x < WORLD_WIDTH - BORDER && y >= BORDER && y < WORLD_HEIGHT - BORDER) {
-                tiles[ind(x, y)] = bmap[x, y].toTypeTile().ordinal.toUByte()
+            if (col >= BORDER && col < WORLD_WIDTH - BORDER && row >= BORDER && row < WORLD_HEIGHT - BORDER) {
+                tiles[ind(col, row)] = bmap[col, row].toTypeTile().ordinal.toUByte()
             }
         }
 
-        for (yi in y - 1..y + 1) {
-            for (xi in x - 1..x + 1) {
+        for (yi in row - 1..row + 1) {
+            for (xi in col - 1..col + 1) {
                 imageTiles[ind(xi, yi)] = mapImage(xi, yi).index.toUByte()
             }
         }
@@ -68,14 +68,14 @@ class ImageTileArrayImpl(
 
     private val tiles: UByteArray = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
         .also { tiles ->
-            for (y in 0..<WORLD_HEIGHT) {
-                for (x in 0..<WORLD_WIDTH) {
-                    tiles[ind(x, y)] = bmap[x, y].toTypeTile().ordinal.toUByte()
+            for (row in 0..<WORLD_HEIGHT) {
+                for (col in 0..<WORLD_WIDTH) {
+                    tiles[ind(col, row)] = bmap[col, row].toTypeTile().ordinal.toUByte()
                 }
             }
 
             for (base in bmap.bases) {
-                tiles[ind(base.x, base.y)] =
+                tiles[ind(base.col, base.row)] =
                     when (base.owner) {
                         0xff -> TypeTile.BaseNeutral
                         owner.int -> TypeTile.BaseFriendly
@@ -85,14 +85,14 @@ class ImageTileArrayImpl(
 
             for (pill in bmap.pills) {
                 if (pill.isPlaced) {
-                    tiles[ind(pill.x, pill.y)] = (TypeTile.PillHostile0.ordinal + pill.armor).toUByte()
+                    tiles[ind(pill.col, pill.row)] = (TypeTile.PillHostile0.ordinal + pill.armor).toUByte()
                 }
             }
         }
 
-    private fun mapImage(x: Int, y: Int): ImageTile {
-        return when (getTypeTile(x, y)) {
-            TypeTile.Sea -> when (isLikeBits(x, y) { isSeaLikeTile() }) {
+    private fun mapImage(col: Int, row: Int): ImageTile {
+        return when (getTypeTile(col, row)) {
+            TypeTile.Sea -> when (isLikeBits(col, row) { isSeaLikeTile() }) {
                 0, 5, 10, 15 -> ImageTile.Sea0
                 4, 14 -> ImageTile.Sea1
                 1, 11 -> ImageTile.Sea2
@@ -108,7 +108,7 @@ class ImageTileArrayImpl(
             TypeTile.SeaMined -> ImageTile.SeaMined
             TypeTile.Swamp -> ImageTile.Swamp
             TypeTile.SwampMined -> ImageTile.SwampMined
-            TypeTile.River -> when (isLikeBits(x, y) { isWaterLikeToWaterTile() }) {
+            TypeTile.River -> when (isLikeBits(col, row) { isWaterLikeToWaterTile() }) {
                 0 -> ImageTile.River0
                 4 -> ImageTile.River1
                 5 -> ImageTile.River2
@@ -130,7 +130,7 @@ class ImageTileArrayImpl(
 
             TypeTile.Grass -> ImageTile.Grass
             TypeTile.GrassMined -> ImageTile.GrassMined
-            TypeTile.Tree -> when (isLikeBits(x, y) { isTreeLikeTile() }) {
+            TypeTile.Tree -> when (isLikeBits(col, row) { isTreeLikeTile() }) {
                 0 -> ImageTile.Tree0
                 4 -> ImageTile.Tree1
                 1 -> ImageTile.Tree2
@@ -144,7 +144,7 @@ class ImageTileArrayImpl(
                 else -> never()
             }
 
-            TypeTile.TreeMined -> when (isLikeBits(x, y) { isTreeLikeTile() }) {
+            TypeTile.TreeMined -> when (isLikeBits(col, row) { isTreeLikeTile() }) {
                 0 -> ImageTile.TreeMined0
                 4 -> ImageTile.TreeMined1
                 1 -> ImageTile.TreeMined2
@@ -158,7 +158,7 @@ class ImageTileArrayImpl(
                 else -> never()
             }
 
-            TypeTile.Crater -> when (isLikeBits(x, y) { isCraterLikeTile() }) {
+            TypeTile.Crater -> when (isLikeBits(col, row) { isCraterLikeTile() }) {
                 0 -> ImageTile.Crater0
                 4 -> ImageTile.Crater1
                 5 -> ImageTile.Crater2
@@ -178,7 +178,7 @@ class ImageTileArrayImpl(
                 else -> never()
             }
 
-            TypeTile.CraterMined -> when (isLikeBits(x, y) { isCraterLikeTile() }) {
+            TypeTile.CraterMined -> when (isLikeBits(col, row) { isCraterLikeTile() }) {
                 0 -> ImageTile.CraterMined0
                 4 -> ImageTile.CraterMined1
                 5 -> ImageTile.CraterMined2
@@ -199,8 +199,8 @@ class ImageTileArrayImpl(
             }
 
             TypeTile.Road -> {
-                when (isLikeBits(x, y) { isRoadLikeTile() }) {
-                    0 -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
+                when (isLikeBits(col, row) { isRoadLikeTile() }) {
+                    0 -> when (isLikeBits(col, row) { isWaterLikeToLandTile() }) {
                         5 -> ImageTile.Road10
                         15 -> ImageTile.Road28
                         10 -> ImageTile.Road29
@@ -208,48 +208,48 @@ class ImageTileArrayImpl(
                     }
 
                     1, 4, 5 -> when (
-                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col, row - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road29
                         else -> ImageTile.Road23
                     }
 
                     2, 8, 10 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col + 1, row).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road10
                         else -> ImageTile.Road22
                     }
 
                     6 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road15
-                        else -> when (getTypeTile(x + 1, y - 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col + 1, row - 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road12
                             else -> ImageTile.Road24
                         }
                     }
 
                     3 -> when (
-                        getTypeTile(x + 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col + 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road17
-                        else -> when (getTypeTile(x - 1, y - 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col - 1, row - 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road14
                             else -> ImageTile.Road25
                         }
                     }
 
-                    7 -> when (getTypeTile(x, y + 1).isWaterLikeToLandTile()) {
+                    7 -> when (getTypeTile(col, row + 1).isWaterLikeToLandTile()) {
                         1 -> ImageTile.Road16
                         else -> when (
-                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row - 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.Road27
                             else -> ImageTile.Road13
@@ -257,21 +257,21 @@ class ImageTileArrayImpl(
                     }
 
                     12 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y - 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row - 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road3
-                        else -> when (getTypeTile(x + 1, y + 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col + 1, row + 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road0
                             else -> ImageTile.Road18
                         }
                     }
 
-                    14 -> when (getTypeTile(x - 1, y).isWaterLikeToLandTile()) {
+                    14 -> when (getTypeTile(col - 1, row).isWaterLikeToLandTile()) {
                         1 -> ImageTile.Road9
                         else -> when (
-                            getTypeTile(x + 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col + 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.Road26
                             else -> ImageTile.Road6
@@ -279,32 +279,32 @@ class ImageTileArrayImpl(
                     }
 
                     9 -> when (
-                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
-                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col, row - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(col + 1, row).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.Road5
-                        else -> when (getTypeTile(x - 1, y + 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col - 1, row + 1).isRoadLikeTile()) {
                             1 -> ImageTile.Road2
                             else -> ImageTile.Road19
                         }
                     }
 
-                    13 -> when (getTypeTile(x, y - 1).isWaterLikeToLandTile()) {
+                    13 -> when (getTypeTile(col, row - 1).isWaterLikeToLandTile()) {
                         1 -> ImageTile.Road4
                         else -> when (
-                            getTypeTile(x - 1, y + 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row + 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.Road20
                             else -> ImageTile.Road1
                         }
                     }
 
-                    11 -> when (getTypeTile(x + 1, y).isWaterLikeToLandTile()) {
+                    11 -> when (getTypeTile(col + 1, row).isWaterLikeToLandTile()) {
                         1 -> ImageTile.Road11
                         else -> when (
-                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col - 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.Road21
                             else -> ImageTile.Road8
@@ -312,10 +312,10 @@ class ImageTileArrayImpl(
                     }
 
                     15 -> when (
-                        getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                            .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
-                            .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(2))
-                            .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(3))
+                        getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                            .or(getTypeTile(col + 1, row - 1).isRoadLikeTile().shl(1))
+                            .or(getTypeTile(col - 1, row + 1).isRoadLikeTile().shl(2))
+                            .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(3))
                     ) {
                         0 -> ImageTile.Road30
                         else -> ImageTile.Road7
@@ -326,8 +326,8 @@ class ImageTileArrayImpl(
             }
 
             TypeTile.RoadMined -> {
-                when (isLikeBits(x, y) { isRoadLikeTile() }) {
-                    0 -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
+                when (isLikeBits(col, row) { isRoadLikeTile() }) {
+                    0 -> when (isLikeBits(col, row) { isWaterLikeToLandTile() }) {
                         5 -> ImageTile.RoadMined10
                         15 -> ImageTile.RoadMined28
                         10 -> ImageTile.RoadMined29
@@ -335,48 +335,48 @@ class ImageTileArrayImpl(
                     }
 
                     1, 4, 5 -> when (
-                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col, row - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined29
                         else -> ImageTile.RoadMined23
                     }
 
                     2, 8, 10 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col + 1, row).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined10
                         else -> ImageTile.RoadMined22
                     }
 
                     6 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined15
-                        else -> when (getTypeTile(x + 1, y - 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col + 1, row - 1).isRoadLikeTile()) {
                             1 -> ImageTile.RoadMined12
                             else -> ImageTile.RoadMined24
                         }
                     }
 
                     3 -> when (
-                        getTypeTile(x + 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y + 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col + 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row + 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined17
-                        else -> when (getTypeTile(x - 1, y - 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col - 1, row - 1).isRoadLikeTile()) {
                             1 -> ImageTile.RoadMined14
                             else -> ImageTile.RoadMined25
                         }
                     }
 
-                    7 -> when (getTypeTile(x, y + 1).isWaterLikeToLandTile()) {
+                    7 -> when (getTypeTile(col, row + 1).isWaterLikeToLandTile()) {
                         1 -> ImageTile.RoadMined16
                         else -> when (
-                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row - 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.RoadMined27
                             else -> ImageTile.RoadMined13
@@ -384,21 +384,21 @@ class ImageTileArrayImpl(
                     }
 
                     12 -> when (
-                        getTypeTile(x - 1, y).isWaterLikeToLandTile()
-                            .or(getTypeTile(x, y - 1).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col - 1, row).isWaterLikeToLandTile()
+                            .or(getTypeTile(col, row - 1).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined3
-                        else -> when (getTypeTile(x + 1, y + 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col + 1, row + 1).isRoadLikeTile()) {
                             1 -> ImageTile.RoadMined0
                             else -> ImageTile.RoadMined18
                         }
                     }
 
-                    14 -> when (getTypeTile(x - 1, y).isWaterLikeToLandTile()) {
+                    14 -> when (getTypeTile(col - 1, row).isWaterLikeToLandTile()) {
                         1 -> ImageTile.RoadMined9
                         else -> when (
-                            getTypeTile(x + 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col + 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.RoadMined26
                             else -> ImageTile.RoadMined6
@@ -406,32 +406,32 @@ class ImageTileArrayImpl(
                     }
 
                     9 -> when (
-                        getTypeTile(x, y - 1).isWaterLikeToLandTile()
-                            .or(getTypeTile(x + 1, y).isWaterLikeToLandTile().shl(1))
+                        getTypeTile(col, row - 1).isWaterLikeToLandTile()
+                            .or(getTypeTile(col + 1, row).isWaterLikeToLandTile().shl(1))
                     ) {
                         3 -> ImageTile.RoadMined5
-                        else -> when (getTypeTile(x - 1, y + 1).isRoadLikeTile()) {
+                        else -> when (getTypeTile(col - 1, row + 1).isRoadLikeTile()) {
                             1 -> ImageTile.RoadMined2
                             else -> ImageTile.RoadMined19
                         }
                     }
 
-                    13 -> when (getTypeTile(x, y - 1).isWaterLikeToLandTile()) {
+                    13 -> when (getTypeTile(col, row - 1).isWaterLikeToLandTile()) {
                         1 -> ImageTile.RoadMined4
                         else -> when (
-                            getTypeTile(x - 1, y + 1).isRoadLikeTile()
-                                .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row + 1).isRoadLikeTile()
+                                .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.RoadMined20
                             else -> ImageTile.RoadMined1
                         }
                     }
 
-                    11 -> when (getTypeTile(x + 1, y).isWaterLikeToLandTile()) {
+                    11 -> when (getTypeTile(col + 1, row).isWaterLikeToLandTile()) {
                         1 -> ImageTile.RoadMined11
                         else -> when (
-                            getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                                .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(1))
+                            getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                                .or(getTypeTile(col - 1, row + 1).isRoadLikeTile().shl(1))
                         ) {
                             0 -> ImageTile.RoadMined21
                             else -> ImageTile.RoadMined8
@@ -439,10 +439,10 @@ class ImageTileArrayImpl(
                     }
 
                     15 -> when (
-                        getTypeTile(x - 1, y - 1).isRoadLikeTile()
-                            .or(getTypeTile(x + 1, y - 1).isRoadLikeTile().shl(1))
-                            .or(getTypeTile(x - 1, y + 1).isRoadLikeTile().shl(2))
-                            .or(getTypeTile(x + 1, y + 1).isRoadLikeTile().shl(3))
+                        getTypeTile(col - 1, row - 1).isRoadLikeTile()
+                            .or(getTypeTile(col + 1, row - 1).isRoadLikeTile().shl(1))
+                            .or(getTypeTile(col - 1, row + 1).isRoadLikeTile().shl(2))
+                            .or(getTypeTile(col + 1, row + 1).isRoadLikeTile().shl(3))
                     ) {
                         0 -> ImageTile.RoadMined30
                         else -> ImageTile.RoadMined7
@@ -455,12 +455,12 @@ class ImageTileArrayImpl(
             TypeTile.Rubble -> ImageTile.Rubble
             TypeTile.RubbleMined -> ImageTile.RubbleMined
             TypeTile.DamagedWall -> ImageTile.DamagedWall
-            TypeTile.Wall -> when (isLikeBits(x, y) { isWallLikeTile() }) {
+            TypeTile.Wall -> when (isLikeBits(col, row) { isWallLikeTile() }) {
                 0 -> ImageTile.Wall0
                 4 -> ImageTile.Wall1
                 2 -> ImageTile.Wall12
                 6 ->
-                    when (getTypeTile(x + 1, y - 1).isWallLikeTile()) {
+                    when (getTypeTile(col + 1, row - 1).isWallLikeTile()) {
                         1 -> ImageTile.Wall13
                         else -> ImageTile.Wall28
                     }
@@ -468,14 +468,14 @@ class ImageTileArrayImpl(
                 5 -> ImageTile.Wall2
                 1 -> ImageTile.Wall3
                 3 ->
-                    when (getTypeTile(x - 1, y - 1).isWallLikeTile()) {
+                    when (getTypeTile(col - 1, row - 1).isWallLikeTile()) {
                         1 -> ImageTile.Wall15
                         else -> ImageTile.Wall29
                     }
 
                 7 -> when (
-                    getTypeTile(x - 1, y - 1).isWallLikeTile()
-                        .or(getTypeTile(x + 1, y - 1).isWallLikeTile().shl(1))
+                    getTypeTile(col - 1, row - 1).isWallLikeTile()
+                        .or(getTypeTile(col + 1, row - 1).isWallLikeTile().shl(1))
                 ) {
                     3 -> ImageTile.Wall14
                     0 -> ImageTile.Wall23
@@ -485,15 +485,15 @@ class ImageTileArrayImpl(
                 }
 
                 8 -> ImageTile.Wall4
-                12 -> when (getTypeTile(x + 1, y + 1).isWallLikeTile()) {
+                12 -> when (getTypeTile(col + 1, row + 1).isWallLikeTile()) {
                     1 -> ImageTile.Wall5
                     else -> ImageTile.Wall24
                 }
 
                 10 -> ImageTile.Wall8
                 14 -> when (
-                    getTypeTile(x + 1, y - 1).isWallLikeTile()
-                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
+                    getTypeTile(col + 1, row - 1).isWallLikeTile()
+                        .or(getTypeTile(col + 1, row + 1).isWallLikeTile().shl(1))
                 ) {
                     3 -> ImageTile.Wall9
                     0 -> ImageTile.Wall22
@@ -502,14 +502,14 @@ class ImageTileArrayImpl(
                     else -> never()
                 }
 
-                9 -> when (getTypeTile(x - 1, y + 1).isWallLikeTile()) {
+                9 -> when (getTypeTile(col - 1, row + 1).isWallLikeTile()) {
                     1 -> ImageTile.Wall7
                     else -> ImageTile.Wall25
                 }
 
                 13 -> when (
-                    getTypeTile(x - 1, y + 1).isWallLikeTile()
-                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(1))
+                    getTypeTile(col - 1, row + 1).isWallLikeTile()
+                        .or(getTypeTile(col + 1, row + 1).isWallLikeTile().shl(1))
                 ) {
                     3 -> ImageTile.Wall6
                     0 -> ImageTile.Wall18
@@ -519,8 +519,8 @@ class ImageTileArrayImpl(
                 }
 
                 11 -> when (
-                    getTypeTile(x - 1, y - 1).isWallLikeTile()
-                        .or(getTypeTile(x - 1, y + 1).isWallLikeTile().shl(1))
+                    getTypeTile(col - 1, row - 1).isWallLikeTile()
+                        .or(getTypeTile(col - 1, row + 1).isWallLikeTile().shl(1))
                 ) {
                     3 -> ImageTile.Wall11
                     0 -> ImageTile.Wall19
@@ -530,10 +530,10 @@ class ImageTileArrayImpl(
                 }
 
                 15 -> when (
-                    getTypeTile(x - 1, y - 1).isWallLikeTile()
-                        .or(getTypeTile(x + 1, y - 1).isWallLikeTile().shl(1))
-                        .or(getTypeTile(x - 1, y + 1).isWallLikeTile().shl(2))
-                        .or(getTypeTile(x + 1, y + 1).isWallLikeTile().shl(3))
+                    getTypeTile(col - 1, row - 1).isWallLikeTile()
+                        .or(getTypeTile(col + 1, row - 1).isWallLikeTile().shl(1))
+                        .or(getTypeTile(col - 1, row + 1).isWallLikeTile().shl(2))
+                        .or(getTypeTile(col + 1, row + 1).isWallLikeTile().shl(3))
                 ) {
                     15 -> ImageTile.Wall10
                     7 -> ImageTile.Wall16
@@ -557,7 +557,7 @@ class ImageTileArrayImpl(
                 else -> never()
             }
 
-            TypeTile.Boat -> when (isLikeBits(x, y) { isWaterLikeToLandTile() }) {
+            TypeTile.Boat -> when (isLikeBits(col, row) { isWaterLikeToLandTile() }) {
                 0, 6, 15 -> ImageTile.Boat0
                 2, 7, 10 -> ImageTile.Boat1
                 3 -> ImageTile.Boat2
@@ -607,11 +607,11 @@ class ImageTileArrayImpl(
         }
     }
 
-    private inline fun ImageTileArray.isLikeBits(x: Int, y: Int, f: TypeTile.() -> Int): Int {
-        return getTypeTile(x - 1, y).f()
-            .or(getTypeTile(x, y - 1).f().shl(1))
-            .or(getTypeTile(x + 1, y).f().shl(2))
-            .or(getTypeTile(x, y + 1).f().shl(3))
+    private inline fun ImageTileArray.isLikeBits(col: Int, row: Int, f: TypeTile.() -> Int): Int {
+        return getTypeTile(col - 1, row).f()
+            .or(getTypeTile(col, row - 1).f().shl(1))
+            .or(getTypeTile(col + 1, row).f().shl(2))
+            .or(getTypeTile(col, row + 1).f().shl(3))
     }
 
     init {

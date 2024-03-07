@@ -5,8 +5,8 @@ import bmap.TerrainTile
 sealed interface BuildOp {
     data class Terrain(
         val terrain: TerrainTile,
-        val x: Int,
-        val y: Int,
+        val col: Int,
+        val row: Int,
         val result: (Boolean) -> Unit,
     ) : BuildOp
 

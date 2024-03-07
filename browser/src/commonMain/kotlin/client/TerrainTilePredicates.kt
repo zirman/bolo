@@ -193,15 +193,39 @@ fun TerrainTile.getMaxAngularVelocity(): Float = when (this) {
     -> 0f
 }
 
-fun TerrainTile.isBuildable(): Boolean = when (this) {
-    Sea,
-    SeaMined,
-    Boat,
-    Wall,
-    Tree,
-    -> false
+fun TerrainTile.isMined(): Boolean = when (this) {
+    SwampMined,
+    CraterMined,
+    RoadMined,
+    TreeMined,
+    RubbleMined,
+    GrassMined,
+    -> true
 
+    else -> false
+}
+
+fun TerrainTile.isRoadBuildable(): Boolean = when (this) {
     River,
+    Swamp0,
+    Swamp1,
+    Swamp2,
+    Swamp3,
+    Crater,
+    Rubble0,
+    Rubble1,
+    Rubble2,
+    Rubble3,
+    Grass0,
+    Grass1,
+    Grass2,
+    Grass3,
+    -> true
+
+    else -> false
+}
+
+fun TerrainTile.isWallBuildable(): Boolean = when (this) {
     Swamp0,
     Swamp1,
     Swamp2,
@@ -216,15 +240,30 @@ fun TerrainTile.isBuildable(): Boolean = when (this) {
     Grass1,
     Grass2,
     Grass3,
-    SwampMined,
-    CraterMined,
-    RoadMined,
-    TreeMined,
-    RubbleMined,
-    GrassMined,
     WallDamaged0,
     WallDamaged1,
     WallDamaged2,
     WallDamaged3,
     -> true
+
+    else -> false
+}
+
+fun TerrainTile.isTreeBuildable(): Boolean = when (this) {
+    Swamp0,
+    Swamp1,
+    Swamp2,
+    Swamp3,
+    Crater,
+    Rubble0,
+    Rubble1,
+    Rubble2,
+    Rubble3,
+    Grass0,
+    Grass1,
+    Grass2,
+    Grass3,
+    -> true
+
+    else -> false
 }
