@@ -4,7 +4,7 @@ import adapters.Uint8ArrayAdapter
 import assert.never
 import bmap.Bmap
 import bmap.TypeTile
-import bmap.BORDER
+import bmap.BORDER_WIDTH
 import bmap.ind
 import bmap.isCraterLikeTile
 import bmap.isRoadLikeTile
@@ -52,7 +52,7 @@ class ImageTileArrayImpl(
                 }
             }
 
-            if (col >= BORDER && col < WORLD_WIDTH - BORDER && row >= BORDER && row < WORLD_HEIGHT - BORDER) {
+            if (col >= BORDER_WIDTH && col < WORLD_WIDTH - BORDER_WIDTH && row >= BORDER_WIDTH && row < WORLD_HEIGHT - BORDER_WIDTH) {
                 tiles[ind(col, row)] = bmap[col, row].toTypeTile().ordinal.toUByte()
             }
         }

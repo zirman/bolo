@@ -15,7 +15,7 @@ import kotlin.math.min
 
 const val WORLD_WIDTH: Int = 256
 const val WORLD_HEIGHT: Int = 256
-const val BORDER: Int = 16
+const val BORDER_WIDTH: Int = 16
 
 enum class TerrainTile {
     Sea,
@@ -66,11 +66,11 @@ class Bmap(
     }
 
     operator fun get(col: Int, row: Int): TerrainTile =
-        if (col < BORDER || col >= WORLD_WIDTH || row < 0 || row >= WORLD_HEIGHT) TerrainTile.SeaMined
+        if (col < BORDER_WIDTH || col >= WORLD_WIDTH || row < 0 || row >= WORLD_HEIGHT) TerrainTile.SeaMined
         else TerrainTile.entries[terrain[ind(col, row)].toInt()]
 
     operator fun set(col: Int, row: Int, t: TerrainTile) {
-        if (col >= BORDER && col < WORLD_WIDTH - BORDER && row >= BORDER && row < WORLD_HEIGHT - BORDER) {
+        if (col >= BORDER_WIDTH && col < WORLD_WIDTH - BORDER_WIDTH && row >= BORDER_WIDTH && row < WORLD_HEIGHT - BORDER_WIDTH) {
             terrain[ind(col, row)] = t.ordinal.toUByte()
         }
     }
@@ -407,7 +407,7 @@ fun nibbleToTerrain(nibble: Int): TerrainTile = when (nibble) {
 }
 
 fun defaultTerrain(col: Int, row: Int): TerrainTile =
-    if (col < BORDER || row < BORDER || col >= WORLD_WIDTH - BORDER || row >= WORLD_HEIGHT - BORDER) TerrainTile.SeaMined
+    if (col < BORDER_WIDTH || row < BORDER_WIDTH || col >= WORLD_WIDTH - BORDER_WIDTH || row >= WORLD_HEIGHT - BORDER_WIDTH) TerrainTile.SeaMined
     else TerrainTile.Sea
 
 class BmapCode {

@@ -3,7 +3,7 @@ package client
 import adapters.HTMLCanvasElementAdapter
 import adapters.RTCPeerConnectionAdapter
 import assert.never
-import bmap.BORDER
+import bmap.BORDER_WIDTH
 import bmap.Bmap
 import bmap.BmapCode
 import bmap.Entity
@@ -416,8 +416,8 @@ class GameImpl(
                 if (tank != null &&
                     downCol == col &&
                     downRow == row &&
-                    col in BORDER..<(WORLD_WIDTH - BORDER) &&
-                    row in BORDER..<(WORLD_HEIGHT - BORDER)
+                    col in BORDER_WIDTH..<(WORLD_WIDTH - BORDER_WIDTH) &&
+                    row in BORDER_WIDTH..<(WORLD_HEIGHT - BORDER_WIDTH)
                 ) {
                     if (tank.hasBuilder) {
                         control.builderMode.tryBuilderAction(tank, col, row)?.run {

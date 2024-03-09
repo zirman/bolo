@@ -250,7 +250,7 @@ fun TerrainTile.isWallBuildable(): Boolean = when (this) {
     else -> false
 }
 
-fun TerrainTile.isTreeBuildable(): Boolean = when (this) {
+fun TerrainTile.isTreeGrowable(): Boolean = when (this) {
     Swamp0,
     Swamp1,
     Swamp2,
