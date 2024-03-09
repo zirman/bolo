@@ -14,6 +14,7 @@ import math.V2
 import math.clamp
 import math.dirToVec
 import math.pi
+import math.squared
 import math.tau
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -68,7 +69,7 @@ class TankImpl(
         return nextBuilderMission
     }
 
-    override fun setNextBuilderMission(nextBuilderMission: NextBuilderMission) {
+    override fun setNextBuilderMission(nextBuilderMission: NextBuilderMission?) {
         _nextBuilderMission = nextBuilderMission
     }
 
@@ -228,19 +229,19 @@ class TankImpl(
 
             push = when {
                 fxc.not() && fyc.not() &&
-                        (((fx * fx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpLeft.isShore())
+                        (((fx * fx + fy * fy) < (TANK_RADIUS.squared)) && terrainUpLeft.isShore())
                 -> V2.create(fx, fy)
 
                 cxc.not() && fyc.not() &&
-                        (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpRight.isShore())
+                        (((cx * cx + fy * fy) < (TANK_RADIUS.squared)) && terrainUpRight.isShore())
                 -> V2.create(-cx, fy)
 
                 fxc.not() && cyc.not() &&
-                        (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownLeft.isShore())
+                        (((fx * fx + cy * cy) < (TANK_RADIUS.squared)) && terrainDownLeft.isShore())
                 -> V2.create(fx, -cy)
 
                 cxc.not() && cyc.not() &&
-                        (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownRight.isShore())
+                        (((cx * cx + cy * cy) < (TANK_RADIUS.squared)) && terrainDownRight.isShore())
                 -> V2.create(-cx, -cy)
 
                 else -> when {

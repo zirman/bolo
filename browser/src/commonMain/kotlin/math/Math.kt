@@ -29,3 +29,5 @@ fun mulV3(r: FloatArray, ri: Int, v: FloatArray, vi: Int, s: Float) {
     r[ri + 1] = v[vi + 1] * s
     r[ri + 2] = v[vi + 2] * s
 }
+
+inline val Float.squared: Float get() = this * this

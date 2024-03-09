@@ -3,6 +3,7 @@ package client
 import bmap.Entity
 import bmap.TerrainTile
 import math.V2
+import math.squared
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
@@ -22,7 +23,10 @@ class BuilderImpl(
     private var material: Int,
     private var mines: Int,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
+    class BuilderKilled : Throwable()
+
     companion object {
+        private val BUILDER_KILLED = BuilderKilled()
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
         private const val BUILD_TIME = .25f
@@ -125,13 +129,55 @@ class BuilderImpl(
     override var position: V2 = startPosition
         private set
 
+    private suspend fun ConsumerScope<Tick>.harvest(col: Int, row: Int): Tick {
+        var buildResult: BuildResult? = null
+        var done = false
+
+        buildTerrain(col, row, TerrainTile.Grass3) {
+            buildResult = it
+        }
+
+        // wait for servers response
+        var timeDelta = 0f
+
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+
+            when (buildResult) {
+                BuildResult.Success -> {
+                    material = TREE_MATERIAL
+                    done = true
+                }
+
+                BuildResult.Failed -> {
+                    done = true
+                }
+
+                BuildResult.Mined -> {
+                    tick.killBuilder()
+                    throw BUILDER_KILLED
+                }
+
+                null -> {
+                }
+            }
+
+            buildResult = null
+
+            if (done && timeDelta >= BUILD_TIME) {
+                return tick
+            }
+        }
+    }
+
     private suspend fun ConsumerScope<Tick>.build(
         col: Int,
         row: Int,
         terrainTile: TerrainTile,
-        block: Tick.(BuildResult) -> Unit,
     ): Tick {
         var buildResult: BuildResult? = null
+        var done = false
 
         buildTerrain(col, row, terrainTile) {
             buildResult = it
@@ -143,20 +189,37 @@ class BuilderImpl(
         while (true) {
             val tick = next()
             timeDelta += tick.delta
-            buildResult = buildResult?.run { tick.block(this); null }
 
-            if (timeDelta >= BUILD_TIME) {
+            when (buildResult) {
+                BuildResult.Success -> {
+                    material = 0
+                    done = true
+                }
+
+                BuildResult.Failed -> {
+                    done = true
+                }
+
+                BuildResult.Mined -> {
+                    tick.killBuilder()
+                    throw BUILDER_KILLED
+                }
+
+                null -> {
+                }
+            }
+
+            buildResult = null
+
+            if (done && timeDelta >= BUILD_TIME) {
                 return tick
             }
         }
     }
 
-    private suspend fun ConsumerScope<Tick>.placeMine(
-        col: Int,
-        row: Int,
-        block: Tick.(BuildResult) -> Unit,
-    ): Tick {
+    private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick {
         var buildResult: BuildResult? = null
+        var done = false
 
         mineTerrain(col, row) {
             buildResult = it
@@ -168,17 +231,41 @@ class BuilderImpl(
         while (true) {
             val tick = next()
             timeDelta += tick.delta
-            buildResult = buildResult?.run { tick.block(this); null }
 
-            if (timeDelta >= BUILD_TIME) {
+            when (buildResult) {
+                BuildResult.Success -> {
+                    mines = 0
+                    done = true
+                }
+
+                BuildResult.Failed -> {
+                    done = true
+                }
+
+                BuildResult.Mined -> {
+                    tick.killBuilder()
+                    throw BUILDER_KILLED
+                }
+
+                null -> {
+                }
+            }
+
+            buildResult = null
+
+            if (done && timeDelta >= BUILD_TIME) {
                 return tick
             }
         }
     }
 
     override val consumer: Consumer<Tick> = consumer {
-        buildMission?.run { gotoTarget(this) }
-        gotoTank()
+        try {
+            buildMission?.run { gotoTarget(this) }
+            gotoTank()
+        } catch (error: BuilderKilled) {
+            // ignore
+        }
     }
 
     private suspend fun ConsumerScope<Tick>.gotoTarget(buildMission: BuilderMission): Tick {
@@ -212,44 +299,23 @@ class BuilderImpl(
             } else {
                 when (buildMission) {
                     is BuilderMission.HarvestTree -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Grass3) {
-                            material += TREE_MATERIAL
-                        }
+                        harvest(buildMission.col, buildMission.row)
                     }
 
                     is BuilderMission.BuildWall -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Wall) {
-                            material -= WALL_MATERIAL
-                        }
+                        build(buildMission.col, buildMission.row, TerrainTile.Wall)
                     }
 
                     is BuilderMission.BuildRoad -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Road) {
-                            material -= ROAD_MATERIAL
-                        }
+                        build(buildMission.col, buildMission.row, TerrainTile.Road)
                     }
 
                     is BuilderMission.BuildBoat -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Boat) {
-                            material -= BOAT_MATERIAL
-                        }
+                        build(buildMission.col, buildMission.row, TerrainTile.Boat)
                     }
 
                     is BuilderMission.PlaceMine -> {
-                        placeMine(buildMission.col, buildMission.row) { buildResult ->
-                            when (buildResult) {
-                                BuildResult.Success -> {
-                                    mines -= 1
-                                }
-
-                                BuildResult.Failed -> {
-                                }
-
-                                BuildResult.Mined -> {
-                                    set(get<Parachute> { parametersOf(position) })
-                                }
-                            }
-                        }
+                        placeMine(buildMission.col, buildMission.row)
                     }
 
                     is BuilderMission.PlacePill -> {
@@ -324,8 +390,13 @@ class BuilderImpl(
         }
     }
 
+    private fun Tick.killBuilder() {
+        tank?.setNextBuilderMission(null)
+        set(get<Parachute> { parametersOf(position) })
+    }
+
     private fun V2.collisionDetect(): V2 {
-        val rr: Float = BUILDER_RADIUS * BUILDER_RADIUS
+        val rr: Float = BUILDER_RADIUS.squared
 
         val fx: Int = x.toInt()
         val fy: Int = y.toInt()
@@ -335,8 +406,8 @@ class BuilderImpl(
         val hy: Float = 1f - ly
 
         fun isSolid(col: Int, row: Int): Boolean {
-            return (col != buildMission?.col ||
-                    row != buildMission.row) && bmap.getEntity(col, row).isSolid(owner.int)
+            return (col != buildMission?.col || row != buildMission.row) &&
+                    bmap.getEntity(col, row).isSolid(owner.int)
         }
 
         val lxc: Boolean = lx < BUILDER_RADIUS && isSolid(fx - 1, fy)
