@@ -33,55 +33,15 @@ value class V3(val array: FloatArray) {
             array[2] = z
         }
 
-    fun dot(v: V3): Float =
-        x * v.x + y * v.y + z * v.z
-
-    fun cross(v: V3): V3 =
-        create(
-            y * v.z - z * v.y,
-            -(x * v.z - z * v.x),
-            x * v.y - y * v.x,
-        )
-
-    inline val negative: V3
-        get() = create(
-            -x,
-            -y,
-            -z,
-        )
-
+    inline val negative: V3 get() = create(-x, -y, -z)
     inline val normalize: V3 get() = scale(1f / magnitude)
     inline val magnitude: Float get() = sqrt(dot(this))
 
-    fun scale(s: Float): V3 =
-        create(
-            x * s,
-            y * s,
-            z * s,
-        )
-
-    fun div(d: Float): V3 =
-        create(
-            x / d,
-            y / d,
-            z / d,
-        )
-
-    fun add(v: V3): V3 =
-        create(
-            x + v.x,
-            y + v.y,
-            z + v.z,
-        )
-
-    fun sub(v: V3): V3 =
-        create(
-            x - v.x,
-            y - v.y,
-            z - v.z,
-        )
-
-    fun eq(v: V3): Boolean = x == v.x &&
-            y == v.y &&
-            z == v.z
+    fun dot(v: V3): Float = x * v.x + y * v.y + z * v.z
+    fun cross(v: V3): V3 = create(y * v.z - z * v.y, -(x * v.z - z * v.x), x * v.y - y * v.x)
+    fun scale(s: Float): V3 = create(x * s, y * s, z * s)
+    fun div(d: Float): V3 = create(x / d, y / d, z / d)
+    fun add(v: V3): V3 = create(x + v.x, y + v.y, z + v.z)
+    fun sub(v: V3): V3 = create(x - v.x, y - v.y, z - v.z)
+    fun eq(v: V3): Boolean = x == v.x && y == v.y && z == v.z
 }
