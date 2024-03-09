@@ -12,5 +12,6 @@ interface Tank : GameProcess {
     var material: Int
     var mines: Int
     var hasBuilder: Boolean
-    var nextBuilderMission: NextBuilderMission?
+    fun getNextBuilderMission(): NextBuilderMission?
+    fun setNextBuilderMission(nextBuilderMission: NextBuilderMission)
 }

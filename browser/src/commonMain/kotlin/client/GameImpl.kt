@@ -34,19 +34,12 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.M4
 import math.V2
-import math.V2_ORIGIN
-import math.add
 import math.dirToVec
-import math.orthographicProj2d
-import math.scale
-import math.x
-import math.y
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 class GameImpl(
     private val scope: CoroutineScope,
@@ -61,8 +54,7 @@ class GameImpl(
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
 ) : Game, KoinComponent {
-    override val random = Random.Default
-    override var center: V2 = V2_ORIGIN
+    override var center: V2 = V2.ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
     private val frameRegulator: MutableSet<Float> = mutableSetOf()
     private val buildQueue: MutableList<BuildOp> = mutableListOf()
@@ -71,6 +63,7 @@ class GameImpl(
     override val tank: Tank? get() = gameProcesses.filterIsInstance<Tank>().firstOrNull()
     private val builder: Builder? get() = gameProcesses.filterIsInstance<Builder>().firstOrNull()
     private val shells: List<Shell> get() = gameProcesses.filterIsInstance<Shell>()
+    private val parachutes: List<Parachute> get() = gameProcesses.filterIsInstance<Parachute>()
 
     private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess {
         // creates tank on first frame
@@ -101,12 +94,17 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override fun buildTerrain(col: Int, row: Int, t: TerrainTile, material: Int, result: (Boolean) -> Unit) {
-        buildQueue.add(BuildOp.Terrain(t, col, row, result))
+    override fun buildTerrain(
+        col: Int,
+        row: Int,
+        terrainTile: TerrainTile,
+        result: (BuildResult) -> Unit,
+    ) {
+        buildQueue.add(BuildOp.Terrain(terrainTile, col, row, result))
 
         FrameClient
             .TerrainBuild(
-                terrain = t,
+                terrain = terrainTile,
                 col = col,
                 row = row,
             )
@@ -114,7 +112,7 @@ class GameImpl(
             .let { sendChannel.trySend(it).getOrThrow() }
     }
 
-    override fun mineTerrain(col: Int, row: Int) {
+    override fun mineTerrain(col: Int, row: Int, result: (BuildResult) -> Unit) {
         bmap.mine(col, row)
         tileArray.update(col, row)
 
@@ -168,7 +166,7 @@ class GameImpl(
         val windowHeight: Float = (canvas.height.toFloat() / TILE_PIXEL_HEIGHT.toFloat()) / zoomLevel
 
         val clipMatrix: M4 =
-            orthographicProj2d(
+            M4.orthographicProj2d(
                 left = center.x - (windowWidth / 2f),
                 right = center.x + (windowWidth / 2f),
                 bottom = center.y - (windowHeight / 2f),
@@ -176,73 +174,82 @@ class GameImpl(
             )
 
         tileProgram(clipMatrix, tileArray)
-        val sprites = mutableListOf<SpriteInstance>()
 
-        builder?.run {
-            SpriteInstance(
-                x = position.x,
-                y = position.y,
-                sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
-                    0 -> Sprite.Lgm0
-                    1 -> Sprite.Lgm1
-                    else -> never()
-                },
-            ).run { sprites.add(this) }
-        }
-
-        for ((_, peer) in peers) {
-            val tank = peer.tank
-
-            if (tank != null) {
+        val sprites = buildList {
+            builder?.run {
                 SpriteInstance(
-                    x = tank.x,
-                    y = tank.y,
-                    sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
-                        .withBearing(tank.bearing),
-                ).let { sprites.add(it) }
+                    x = position.x,
+                    y = position.y,
+                    sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
+                        0 -> Sprite.Lgm0
+                        1 -> Sprite.Lgm1
+                        else -> never()
+                    },
+                ).run { add(this) }
             }
 
-            for (shell in peer.shells) {
+            for ((_, peer) in peers) {
+                val tank = peer.tank
+
+                if (tank != null) {
+                    SpriteInstance(
+                        x = tank.x,
+                        y = tank.y,
+                        sprite = run { if (tank.onBoat) Sprite.TankEnemyBoat0 else Sprite.TankEnemy0 }
+                            .withBearing(tank.bearing),
+                    ).let { add(it) }
+                }
+
+                for (shell in peer.shells) {
+                    SpriteInstance(
+                        x = shell.x,
+                        y = shell.y,
+                        sprite = Sprite.Shell0.withBearing(shell.bearing),
+                    ).let { add(it) }
+                }
+
+                val builder = peer.builder
+
+                if (builder != null) {
+                    SpriteInstance(
+                        x = builder.x,
+                        y = builder.y,
+                        sprite = Sprite.Lgm0,
+                    ).let { add(it) }
+                }
+            }
+
+            tank?.run {
                 SpriteInstance(
-                    x = shell.x,
-                    y = shell.y,
+                    x = position.x,
+                    y = position.y,
+                    sprite = (if (onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(bearing),
+                ).let { add(it) }
+
+                val reticulePosition = position.add(dirToVec(bearing).scale(sightRange))
+
+                SpriteInstance(
+                    x = reticulePosition.x,
+                    y = reticulePosition.y,
+                    sprite = Sprite.Reticule,
+                ).let { add(it) }
+            }
+
+            for (shell in shells) {
+                SpriteInstance(
+                    x = shell.position.x,
+                    y = shell.position.y,
                     sprite = Sprite.Shell0.withBearing(shell.bearing),
-                ).let { sprites.add(it) }
+                ).let { add(it) }
             }
 
-            val builder = peer.builder
-
-            if (builder != null) {
+            for (parachute in parachutes) {
                 SpriteInstance(
-                    x = builder.x,
-                    y = builder.y,
-                    sprite = Sprite.Lgm0,
-                ).let { sprites.add(it) }
+                    x = parachute.position.x,
+                    y = parachute.position.y,
+                    sprite = Sprite.Parachute,
+                ).let { add(it) }
             }
-        }
-
-        tank?.run {
-            SpriteInstance(
-                x = position.x,
-                y = position.y,
-                sprite = (if (onBoat) Sprite.TankBoat0 else Sprite.Tank0).withBearing(bearing),
-            ).let { sprites.add(it) }
-
-            val reticulePosition = position.add(dirToVec(bearing).scale(sightRange))
-
-            SpriteInstance(
-                x = reticulePosition.x,
-                y = reticulePosition.y,
-                sprite = Sprite.Reticule,
-            ).let { sprites.add(it) }
-        }
-
-        for (shell in shells) {
-            SpriteInstance(
-                x = shell.position.x,
-                y = shell.position.y,
-                sprite = Sprite.Shell0.withBearing(shell.bearing),
-            ).let { sprites.add(it) }
         }
 
         spriteProgram(clipMatrix, sprites)
@@ -418,10 +425,12 @@ class GameImpl(
                             add(this)
                         }
                     } else {
-                        tank.nextBuilderMission = NextBuilderMission(
-                            builderMode = control.builderMode,
-                            col = col,
-                            row = row,
+                        tank.setNextBuilderMission(
+                            NextBuilderMission(
+                                builderMode = control.builderMode,
+                                col = col,
+                                row = row,
+                            )
                         )
                     }
                 }
@@ -676,17 +685,17 @@ class GameImpl(
                             bmap[buildOp.col, buildOp.row] = buildOp.terrain
                             bmapCode.inc(buildOp.col, buildOp.row)
                             tileArray.update(buildOp.col, buildOp.row)
-                            buildOp.result(true)
+                            buildOp.result(BuildResult.Success)
                         }
 
                         is FrameServer.TerrainBuildFailed -> {
                             val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            buildOp.result(false)
+                            buildOp.result(BuildResult.Failed)
                         }
 
                         is FrameServer.TerrainBuildMined -> {
                             val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            buildOp.result(false)
+                            buildOp.result(BuildResult.Mined)
                         }
 
                         is FrameServer.TerrainDamage -> {

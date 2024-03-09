@@ -11,25 +11,17 @@ import frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.serialization.protobuf.ProtoBuf
 import math.V2
-import math.V2_ORIGIN
-import math.add
 import math.clamp
 import math.dirToVec
-import math.mag
-import math.norm
 import math.pi
-import math.prj
-import math.scale
 import math.tau
-import math.v2
-import math.x
-import math.y
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class TankImpl(
     private val tankShotAudioManager: AudioManager,
@@ -53,9 +45,9 @@ class TankImpl(
         // private const val FORCE_KICK: Float = 25f / 8f
     }
 
-    private val start: StartInfo = bmap.starts[random.nextInt(bmap.starts.size)]
+    private val start: StartInfo = bmap.starts[Random.Default.nextInt(bmap.starts.size)]
 
-    override var position: V2 = v2(x = start.col.toFloat() + .5f, y = start.row.toFloat() + .5f)
+    override var position: V2 = V2.create(x = start.col.toFloat() + .5f, y = start.row.toFloat() + .5f)
         private set
 
     override var bearing: Float = start.direction.toFloat() * (Float.pi / 8f)
@@ -69,7 +61,16 @@ class TankImpl(
 
     override var material: Int = 0
 
-    override var nextBuilderMission: NextBuilderMission? = null
+    private var _nextBuilderMission: NextBuilderMission? = null
+    override fun getNextBuilderMission(): NextBuilderMission? {
+        val nextBuilderMission = _nextBuilderMission
+        _nextBuilderMission = null
+        return nextBuilderMission
+    }
+
+    override fun setNextBuilderMission(nextBuilderMission: NextBuilderMission) {
+        _nextBuilderMission = nextBuilderMission
+    }
 
     private var reload: Float = 0f
     private var shells: Int = TANK_SHELLS_MAX
@@ -84,7 +85,7 @@ class TankImpl(
     private var refuelingTime: Float = 0f
 
     init {
-        center = v2(x = start.col.toFloat() + .5f, y = WORLD_HEIGHT - (start.row.toFloat() + .5f))
+        center = V2.create(x = start.col.toFloat() + .5f, y = WORLD_HEIGHT - (start.row.toFloat() + .5f))
         setArmorStatusBar(armor.toFloat() / TANK_ARMOR_MAX)
         setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
         setMinesStatusBar(mines.toFloat() / TANK_MINES_MAX)
@@ -228,46 +229,46 @@ class TankImpl(
             push = when {
                 fxc.not() && fyc.not() &&
                         (((fx * fx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpLeft.isShore())
-                -> v2(fx, fy)
+                -> V2.create(fx, fy)
 
                 cxc.not() && fyc.not() &&
                         (((cx * cx + fy * fy) < (TANK_RADIUS * TANK_RADIUS)) && terrainUpRight.isShore())
-                -> v2(-cx, fy)
+                -> V2.create(-cx, fy)
 
                 fxc.not() && cyc.not() &&
                         (((fx * fx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownLeft.isShore())
-                -> v2(fx, -cy)
+                -> V2.create(fx, -cy)
 
                 cxc.not() && cyc.not() &&
                         (((cx * cx + cy * cy) < (TANK_RADIUS * TANK_RADIUS)) && terrainDownRight.isShore())
-                -> v2(-cx, -cy)
+                -> V2.create(-cx, -cy)
 
                 else -> when {
                     fxc -> when {
-                        fyc -> v2(fy, fx)
-                        cyc -> v2(cy, -fx)
-                        else -> v2(fx, 0f)
+                        fyc -> V2.create(fy, fx)
+                        cyc -> V2.create(cy, -fx)
+                        else -> V2.create(fx, 0f)
                     }
 
                     cxc -> when {
-                        fyc -> v2(-fy, cx)
-                        cyc -> v2(-cy, -cx)
-                        else -> v2(-cx, 0f)
+                        fyc -> V2.create(-fy, cx)
+                        cyc -> V2.create(-cy, -cx)
+                        else -> V2.create(-cx, 0f)
                     }
 
                     else -> when {
-                        fyc -> v2(0f, fy)
-                        cyc -> v2(0f, -cy)
-                        else -> V2_ORIGIN
+                        fyc -> V2.create(0f, fy)
+                        cyc -> V2.create(0f, -cy)
+                        else -> V2.ORIGIN
                     }
                 }
             }
 
-            if (push.mag() > 0.00001) {
-                val f: Float = push.prj(dirToVec(bearing).scale(speed)).mag()
+            if (push.magnitude > 0.00001) {
+                val f: Float = push.prj(dirToVec(bearing).scale(speed)).magnitude
 
                 if (f < FORCE_PUSH) {
-                    position = position.add(push.norm().scale(FORCE_PUSH / tick.ticksPerSec))
+                    position = position.add(push.normalize.scale(FORCE_PUSH / tick.ticksPerSec))
                 }
 
                 // apply breaks if not accelerating
@@ -296,28 +297,28 @@ class TankImpl(
         var sqr: Float = lx * lx + ly * ly
         if (lxc.not() && lyc.not() && sqr < rr && bmap.getEntity(fx - 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
-            return v2((fx + sca * lx), (fy + sca * ly))
+            return V2.create((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
         if (hxc.not() && lyc.not() && sqr < rr && bmap.getEntity(fx + 1, fy - 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
-            return v2((fx + (1 - sca * hx)), (fy + sca * ly))
+            return V2.create((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
         if (lxc.not() && hyc.not() && sqr < rr && bmap.getEntity(fx - 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
-            return v2((fx + sca * lx), (fy + (1f - sca * hy)))
+            return V2.create((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
         if (hxc.not() && hyc.not() && sqr < rr && bmap.getEntity(fx + 1, fy + 1).isSolid(owner.int)) {
             val sca: Float = TANK_RADIUS / sqrt(sqr)
-            return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
+            return V2.create((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }
 
-        return v2(
+        return V2.create(
             x = when {
                 lxc -> fx + TANK_RADIUS
                 hxc -> fx + (1f - TANK_RADIUS)
@@ -341,7 +342,9 @@ class TankImpl(
                     onBoat = false
 
                     if (onTerrain == TerrainTile.River) {
-                        buildTerrain(onCol, onRow, TerrainTile.Boat, BuilderImpl.BOAT_MATERIAL) {}
+                        buildTerrain(onCol, onRow, TerrainTile.Boat) {
+
+                        }
                     }
                 } else if (bmap[col, row] == TerrainTile.Boat) {
                     terrainDamage(col, row)
@@ -366,7 +369,9 @@ class TankImpl(
 
     private fun TerrainKernel.mineLaying(tick: Tick) {
         if (tick.control.layMineButton && mines > 0 && bmap[onCol, onRow].isMinedTerrain().not()) {
-            mineTerrain(onCol, onRow)
+            mineTerrain(onCol, onRow) {
+
+            }
         }
     }
 

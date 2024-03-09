@@ -7,7 +7,13 @@ sealed interface BuildOp {
         val terrain: TerrainTile,
         val col: Int,
         val row: Int,
-        val result: (Boolean) -> Unit,
+        val result: (BuildResult) -> Unit,
+    ) : BuildOp
+
+    data class Mine(
+        val col: Int,
+        val row: Int,
+        val result: (BuildResult) -> Unit,
     ) : BuildOp
 
     data object PillPlacement : BuildOp

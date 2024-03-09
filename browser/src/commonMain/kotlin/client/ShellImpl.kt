@@ -3,12 +3,8 @@ package client
 import bmap.Entity
 import bmap.TerrainTile
 import math.V2
-import math.add
 import math.clamp
 import math.dirToVec
-import math.scale
-import math.x
-import math.y
 
 class ShellImpl(
     game: Game,

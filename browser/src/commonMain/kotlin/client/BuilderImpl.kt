@@ -3,14 +3,9 @@ package client
 import bmap.Entity
 import bmap.TerrainTile
 import math.V2
-import math.add
-import math.mag
-import math.scale
-import math.sub
-import math.v2
-import math.x
-import math.y
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -23,7 +18,7 @@ enum class BuildResult {
 class BuilderImpl(
     game: Game,
     startPosition: V2,
-    private val buildMission: BuilderMission,
+    private val buildMission: BuilderMission?,
     private var material: Int,
     private var mines: Int,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
@@ -130,43 +125,74 @@ class BuilderImpl(
     override var position: V2 = startPosition
         private set
 
-    private suspend fun ConsumerScope<Tick>.build(col: Int, row: Int, terrainTile: TerrainTile, block: () -> Unit) {
-        var completed = false
+    private suspend fun ConsumerScope<Tick>.build(
+        col: Int,
+        row: Int,
+        terrainTile: TerrainTile,
+        block: Tick.(BuildResult) -> Unit,
+    ): Tick {
+        var buildResult: BuildResult? = null
 
-        buildTerrain(col, row, terrainTile, material) { success ->
-            completed = true
-
-            if (success) {
-                block()
-            }
+        buildTerrain(col, row, terrainTile) {
+            buildResult = it
         }
 
-        wait(BUILD_TIME)
+        // wait for servers response
+        var timeDelta = 0f
+
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult = buildResult?.run { tick.block(this); null }
+
+            if (timeDelta >= BUILD_TIME) {
+                return tick
+            }
+        }
+    }
+
+    private suspend fun ConsumerScope<Tick>.placeMine(
+        col: Int,
+        row: Int,
+        block: Tick.(BuildResult) -> Unit,
+    ): Tick {
+        var buildResult: BuildResult? = null
+
+        mineTerrain(col, row) {
+            buildResult = it
+        }
 
         // wait for servers response
+        var timeDelta = 0f
+
         while (true) {
-            next()
-            if (completed) break
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult = buildResult?.run { tick.block(this); null }
+
+            if (timeDelta >= BUILD_TIME) {
+                return tick
+            }
         }
     }
 
     override val consumer: Consumer<Tick> = consumer {
-        gotoTarget(buildMission.col, buildMission.row)
+        buildMission?.run { gotoTarget(this) }
         gotoTank()
     }
 
-    private suspend fun ConsumerScope<Tick>.gotoTarget(col: Int, row: Int): Tick {
-        val targetPosition: V2 = v2(col + .5f, row + .5f)
+    private suspend fun ConsumerScope<Tick>.gotoTarget(buildMission: BuilderMission): Tick {
+        val targetPosition: V2 = V2.create(buildMission.col + .5f, buildMission.row + .5f)
 
         while (true) {
             val tick = next()
             val diff = targetPosition.sub(position)
-            val mag = diff.mag()
-            val x = position.x.toInt()
-            val y = position.y.toInt()
+            val mag = diff.magnitude
+            val col = position.x.toInt()
+            val row = position.y.toInt()
 
-            val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
-                if (it == 0f && x == buildMission.col && y == buildMission.row) {
+            val speed = this@BuilderImpl[col, row].builderSpeed(owner.int).let {
+                if (it == 0f && col == buildMission.col && row == buildMission.row) {
                     MAX_SPEED
                 } else {
                     it
@@ -180,7 +206,7 @@ class BuilderImpl(
                 position = diff.scale(move / mag).add(position).collisionDetect()
 
                 // check if stuck
-                if (position.sub(oldPosition).mag() < 0.001) {
+                if (position.sub(oldPosition).magnitude < 0.001) {
                     return tick
                 }
             } else {
@@ -210,9 +236,36 @@ class BuilderImpl(
                     }
 
                     is BuilderMission.PlaceMine -> {
+                        placeMine(buildMission.col, buildMission.row) { buildResult ->
+                            when (buildResult) {
+                                BuildResult.Success -> {
+                                    mines -= 1
+                                }
+
+                                BuildResult.Failed -> {
+                                }
+
+                                BuildResult.Mined -> {
+                                    set(get<Parachute> { parametersOf(position) })
+                                }
+                            }
+                        }
                     }
 
                     is BuilderMission.PlacePill -> {
+//                        placeMine(buildMission.col, buildMission.row) { buildResult ->
+//                            when (buildResult) {
+//                                BuildResult.Success -> {
+//                                }
+//
+//                                BuildResult.Failed -> {
+//                                }
+//
+//                                BuildResult.Mined -> {
+//                                    set(get<Parachute>())
+//                                }
+//                            }
+//                        }
                     }
 
                     is BuilderMission.RepairPill -> {
@@ -229,15 +282,15 @@ class BuilderImpl(
             val tick = next()
             val tank = tank ?: continue
             val diff = tank.position.sub(position)
-            val mag = diff.mag()
-            val x = position.x.toInt()
-            val y = position.y.toInt()
+            val mag = diff.magnitude
+            val col = position.x.toInt()
+            val row = position.y.toInt()
 
-            val speed = this@BuilderImpl[x, y].builderSpeed(owner.int).let {
-                if (it == 0f && x == buildMission.col && y == buildMission.row) {
+            val speed = this@BuilderImpl[col, row].builderSpeed(owner.int).let { speed ->
+                if (speed == 0f && col == buildMission?.col && row == buildMission.row) {
                     MAX_SPEED
                 } else {
-                    it
+                    speed
                 }
             }
 
@@ -254,10 +307,8 @@ class BuilderImpl(
                 setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
                 mines = 0
 
-                val nextBuilderMission = tank.nextBuilderMission
+                val nextBuilderMission = tank.getNextBuilderMission()
                 if (nextBuilderMission != null) {
-                    tank.nextBuilderMission = null
-
                     nextBuilderMission.builderMode.tryBuilderAction(
                         tank = tank,
                         col = nextBuilderMission.col,
@@ -284,7 +335,7 @@ class BuilderImpl(
         val hy: Float = 1f - ly
 
         fun isSolid(col: Int, row: Int): Boolean {
-            return (col != buildMission.col ||
+            return (col != buildMission?.col ||
                     row != buildMission.row) && bmap.getEntity(col, row).isSolid(owner.int)
         }
 
@@ -296,28 +347,28 @@ class BuilderImpl(
         var sqr: Float = lx * lx + ly * ly
         if (!lxc && !lyc && sqr < rr && isSolid(fx - 1, fy - 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
-            return v2((fx + sca * lx), (fy + sca * ly))
+            return V2.create((fx + sca * lx), (fy + sca * ly))
         }
 
         sqr = hx * hx + ly * ly
         if (!hxc && !lyc && sqr < rr && isSolid(fx + 1, fy - 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
-            return v2((fx + (1 - sca * hx)), (fy + sca * ly))
+            return V2.create((fx + (1 - sca * hx)), (fy + sca * ly))
         }
 
         sqr = lx * lx + hy * hy
         if (!lxc && !hyc && sqr < rr && isSolid(fx - 1, fy + 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
-            return v2((fx + sca * lx), (fy + (1f - sca * hy)))
+            return V2.create((fx + sca * lx), (fy + (1f - sca * hy)))
         }
 
         sqr = hx * hx + hy * hy
         if (!hxc && !hyc && sqr < rr && isSolid(fx + 1, fy + 1)) {
             val sca: Float = BUILDER_RADIUS / sqrt(sqr)
-            return v2((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
+            return V2.create((fx + (1f - sca * hx)), (fy + (1f - sca * hy)))
         }
 
-        return v2(
+        return V2.create(
             x = when {
                 lxc -> fx + BUILDER_RADIUS
                 hxc -> fx + (1f - BUILDER_RADIUS)

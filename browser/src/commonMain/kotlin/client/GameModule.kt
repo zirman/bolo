@@ -107,6 +107,13 @@ val gameModule = module {
         )
     }
 
+    factory<Parachute> { (targetPosition: V2) ->
+        ParachuteImpl(
+            game = get(),
+            targetPosition = targetPosition,
+        )
+    }
+
     single<ImageTileArray> {
         ImageTileArrayImpl(
             bmap = get(),
