@@ -407,6 +407,20 @@ class BoloServer(
                 clients.forEach { (_, client) -> client.send(serverFrame) }
             }
         }
+
+        // check for mines
+        if (bmap[frameClient.col, frameClient.row].isMined()) {
+            bmap.damage(frameClient.col, frameClient.row)
+
+            val serverFrame = FrameServer
+                .TerrainDamage(
+                    col = frameClient.col,
+                    row = frameClient.row,
+                )
+                .toByteArray()
+
+            clients.forEach { (_, client) -> client.send(serverFrame) }
+        }
     }
 
     private suspend fun DefaultWebSocketServerSession.cleanup(owner: Owner) {

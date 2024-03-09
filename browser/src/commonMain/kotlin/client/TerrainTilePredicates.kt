@@ -200,6 +200,7 @@ fun TerrainTile.isMined(): Boolean = when (this) {
     TreeMined,
     RubbleMined,
     GrassMined,
+    SeaMined,
     -> true
 
     else -> false

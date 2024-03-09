@@ -5,7 +5,6 @@ import bmap.Entity
 import bmap.StartInfo
 import bmap.TerrainTile
 import bmap.WORLD_HEIGHT
-import bmap.isMinedTerrain
 import bmap.isSolid
 import frame.FrameClient
 import io.ktor.websocket.Frame
@@ -369,7 +368,7 @@ class TankImpl(
     }
 
     private fun TerrainKernel.mineLaying(tick: Tick) {
-        if (tick.control.layMineButton && mines > 0 && bmap[onCol, onRow].isMinedTerrain().not()) {
+        if (tick.control.layMineButton && mines > 0 && bmap[onCol, onRow].isMined().not()) {
             mineTerrain(onCol, onRow) {
 
             }
