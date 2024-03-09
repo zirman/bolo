@@ -57,14 +57,13 @@ class Bmap(
     val bases: Array<Base>,
     val starts: Array<StartInfo>,
 ) {
-    private val terrain = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
-        .apply {
-            for (y in 0..<WORLD_HEIGHT) {
-                for (x in 0..<WORLD_WIDTH) {
-                    this[ind(x, y)] = defaultTerrain(x, y).ordinal.toUByte()
-                }
+    private val terrain = UByteArray(WORLD_WIDTH * WORLD_HEIGHT).apply {
+        for (y in 0..<WORLD_HEIGHT) {
+            for (x in 0..<WORLD_WIDTH) {
+                this[ind(x, y)] = defaultTerrain(x, y).ordinal.toUByte()
             }
         }
+    }
 
     operator fun get(col: Int, row: Int): TerrainTile =
         if (col < BORDER || col >= WORLD_WIDTH || row < 0 || row >= WORLD_HEIGHT) TerrainTile.SeaMined
@@ -136,47 +135,45 @@ fun Entity.Pill.isSolid(): Boolean =
 fun Entity.Base.isSolid(owner: Int): Boolean =
     ref.armor > 0 && (ref.owner == 0xff || ref.owner == owner).not()
 
-fun Entity.isSolid(owner: Int): Boolean {
-    return when (this) {
-        is Entity.Pill -> isSolid()
-        is Entity.Base -> isSolid(owner)
-        is Entity.Terrain ->
-            when (terrain) {
-                TerrainTile.Wall,
-                TerrainTile.WallDamaged0,
-                TerrainTile.WallDamaged1,
-                TerrainTile.WallDamaged2,
-                TerrainTile.WallDamaged3,
-                -> true
+fun Entity.isSolid(owner: Int): Boolean = when (this) {
+    is Entity.Pill -> isSolid()
+    is Entity.Base -> isSolid(owner)
+    is Entity.Terrain ->
+        when (terrain) {
+            TerrainTile.Wall,
+            TerrainTile.WallDamaged0,
+            TerrainTile.WallDamaged1,
+            TerrainTile.WallDamaged2,
+            TerrainTile.WallDamaged3,
+            -> true
 
-                TerrainTile.Sea,
-                TerrainTile.River,
-                TerrainTile.Swamp0,
-                TerrainTile.Swamp1,
-                TerrainTile.Swamp2,
-                TerrainTile.Swamp3,
-                TerrainTile.Crater,
-                TerrainTile.Road,
-                TerrainTile.Tree,
-                TerrainTile.Rubble0,
-                TerrainTile.Rubble1,
-                TerrainTile.Rubble2,
-                TerrainTile.Rubble3,
-                TerrainTile.Grass0,
-                TerrainTile.Grass1,
-                TerrainTile.Grass2,
-                TerrainTile.Grass3,
-                TerrainTile.Boat,
-                TerrainTile.SeaMined,
-                TerrainTile.SwampMined,
-                TerrainTile.CraterMined,
-                TerrainTile.RoadMined,
-                TerrainTile.TreeMined,
-                TerrainTile.RubbleMined,
-                TerrainTile.GrassMined,
-                -> false
-            }
-    }
+            TerrainTile.Sea,
+            TerrainTile.River,
+            TerrainTile.Swamp0,
+            TerrainTile.Swamp1,
+            TerrainTile.Swamp2,
+            TerrainTile.Swamp3,
+            TerrainTile.Crater,
+            TerrainTile.Road,
+            TerrainTile.Tree,
+            TerrainTile.Rubble0,
+            TerrainTile.Rubble1,
+            TerrainTile.Rubble2,
+            TerrainTile.Rubble3,
+            TerrainTile.Grass0,
+            TerrainTile.Grass1,
+            TerrainTile.Grass2,
+            TerrainTile.Grass3,
+            TerrainTile.Boat,
+            TerrainTile.SeaMined,
+            TerrainTile.SwampMined,
+            TerrainTile.CraterMined,
+            TerrainTile.RoadMined,
+            TerrainTile.TreeMined,
+            TerrainTile.RubbleMined,
+            TerrainTile.GrassMined,
+            -> false
+        }
 }
 
 sealed interface Entity {
@@ -389,26 +386,25 @@ class BmapReader(
     }
 }
 
-fun nibbleToTerrain(nibble: Int): TerrainTile =
-    when (nibble) {
-        0 -> TerrainTile.Wall
-        1 -> TerrainTile.River
-        2 -> TerrainTile.Swamp3
-        3 -> TerrainTile.Crater
-        4 -> TerrainTile.Road
-        5 -> TerrainTile.Tree
-        6 -> TerrainTile.Rubble3
-        7 -> TerrainTile.Grass3
-        8 -> TerrainTile.WallDamaged3
-        9 -> TerrainTile.Boat
-        10 -> TerrainTile.SwampMined
-        11 -> TerrainTile.CraterMined
-        12 -> TerrainTile.RoadMined
-        13 -> TerrainTile.TreeMined
-        14 -> TerrainTile.RubbleMined
-        15 -> TerrainTile.GrassMined
-        else -> throw IllegalStateException("invalid nibble")
-    }
+fun nibbleToTerrain(nibble: Int): TerrainTile = when (nibble) {
+    0 -> TerrainTile.Wall
+    1 -> TerrainTile.River
+    2 -> TerrainTile.Swamp3
+    3 -> TerrainTile.Crater
+    4 -> TerrainTile.Road
+    5 -> TerrainTile.Tree
+    6 -> TerrainTile.Rubble3
+    7 -> TerrainTile.Grass3
+    8 -> TerrainTile.WallDamaged3
+    9 -> TerrainTile.Boat
+    10 -> TerrainTile.SwampMined
+    11 -> TerrainTile.CraterMined
+    12 -> TerrainTile.RoadMined
+    13 -> TerrainTile.TreeMined
+    14 -> TerrainTile.RubbleMined
+    15 -> TerrainTile.GrassMined
+    else -> throw IllegalStateException("invalid nibble")
+}
 
 fun defaultTerrain(col: Int, row: Int): TerrainTile =
     if (col < BORDER || row < BORDER || col >= WORLD_WIDTH - BORDER || row >= WORLD_HEIGHT - BORDER) TerrainTile.SeaMined
@@ -431,63 +427,59 @@ class BmapCode {
     }
 }
 
-private fun TerrainTile.toTerrainDamage(): TerrainTile {
-    return when (this) {
-        TerrainTile.Wall -> TerrainTile.WallDamaged3
-        TerrainTile.Swamp0 -> TerrainTile.River
-        TerrainTile.Swamp1 -> TerrainTile.Swamp0
-        TerrainTile.Swamp2 -> TerrainTile.Swamp1
-        TerrainTile.Swamp3 -> TerrainTile.Swamp2
-        TerrainTile.Crater -> TerrainTile.Crater
-        TerrainTile.Road -> TerrainTile.River
-        TerrainTile.Tree -> TerrainTile.Grass3
-        TerrainTile.Rubble0 -> TerrainTile.River
-        TerrainTile.Rubble1 -> TerrainTile.Rubble0
-        TerrainTile.Rubble2 -> TerrainTile.Rubble1
-        TerrainTile.Rubble3 -> TerrainTile.Rubble2
-        TerrainTile.Grass0 -> TerrainTile.Swamp3
-        TerrainTile.Grass1 -> TerrainTile.Grass0
-        TerrainTile.Grass2 -> TerrainTile.Grass1
-        TerrainTile.Grass3 -> TerrainTile.Grass2
-        TerrainTile.WallDamaged0 -> TerrainTile.Rubble3
-        TerrainTile.WallDamaged1 -> TerrainTile.WallDamaged0
-        TerrainTile.WallDamaged2 -> TerrainTile.WallDamaged1
-        TerrainTile.WallDamaged3 -> TerrainTile.WallDamaged2
-        TerrainTile.Boat -> TerrainTile.River
-        TerrainTile.SwampMined -> TerrainTile.Crater
-        TerrainTile.CraterMined -> TerrainTile.Crater
-        TerrainTile.RoadMined -> TerrainTile.Crater
-        TerrainTile.TreeMined -> TerrainTile.Crater
-        TerrainTile.RubbleMined -> TerrainTile.Crater
-        TerrainTile.GrassMined -> TerrainTile.Crater
-        else -> throw IllegalStateException("toTerrainDamage(): Invalid terrain")
-    }
+private fun TerrainTile.toTerrainDamage(): TerrainTile = when (this) {
+    TerrainTile.Wall -> TerrainTile.WallDamaged3
+    TerrainTile.Swamp0 -> TerrainTile.River
+    TerrainTile.Swamp1 -> TerrainTile.Swamp0
+    TerrainTile.Swamp2 -> TerrainTile.Swamp1
+    TerrainTile.Swamp3 -> TerrainTile.Swamp2
+    TerrainTile.Crater -> TerrainTile.Crater
+    TerrainTile.Road -> TerrainTile.River
+    TerrainTile.Tree -> TerrainTile.Grass3
+    TerrainTile.Rubble0 -> TerrainTile.River
+    TerrainTile.Rubble1 -> TerrainTile.Rubble0
+    TerrainTile.Rubble2 -> TerrainTile.Rubble1
+    TerrainTile.Rubble3 -> TerrainTile.Rubble2
+    TerrainTile.Grass0 -> TerrainTile.Swamp3
+    TerrainTile.Grass1 -> TerrainTile.Grass0
+    TerrainTile.Grass2 -> TerrainTile.Grass1
+    TerrainTile.Grass3 -> TerrainTile.Grass2
+    TerrainTile.WallDamaged0 -> TerrainTile.Rubble3
+    TerrainTile.WallDamaged1 -> TerrainTile.WallDamaged0
+    TerrainTile.WallDamaged2 -> TerrainTile.WallDamaged1
+    TerrainTile.WallDamaged3 -> TerrainTile.WallDamaged2
+    TerrainTile.Boat -> TerrainTile.River
+    TerrainTile.SwampMined -> TerrainTile.Crater
+    TerrainTile.CraterMined -> TerrainTile.Crater
+    TerrainTile.RoadMined -> TerrainTile.Crater
+    TerrainTile.TreeMined -> TerrainTile.Crater
+    TerrainTile.RubbleMined -> TerrainTile.Crater
+    TerrainTile.GrassMined -> TerrainTile.Crater
+    else -> throw IllegalStateException("toTerrainDamage(): Invalid terrain")
 }
 
-fun TerrainTile.toMinedTerrain(): TerrainTile? {
-    return when (this) {
-        TerrainTile.Swamp0,
-        TerrainTile.Swamp1,
-        TerrainTile.Swamp2,
-        TerrainTile.Swamp3,
-        -> TerrainTile.SwampMined
+fun TerrainTile.toMinedTerrain(): TerrainTile? = when (this) {
+    TerrainTile.Swamp0,
+    TerrainTile.Swamp1,
+    TerrainTile.Swamp2,
+    TerrainTile.Swamp3,
+    -> TerrainTile.SwampMined
 
-        TerrainTile.Crater -> TerrainTile.CraterMined
-        TerrainTile.Road -> TerrainTile.RoadMined
-        TerrainTile.Tree -> TerrainTile.TreeMined
+    TerrainTile.Crater -> TerrainTile.CraterMined
+    TerrainTile.Road -> TerrainTile.RoadMined
+    TerrainTile.Tree -> TerrainTile.TreeMined
 
-        TerrainTile.Rubble0,
-        TerrainTile.Rubble1,
-        TerrainTile.Rubble2,
-        TerrainTile.Rubble3,
-        -> TerrainTile.RubbleMined
+    TerrainTile.Rubble0,
+    TerrainTile.Rubble1,
+    TerrainTile.Rubble2,
+    TerrainTile.Rubble3,
+    -> TerrainTile.RubbleMined
 
-        TerrainTile.Grass0,
-        TerrainTile.Grass1,
-        TerrainTile.Grass2,
-        TerrainTile.Grass3,
-        -> TerrainTile.GrassMined
+    TerrainTile.Grass0,
+    TerrainTile.Grass1,
+    TerrainTile.Grass2,
+    TerrainTile.Grass3,
+    -> TerrainTile.GrassMined
 
-        else -> null
-    }
+    else -> null
 }

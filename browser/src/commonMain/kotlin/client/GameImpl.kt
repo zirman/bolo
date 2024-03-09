@@ -440,110 +440,109 @@ class GameImpl(
         }
     }
 
-    override fun BuilderMode.tryBuilderAction(tank: Tank, col: Int, row: Int): Builder? {
-        return when (this) {
-            BuilderMode.Tree -> when (bmap[col, row]) {
-                TerrainTile.Tree -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.HarvestTree(col, row),
-                )
+    override fun BuilderMode.tryBuilderAction(tank: Tank, col: Int, row: Int): Builder? = when (this) {
+        BuilderMode.Tree -> when (bmap[col, row]) {
+            TerrainTile.Tree -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.HarvestTree(col, row),
+            )
 
-                else -> null
-            }
+            else -> null
+        }
 
-            BuilderMode.Road -> when (bmap[col, row]) {
-                TerrainTile.Grass0,
-                TerrainTile.Grass1,
-                TerrainTile.Grass2,
-                TerrainTile.Grass3,
-                TerrainTile.Swamp0,
-                TerrainTile.Swamp1,
-                TerrainTile.Swamp2,
-                TerrainTile.Swamp3,
-                TerrainTile.Crater,
-                TerrainTile.Rubble0,
-                TerrainTile.Rubble1,
-                TerrainTile.Rubble2,
-                TerrainTile.Rubble3,
-                -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildRoad(col = col, row = row),
-                )
+        BuilderMode.Road -> when (bmap[col, row]) {
+            TerrainTile.Grass0,
+            TerrainTile.Grass1,
+            TerrainTile.Grass2,
+            TerrainTile.Grass3,
+            TerrainTile.Swamp0,
+            TerrainTile.Swamp1,
+            TerrainTile.Swamp2,
+            TerrainTile.Swamp3,
+            TerrainTile.Crater,
+            TerrainTile.Rubble0,
+            TerrainTile.Rubble1,
+            TerrainTile.Rubble2,
+            TerrainTile.Rubble3,
+            -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildRoad(col = col, row = row),
+            )
 
-                TerrainTile.Tree -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.HarvestTree(col = col, row = row),
-                )
+            TerrainTile.Tree -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.HarvestTree(col = col, row = row),
+            )
 
-                else -> null
-            }
+            else -> null
+        }
 
-            BuilderMode.Wall -> when (bmap[col, row]) {
-                TerrainTile.Grass0,
-                TerrainTile.Grass1,
-                TerrainTile.Grass2,
-                TerrainTile.Grass3,
-                TerrainTile.Swamp0,
-                TerrainTile.Swamp1,
-                TerrainTile.Swamp2,
-                TerrainTile.Swamp3,
-                TerrainTile.Road,
-                TerrainTile.Crater,
-                TerrainTile.Rubble0,
-                TerrainTile.Rubble1,
-                TerrainTile.Rubble2,
-                TerrainTile.Rubble3,
-                TerrainTile.WallDamaged0,
-                -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildWall(
-                        col = col,
-                        row = row,
-                        material = BuilderImpl.WALL_MATERIAL,
-                    ),
-                )
+        BuilderMode.Wall -> when (bmap[col, row]) {
+            TerrainTile.Grass0,
+            TerrainTile.Grass1,
+            TerrainTile.Grass2,
+            TerrainTile.Grass3,
+            TerrainTile.Swamp0,
+            TerrainTile.Swamp1,
+            TerrainTile.Swamp2,
+            TerrainTile.Swamp3,
+            TerrainTile.Road,
+            TerrainTile.Crater,
+            TerrainTile.Rubble0,
+            TerrainTile.Rubble1,
+            TerrainTile.Rubble2,
+            TerrainTile.Rubble3,
+            TerrainTile.WallDamaged0,
+            -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildWall(
+                    col = col,
+                    row = row,
+                    material = BuilderImpl.WALL_MATERIAL,
+                ),
+            )
 
-                TerrainTile.WallDamaged1 -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildWall(
-                        col = col,
-                        row = row,
-                        material = BuilderImpl.WALL_MATERIAL,
-                    ),
-                )
+            TerrainTile.WallDamaged1 -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildWall(
+                    col = col,
+                    row = row,
+                    material = BuilderImpl.WALL_MATERIAL,
+                ),
+            )
 
-                TerrainTile.WallDamaged2 -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildWall(
-                        col = col,
-                        row = row,
-                        material = BuilderImpl.WALL_MATERIAL,
-                    ),
-                )
+            TerrainTile.WallDamaged2 -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildWall(
+                    col = col,
+                    row = row,
+                    material = BuilderImpl.WALL_MATERIAL,
+                ),
+            )
 
-                TerrainTile.WallDamaged3 -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildWall(
-                        col = col,
-                        row = row,
-                        material = BuilderImpl.WALL_MATERIAL,
-                    ),
-                )
+            TerrainTile.WallDamaged3 -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildWall(
+                    col = col,
+                    row = row,
+                    material = BuilderImpl.WALL_MATERIAL,
+                ),
+            )
 
-                TerrainTile.Tree -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.HarvestTree(col = col, row = row),
-                )
+            TerrainTile.Tree -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.HarvestTree(col = col, row = row),
+            )
 
-                TerrainTile.River -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.BuildBoat(col = col, row = row),
-                )
+            TerrainTile.River -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildBoat(col = col, row = row),
+            )
 
-                else -> null
-            }
+            else -> null
+        }
 
-            BuilderMode.Pill -> null
+        BuilderMode.Pill -> null
 //                                var index =
 //                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
 //
@@ -565,29 +564,28 @@ class GameImpl(
 //                                    }
 //                                }
 
-            BuilderMode.Mine -> when (bmap[col, row]) {
-                TerrainTile.Tree,
-                TerrainTile.Grass0,
-                TerrainTile.Grass1,
-                TerrainTile.Grass2,
-                TerrainTile.Grass3,
-                TerrainTile.Swamp0,
-                TerrainTile.Swamp1,
-                TerrainTile.Swamp2,
-                TerrainTile.Swamp3,
-                TerrainTile.Road,
-                TerrainTile.Crater,
-                TerrainTile.Rubble0,
-                TerrainTile.Rubble1,
-                TerrainTile.Rubble2,
-                TerrainTile.Rubble3,
-                -> tryCreatingBuilder(
-                    tank = tank,
-                    builderMission = BuilderMission.PlaceMine(col = col, row = row),
-                )
+        BuilderMode.Mine -> when (bmap[col, row]) {
+            TerrainTile.Tree,
+            TerrainTile.Grass0,
+            TerrainTile.Grass1,
+            TerrainTile.Grass2,
+            TerrainTile.Grass3,
+            TerrainTile.Swamp0,
+            TerrainTile.Swamp1,
+            TerrainTile.Swamp2,
+            TerrainTile.Swamp3,
+            TerrainTile.Road,
+            TerrainTile.Crater,
+            TerrainTile.Rubble0,
+            TerrainTile.Rubble1,
+            TerrainTile.Rubble2,
+            TerrainTile.Rubble3,
+            -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.PlaceMine(col = col, row = row),
+            )
 
-                else -> null
-            }
+            else -> null
         }
     }
 

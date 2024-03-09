@@ -81,47 +81,45 @@ class BuilderImpl(
                 }
             }
 
-        private fun Entity.isSolid(owner: Int): Boolean {
-            return when (this) {
-                is Entity.Pill -> ref.armor > 0
-                is Entity.Base -> ref.owner != 0xff && ref.owner != owner && ref.armor >= 5
-                is Entity.Terrain -> when (terrain) {
-                    TerrainTile.Wall,
-                    TerrainTile.WallDamaged0,
-                    TerrainTile.WallDamaged1,
-                    TerrainTile.WallDamaged2,
-                    TerrainTile.WallDamaged3,
-                    -> true
+        private fun Entity.isSolid(owner: Int): Boolean = when (this) {
+            is Entity.Pill -> ref.armor > 0
+            is Entity.Base -> ref.owner != 0xff && ref.owner != owner && ref.armor >= 5
+            is Entity.Terrain -> when (terrain) {
+                TerrainTile.Wall,
+                TerrainTile.WallDamaged0,
+                TerrainTile.WallDamaged1,
+                TerrainTile.WallDamaged2,
+                TerrainTile.WallDamaged3,
+                -> true
 
-                    TerrainTile.River -> true
-                    TerrainTile.Sea,
-                    TerrainTile.SeaMined,
-                    -> true
+                TerrainTile.River -> true
+                TerrainTile.Sea,
+                TerrainTile.SeaMined,
+                -> true
 
-                    TerrainTile.Swamp0,
-                    TerrainTile.Swamp1,
-                    TerrainTile.Swamp2,
-                    TerrainTile.Swamp3,
-                    TerrainTile.Crater,
-                    TerrainTile.Road,
-                    TerrainTile.Tree,
-                    TerrainTile.Rubble0,
-                    TerrainTile.Rubble1,
-                    TerrainTile.Rubble2,
-                    TerrainTile.Rubble3,
-                    TerrainTile.Grass0,
-                    TerrainTile.Grass1,
-                    TerrainTile.Grass2,
-                    TerrainTile.Grass3,
-                    TerrainTile.Boat,
-                    TerrainTile.SwampMined,
-                    TerrainTile.CraterMined,
-                    TerrainTile.RoadMined,
-                    TerrainTile.TreeMined,
-                    TerrainTile.RubbleMined,
-                    TerrainTile.GrassMined,
-                    -> false
-                }
+                TerrainTile.Swamp0,
+                TerrainTile.Swamp1,
+                TerrainTile.Swamp2,
+                TerrainTile.Swamp3,
+                TerrainTile.Crater,
+                TerrainTile.Road,
+                TerrainTile.Tree,
+                TerrainTile.Rubble0,
+                TerrainTile.Rubble1,
+                TerrainTile.Rubble2,
+                TerrainTile.Rubble3,
+                TerrainTile.Grass0,
+                TerrainTile.Grass1,
+                TerrainTile.Grass2,
+                TerrainTile.Grass3,
+                TerrainTile.Boat,
+                TerrainTile.SwampMined,
+                TerrainTile.CraterMined,
+                TerrainTile.RoadMined,
+                TerrainTile.TreeMined,
+                TerrainTile.RubbleMined,
+                TerrainTile.GrassMined,
+                -> false
             }
         }
     }

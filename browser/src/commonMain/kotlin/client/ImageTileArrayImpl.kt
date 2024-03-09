@@ -90,8 +90,8 @@ class ImageTileArrayImpl(
             }
         }
 
-    private fun mapImage(col: Int, row: Int): ImageTile {
-        return when (getTypeTile(col, row)) {
+    private fun mapImage(col: Int, row: Int): ImageTile =
+        when (getTypeTile(col, row)) {
             TypeTile.Sea -> when (isLikeBits(col, row) { isSeaLikeTile() }) {
                 0, 5, 10, 15 -> ImageTile.Sea0
                 4, 14 -> ImageTile.Sea1
@@ -605,7 +605,6 @@ class ImageTileArrayImpl(
             TypeTile.PillHostile15 -> ImageTile.PillHostile15
             TypeTile.BaseNeutral -> ImageTile.BaseNeutral
         }
-    }
 
     private inline fun ImageTileArray.isLikeBits(col: Int, row: Int, f: TypeTile.() -> Int): Int {
         return getTypeTile(col - 1, row).f()
