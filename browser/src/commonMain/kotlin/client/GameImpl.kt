@@ -258,6 +258,7 @@ class GameImpl(
     override fun terrainDamage(col: Int, row: Int) {
         bmap.damage(col, row)
         tileArray.update(col, row)
+        killBuilderInTile(col, row)
 
         FrameClient
             .TerrainDamage(
@@ -267,6 +268,19 @@ class GameImpl(
             )
             .toFrame()
             .run { sendChannel.trySend(this).getOrThrow() }
+    }
+
+    private fun killBuilderInTile(col: Int, row: Int) {
+        val listIterator = gameProcesses.listIterator()
+        for (process in listIterator) {
+            if (process is Builder &&
+                process.position.x.toInt() == col &&
+                process.position.y.toInt() == row &&
+                process.consumer.done.not()
+            ) {
+                process.consumer.finish(BuilderImpl.BuilderKilled(listIterator))
+            }
+        }
     }
 
     override fun baseDamage(index: Int) {
@@ -349,7 +363,9 @@ class GameImpl(
 
     private fun Tick.stepGameProcesses() {
         for (gameProcess in this) {
-            gameProcess.consumer.yield(this)
+            if (gameProcess.consumer.done.not()) {
+                gameProcess.consumer.yield(this)
+            }
         }
     }
 

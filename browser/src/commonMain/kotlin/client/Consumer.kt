@@ -7,6 +7,7 @@ import kotlin.coroutines.RestrictsSuspension
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.startCoroutine
 
 @RestrictsSuspension
@@ -17,6 +18,7 @@ sealed interface ConsumerScope<T> {
 interface Consumer<T> {
     val done: Boolean
     fun yield(input: T)
+    fun finish(input: Throwable)
 }
 
 class ConsumerImpl<T> internal constructor() : ConsumerScope<T>, Consumer<T>, Continuation<Unit> {
@@ -42,6 +44,11 @@ class ConsumerImpl<T> internal constructor() : ConsumerScope<T>, Consumer<T>, Co
     override fun yield(input: T) {
         if (done) throw IllegalStateException("called yield() on a completed Consumer")
         nextStep.resume(input)
+    }
+
+    override fun finish(input: Throwable) {
+        if (done) throw IllegalStateException("called yield() on a completed Consumer")
+        nextStep.resumeWithException(input)
     }
 }
 

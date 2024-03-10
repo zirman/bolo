@@ -23,10 +23,9 @@ class BuilderImpl(
     private var material: Int,
     private var mines: Int,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
-    class BuilderKilled : Throwable()
+    class BuilderKilled(val listIterator: MutableListIterator<GameProcess>?) : Throwable()
 
     companion object {
-        private val BUILDER_KILLED = BuilderKilled()
         private const val BUILDER_RADIUS = 1f / 8f
         private const val MAX_SPEED = 25f / 8f
         private const val BUILD_TIME = .25f
@@ -153,8 +152,7 @@ class BuilderImpl(
                 }
 
                 BuildResult.Mined -> {
-                    tick.killBuilder()
-                    throw BUILDER_KILLED
+                    throw BuilderKilled(tick)
                 }
 
                 null -> {
@@ -199,8 +197,7 @@ class BuilderImpl(
                 }
 
                 BuildResult.Mined -> {
-                    tick.killBuilder()
-                    throw BUILDER_KILLED
+                    throw BuilderKilled(tick)
                 }
 
                 null -> {
@@ -241,8 +238,7 @@ class BuilderImpl(
                 }
 
                 BuildResult.Mined -> {
-                    tick.killBuilder()
-                    throw BUILDER_KILLED
+                    throw BuilderKilled(tick)
                 }
 
                 null -> {
@@ -261,8 +257,9 @@ class BuilderImpl(
         try {
             buildMission?.run { gotoTarget(this) }
             gotoTank()
-        } catch (error: BuilderKilled) {
-            // ignore
+        } catch (builderKilled: BuilderKilled) {
+            tank?.setNextBuilderMission(null)
+            builderKilled.listIterator?.set(get<Parachute> { parametersOf(position) })
         }
     }
 
@@ -386,11 +383,6 @@ class BuilderImpl(
                 return tick
             }
         }
-    }
-
-    private fun Tick.killBuilder() {
-        tank?.setNextBuilderMission(null)
-        set(get<Parachute> { parametersOf(position) })
     }
 
     private fun V2.collisionDetect(): V2 {
