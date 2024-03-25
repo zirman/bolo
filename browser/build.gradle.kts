@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kotlinxAtomicfu)
+    alias(libs.plugins.kotlinxJsPlainObjects)
 }
 
 group = "dev.robch.bolo"
