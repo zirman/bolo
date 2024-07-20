@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -6,18 +6,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
-    application
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kotlinxAtomicfu)
     alias(libs.plugins.kotlinxJsPlainObjects)
-}
-
-group = "dev.robch.bolo"
-version = "1.0-SNAPSHOT"
-
-application {
-    mainClass.set("dev.robch.bolo.MainKt")
 }
 
 kotlin {
@@ -33,33 +25,39 @@ kotlin {
         }
     }
 
-    js { // js(IR)
-        moduleName = "jsClient"
-        useEsModules()
-        compilerOptions {
-            useEsClasses = true
-        }
-        browser {
-            commonWebpackConfig {
-                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-                outputFileName = "bolo.js"
-            }
-        }
-        binaries.executable()
-    }
+//    js(IR) {
+//        moduleName = "jsClient"
+//        useEsModules()
+//
+//        compilerOptions {
+//            useEsClasses = true
+//        }
+//
+//        browser {
+//            commonWebpackConfig {
+//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+//                outputFileName = "bolo.js"
+//            }
+//        }
+//
+//        binaries.executable()
+//    }
 
     wasmJs {
         moduleName = "wasmClient"
         useEsModules()
+
         compilerOptions {
             useEsClasses = true
         }
+
         browser {
             commonWebpackConfig {
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
                 outputFileName = "boloWasm.js"
             }
         }
+
         binaries.executable()
 
 //        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
@@ -88,7 +86,6 @@ kotlin {
             implementation(dependencies.platform(libs.koinBom))
             implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
             implementation(dependencies.platform(libs.kotlinWrappersBom))
-            compileOnly(libs.koinCore)
 
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
@@ -142,10 +139,19 @@ kotlin {
 }
 
 tasks.named<Copy>("jvmProcessResources") {
-    from(tasks.named<Copy>("jsBrowserDistribution"))
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
+//    from(tasks.named<Copy>("jsBrowserDistribution"))
 //    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm")
 //    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
+}
+
+val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add(distribution.name, tasks.named("jvmProcessResources"))
 }

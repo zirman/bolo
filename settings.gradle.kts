@@ -8,15 +8,13 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    // Does not work with JS target
-    // repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     }
 }
 
-rootProject.name = "bolo"
+rootProject.name = "Bolo"
 
-include(":browser")
+include("browser")
+include("server-app")

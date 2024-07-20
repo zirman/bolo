@@ -14,7 +14,7 @@ val serverModule = module {
     }
 
     single<Bmap> {
-        File("build/processedResources/jvm/main/maps/Bob\'s Country Bunker rev. 1.1.map")
+        File("../browser/build/processedResources/jvm/main/maps/Bob\'s Country Bunker rev. 1.1.map")
             .readBytes()
             .toUByteArray()
             .let { BmapReader(offset = 0, buffer = it) }
