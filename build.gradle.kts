@@ -21,20 +21,20 @@ subprojects {
     )
 
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += compilerArgs
+        compilerOptions {
+            freeCompilerArgs = compilerArgs
         }
     }
 
     tasks.withType<KotlinJsCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += compilerArgs
+        compilerOptions {
+            freeCompilerArgs = compilerArgs
         }
     }
 
     tasks.withType<KotlinCompileCommon>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += compilerArgs
+        compilerOptions {
+            freeCompilerArgs = compilerArgs
         }
     }
 }
