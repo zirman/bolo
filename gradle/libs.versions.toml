@@ -1,6 +1,5 @@
 [versions]
-jvmTarget = "22"
-kotlin = "2.0.0"
+kotlin = "2.0.20-Beta2"
 kotlinxCoroutines = "1.8.1"
 kotlinxSerialization = "1.7.1"
 ktor = "3.0.0-wasm2"

@@ -1,5 +1,8 @@
-@file:OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -19,10 +22,8 @@ application {
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.jvmTarget.get()
-            }
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_22
         }
 
         withJava()
@@ -32,43 +33,33 @@ kotlin {
         }
     }
 
-    js(IR) {
+    js { // js(IR)
         moduleName = "jsClient"
         useEsModules()
-
-        compilations.all {
-            kotlinOptions {
-                useEsClasses = true
-            }
+        compilerOptions {
+            useEsClasses = true
         }
-
         browser {
             commonWebpackConfig {
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
                 outputFileName = "bolo.js"
             }
         }
-
         binaries.executable()
     }
 
     wasmJs {
         moduleName = "wasmClient"
         useEsModules()
-
-        compilations.all {
-            kotlinOptions {
-                useEsClasses = true
-            }
+        compilerOptions {
+            useEsClasses = true
         }
-
         browser {
             commonWebpackConfig {
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
                 outputFileName = "boloWasm.js"
             }
         }
-
         binaries.executable()
 
 //        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
@@ -92,16 +83,13 @@ kotlin {
 //        }
     }
 
-    dependencies {
-        implementation(platform(libs.koinBom))
-        implementation(platform(libs.kotilnxCoroutinesBom))
-        implementation(platform(libs.kotlinWrappersBom))
-        compileOnly(libs.koinCore)
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(dependencies.platform(libs.koinBom))
+            implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
+            implementation(dependencies.platform(libs.kotlinWrappersBom))
+            compileOnly(libs.koinCore)
+
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
