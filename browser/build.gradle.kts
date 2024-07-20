@@ -120,13 +120,13 @@ kotlin {
             implementation(libs.logbackClassic)
         }
 
-        jsMain.dependencies {
-            implementation(libs.kotlinxCoroutinesCoreJs)
-            implementation(libs.koinCore)
-            implementation(libs.ktorClientJs)
-            implementation(libs.ktorClientJsonJs)
-            implementation(libs.ktorClientSerializationJs)
-        }
+//        jsMain.dependencies {
+//            implementation(libs.kotlinxCoroutinesCoreJs)
+//            implementation(libs.koinCore)
+//            implementation(libs.ktorClientJs)
+//            implementation(libs.ktorClientJsonJs)
+//            implementation(libs.ktorClientSerializationJs)
+//        }
 
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)
