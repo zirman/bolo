@@ -25,24 +25,6 @@ kotlin {
         }
     }
 
-//    js(IR) {
-//        moduleName = "jsClient"
-//        useEsModules()
-//
-//        compilerOptions {
-//            useEsClasses = true
-//        }
-//
-//        browser {
-//            commonWebpackConfig {
-//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-//                outputFileName = "bolo.js"
-//            }
-//        }
-//
-//        binaries.executable()
-//    }
-
     wasmJs {
         moduleName = "wasmClient"
         useEsModules()
@@ -81,6 +63,24 @@ kotlin {
 //        }
     }
 
+//    js(IR) {
+//        moduleName = "jsClient"
+//        useEsModules()
+//
+//        compilerOptions {
+//            useEsClasses = true
+//        }
+//
+//        browser {
+//            commonWebpackConfig {
+//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+//                outputFileName = "bolo.js"
+//            }
+//        }
+//
+//        binaries.executable()
+//    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(dependencies.platform(libs.koinBom))
@@ -103,7 +103,6 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(libs.koinCore)
             implementation(libs.koinKtor)
             implementation(libs.koinLoggerSlf4j)
             implementation(libs.ktorServerCore)
@@ -120,14 +119,6 @@ kotlin {
             implementation(libs.logbackClassic)
         }
 
-//        jsMain.dependencies {
-//            implementation(libs.kotlinxCoroutinesCoreJs)
-//            implementation(libs.koinCore)
-//            implementation(libs.ktorClientJs)
-//            implementation(libs.ktorClientJsonJs)
-//            implementation(libs.ktorClientSerializationJs)
-//        }
-
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)
             implementation(libs.ktorClientJsWasmJs)
@@ -135,6 +126,13 @@ kotlin {
             implementation(libs.ktorClientSerializationWasmJs)
             implementation(libs.ktorClientWebsocketsWasmJs)
         }
+
+//        jsMain.dependencies {
+//            implementation(libs.kotlinxCoroutinesCoreJs)
+//            implementation(libs.ktorClientJs)
+//            implementation(libs.ktorClientJsonJs)
+//            implementation(libs.ktorClientSerializationJs)
+//        }
     }
 }
 
