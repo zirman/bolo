@@ -20,6 +20,7 @@ dependencies {
     generatedOutput(project(":client")) {
         targetConfiguration = "distribution"
     }
+    implementation(project(":server"))
 }
 
 val copyGeneratedOutput: TaskProvider<Copy> by tasks.registering(Copy::class) {

@@ -83,6 +83,7 @@ kotlin {
             implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
             implementation(dependencies.platform(libs.kotlinWrappersBom))
 
+            implementation(project(":common"))
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
