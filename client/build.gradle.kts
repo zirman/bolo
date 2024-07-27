@@ -99,22 +99,8 @@ kotlin {
             implementation(libs.koinTest)
         }
 
-        jvmMain.dependencies {
-            implementation(libs.koinKtor)
-            implementation(libs.koinLoggerSlf4j)
-            implementation(libs.ktorServerCore)
-            implementation(libs.ktorServerNetty)
-            implementation(libs.ktorServerHtmlBuilder)
-            implementation(libs.ktorServerContentNegotiation)
-            implementation(libs.ktorServerCompression)
-            implementation(libs.ktorServerWebsockets)
-            implementation(libs.ktorSerialization)
-            implementation(libs.ktorSerializationKotlinxJson)
-            implementation(libs.ktorNetworkTlsCertificates)
-            implementation(libs.ktorWebsockets)
-            implementation(libs.kotlinCss)
-            implementation(libs.logbackClassic)
-        }
+//        jvmMain.dependencies {
+//        }
 
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)

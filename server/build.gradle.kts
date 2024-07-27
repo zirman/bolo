@@ -132,3 +132,12 @@ kotlin {
 //        }
     }
 }
+
+val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add(distribution.name, tasks.named("jvmProcessResources"))
+}
