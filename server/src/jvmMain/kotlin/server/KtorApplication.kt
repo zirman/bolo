@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json

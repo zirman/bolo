@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import common.bmap.Bmap
 import common.bmap.BmapCode

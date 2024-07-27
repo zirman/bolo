@@ -7,7 +7,7 @@ group = "dev.robch.bolo"
 version = "1.0-SNAPSHOT"
 
 application {
-    mainClass.set("dev.robch.bolo.MainKt")
+    mainClass.set("server.MainKt")
 }
 
 val generatedOutput: Configuration by configurations.creating {

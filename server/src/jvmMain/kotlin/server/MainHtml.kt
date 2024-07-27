@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import common.ARMOR_ID
 import common.BUILDER_MODE_MINE_ID

@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import common.BUILDER_MODE_PANEL_ID
 import common.CANVAS_ID

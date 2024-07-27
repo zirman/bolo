@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import io.ktor.network.tls.certificates.buildKeyStore
 import io.ktor.server.application.Application

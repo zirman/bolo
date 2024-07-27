@@ -1,4 +1,4 @@
-package dev.robch.bolo
+package server
 
 import common.frame.FrameClient
 import common.frame.FrameServer
