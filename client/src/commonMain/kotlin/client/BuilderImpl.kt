@@ -1,9 +1,9 @@
 package client
 
-import bmap.Entity
-import bmap.TerrainTile
-import math.V2
-import math.squared
+import common.bmap.Entity
+import common.bmap.TerrainTile
+import client.math.V2
+import client.math.squared
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf

@@ -1,14 +1,14 @@
 package client
 
-import adapters.HTMLCanvasElementAdapter
-import adapters.RTCPeerConnectionAdapter
-import adapters.WebGlRenderingContextAdapter
-import adapters.WindowAdapter
-import bmap.Bmap
-import bmap.BmapCode
-import bmap.WORLD_HEIGHT
-import bmap.WORLD_WIDTH
-import frame.Owner
+import client.adapters.HTMLCanvasElementAdapter
+import client.adapters.RTCPeerConnectionAdapter
+import client.adapters.WebGlRenderingContextAdapter
+import client.adapters.WindowAdapter
+import common.bmap.Bmap
+import common.bmap.BmapCode
+import common.bmap.WORLD_HEIGHT
+import common.bmap.WORLD_WIDTH
+import common.frame.Owner
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import math.V2
+import client.math.V2
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 

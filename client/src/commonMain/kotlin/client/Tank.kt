@@ -1,6 +1,6 @@
 package client
 
-import math.V2
+import client.math.V2
 
 data class NextBuilderMission(val builderMode: BuilderMode, val col: Int, val row: Int)
 

@@ -1,6 +1,6 @@
 package client
 
-import adapters.AudioAdapter
+import client.adapters.AudioAdapter
 
 class AudioManager(private val src: String) {
     private val audioPool: MutableList<AudioAdapter> = mutableListOf()

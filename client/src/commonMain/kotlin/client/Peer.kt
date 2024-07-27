@@ -1,7 +1,7 @@
 package client
 
-import adapters.DataChannelAdapter
-import adapters.RTCPeerConnectionAdapter
+import client.adapters.DataChannelAdapter
+import client.adapters.RTCPeerConnectionAdapter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromHexString
 import kotlinx.serialization.encodeToHexString

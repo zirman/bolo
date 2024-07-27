@@ -1,7 +1,7 @@
 package client
 
 import common.SPRITE_SHEET_WIDTH
-import math.pi
+import client.math.pi
 
 enum class Sprite(val int: Int) {
     TankBoat0(spriteInd(col = 0, row = 0)),

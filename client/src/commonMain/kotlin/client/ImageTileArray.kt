@@ -1,6 +1,6 @@
 package client
 
-import bmap.TypeTile
+import common.bmap.TypeTile
 
 interface ImageTileArray {
     fun getTypeTile(col: Int, row: Int): TypeTile

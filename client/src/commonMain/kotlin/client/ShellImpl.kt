@@ -1,11 +1,11 @@
 package client
 
-import bmap.Entity
-import bmap.TerrainTile
+import common.bmap.Entity
+import common.bmap.TerrainTile
 import common.isWater
-import math.V2
-import math.clamp
-import math.dirToVec
+import client.math.V2
+import client.math.clamp
+import client.math.dirToVec
 
 class ShellImpl(
     game: Game,

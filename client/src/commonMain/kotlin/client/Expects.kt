@@ -1,10 +1,10 @@
 package client
 
-import adapters.AudioAdapter
-import adapters.HTMLCanvasElementAdapter
-import adapters.RTCPeerConnectionAdapter
-import adapters.Uint8ArrayAdapter
-import adapters.WindowAdapter
+import client.adapters.AudioAdapter
+import client.adapters.HTMLCanvasElementAdapter
+import client.adapters.RTCPeerConnectionAdapter
+import client.adapters.Uint8ArrayAdapter
+import client.adapters.WindowAdapter
 import kotlinx.serialization.json.JsonObject
 
 expect val windowAdapter: WindowAdapter

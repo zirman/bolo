@@ -1,12 +1,12 @@
 package client
 
-import bmap.Bmap
-import bmap.Entity
-import bmap.TerrainTile
-import frame.Owner
+import common.bmap.Bmap
+import common.bmap.Entity
+import common.bmap.TerrainTile
+import common.frame.Owner
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.channels.SendChannel
-import math.V2
+import client.math.V2
 
 interface Game {
     val bmap: Bmap

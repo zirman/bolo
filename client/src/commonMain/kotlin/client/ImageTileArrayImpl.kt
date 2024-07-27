@@ -1,22 +1,22 @@
 package client
 
-import adapters.Uint8ArrayAdapter
-import assert.never
-import bmap.Bmap
-import bmap.TypeTile
-import bmap.BORDER_WIDTH
-import bmap.ind
-import bmap.isCraterLikeTile
-import bmap.isRoadLikeTile
-import bmap.isSeaLikeTile
-import bmap.isTreeLikeTile
-import bmap.isWallLikeTile
-import bmap.isWaterLikeToLandTile
-import bmap.isWaterLikeToWaterTile
-import bmap.toTypeTile
-import bmap.WORLD_HEIGHT
-import bmap.WORLD_WIDTH
-import frame.Owner
+import client.adapters.Uint8ArrayAdapter
+import common.assert.never
+import common.bmap.Bmap
+import common.bmap.TypeTile
+import common.bmap.BORDER_WIDTH
+import common.bmap.ind
+import common.bmap.isCraterLikeTile
+import common.bmap.isRoadLikeTile
+import common.bmap.isSeaLikeTile
+import common.bmap.isTreeLikeTile
+import common.bmap.isWallLikeTile
+import common.bmap.isWaterLikeToLandTile
+import common.bmap.isWaterLikeToWaterTile
+import common.bmap.toTypeTile
+import common.bmap.WORLD_HEIGHT
+import common.bmap.WORLD_WIDTH
+import common.frame.Owner
 
 class ImageTileArrayImpl(
     private val bmap: Bmap,

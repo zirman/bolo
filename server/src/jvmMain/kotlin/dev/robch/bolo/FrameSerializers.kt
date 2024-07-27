@@ -1,7 +1,7 @@
 package dev.robch.bolo
 
-import frame.FrameClient
-import frame.FrameServer
+import common.frame.FrameClient
+import common.frame.FrameServer
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.serialization.protobuf.ProtoBuf

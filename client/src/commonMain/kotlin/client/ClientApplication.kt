@@ -1,11 +1,11 @@
 package client
 
-import bmap.BmapCodeReader
-import bmap.BmapDamageReader
-import bmap.BmapReader
-import bmap.loadCodes
-import bmap.toBmapExtra
-import frame.Owner
+import common.bmap.BmapCodeReader
+import common.bmap.BmapDamageReader
+import common.bmap.BmapReader
+import common.bmap.loadCodes
+import common.bmap.toBmapExtra
+import common.frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.wss

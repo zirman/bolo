@@ -1,6 +1,6 @@
 package client
 
-import bmap.TerrainTile
+import common.bmap.TerrainTile
 
 sealed interface BuildOp {
     data class Terrain(

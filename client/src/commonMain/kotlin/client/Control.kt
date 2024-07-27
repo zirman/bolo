@@ -1,7 +1,7 @@
 package client
 
-import adapters.HTMLCanvasElementAdapter
-import adapters.WindowAdapter
+import client.adapters.HTMLCanvasElementAdapter
+import client.adapters.WindowAdapter
 import common.BUILDER_MODE_MINE_ID
 import common.BUILDER_MODE_PILL_ID
 import common.BUILDER_MODE_ROAD_ID
