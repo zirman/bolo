@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package server
 
 import common.frame.FrameClient
 import common.frame.FrameServer
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 
 internal val frameServerSerializer = FrameServer.serializer()
