@@ -3,7 +3,6 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -20,62 +19,6 @@ kotlin {
 
         withJava()
     }
-
-    wasmJs {
-        moduleName = "wasmClient"
-        useEsModules()
-
-        compilerOptions {
-            useEsClasses = true
-        }
-
-        browser {
-            commonWebpackConfig {
-                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-                outputFileName = "boloWasm.js"
-            }
-        }
-
-        binaries.executable()
-
-//        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
-//            applyBinaryen {
-//                binaryenArgs = mutableListOf(
-//                    "--enable-nontrapping-float-to-int",
-//                    "--enable-gc",
-//                    "--enable-reference-types",
-//                    "--enable-exception-handling",
-//                    "--enable-bulk-memory",
-//                    "--inline-functions-with-loops",
-//                    "--traps-never-happen",
-//                    "--fast-math",
-//                    "--closed-world",
-//                    "--metrics",
-//                    "-O3", "--gufa", "--metrics",
-//                    "-O3", "--gufa", "--metrics",
-//                    "-O3", "--gufa", "--metrics",
-//                )
-//            }
-//        }
-    }
-
-//    js(IR) {
-//        moduleName = "jsClient"
-//        useEsModules()
-//
-//        compilerOptions {
-//            useEsClasses = true
-//        }
-//
-//        browser {
-//            commonWebpackConfig {
-//                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
-//                outputFileName = "bolo.js"
-//            }
-//        }
-//
-//        binaries.executable()
-//    }
 
     sourceSets {
         commonMain.dependencies {
@@ -115,21 +58,6 @@ kotlin {
             implementation(libs.kotlinCss)
             implementation(libs.logbackClassic)
         }
-
-        wasmJsMain.dependencies {
-            implementation(libs.kotlinxCoroutinesCoreWasmJs)
-            implementation(libs.ktorClientJsWasmJs)
-            implementation(libs.ktorClientJsonWasmJs)
-            implementation(libs.ktorClientSerializationWasmJs)
-            implementation(libs.ktorClientWebsocketsWasmJs)
-        }
-
-//        jsMain.dependencies {
-//            implementation(libs.kotlinxCoroutinesCoreJs)
-//            implementation(libs.ktorClientJs)
-//            implementation(libs.ktorClientJsonJs)
-//            implementation(libs.ktorClientSerializationJs)
-//        }
     }
 }
 

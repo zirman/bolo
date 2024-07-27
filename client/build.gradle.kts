@@ -99,9 +99,6 @@ kotlin {
             implementation(libs.koinTest)
         }
 
-//        jvmMain.dependencies {
-//        }
-
         wasmJsMain.dependencies {
             implementation(libs.kotlinxCoroutinesCoreWasmJs)
             implementation(libs.ktorClientJsWasmJs)
@@ -131,8 +128,4 @@ tasks.named<Copy>("jvmProcessResources") {
 val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
     isCanBeConsumed = true
     isCanBeResolved = false
-}
-
-artifacts {
-    add(distribution.name, tasks.named("jvmProcessResources"))
 }
