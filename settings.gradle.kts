@@ -16,5 +16,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Bolo"
 
-include("browser")
+include("common")
+include("client")
+include("server")
 include("server-app")

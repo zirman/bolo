@@ -22,19 +22,19 @@ subprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            freeCompilerArgs = compilerArgs
+            freeCompilerArgs.addAll(compilerArgs)
         }
     }
 
     tasks.withType<KotlinJsCompile>().configureEach {
         compilerOptions {
-            freeCompilerArgs = compilerArgs
+            freeCompilerArgs.addAll(compilerArgs)
         }
     }
 
     tasks.withType<KotlinCompileCommon>().configureEach {
         compilerOptions {
-            freeCompilerArgs = compilerArgs
+            freeCompilerArgs.addAll(compilerArgs)
         }
     }
 }

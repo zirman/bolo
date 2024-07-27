@@ -16,8 +16,8 @@ val generatedOutput: Configuration by configurations.creating {
 }
 
 dependencies {
-    implementation(project(":browser"))
-    generatedOutput(project(":browser")) {
+    implementation(project(":client"))
+    generatedOutput(project(":client")) {
         targetConfiguration = "distribution"
     }
 }
