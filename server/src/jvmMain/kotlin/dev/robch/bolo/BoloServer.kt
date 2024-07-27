@@ -8,10 +8,10 @@ import bmap.toExtra
 import bmap.writeBmap
 import bmap.writeBmapCode
 import bmap.writeDamage
-import client.PILL_ARMOR_MAX
-import client.isMined
-import client.isRoadBuildable
-import client.isWallBuildable
+import common.PILL_ARMOR_MAX
+import common.isMined
+import common.isRoadBuildable
+import common.isWallBuildable
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner

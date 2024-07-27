@@ -116,6 +116,7 @@ kotlin {
     }
 }
 
+// TODO: export without using jvmProcessResources
 tasks.named<Copy>("jvmProcessResources") {
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")

@@ -12,6 +12,16 @@ import adapters.Uint8ArrayAdapterImpl
 import adapters.WindowAdapter
 import adapters.WindowAdapterImpl
 import assert.assertNotNull
+import common.ARMOR_ID
+import common.BUILDER_MODE_MINE_ID
+import common.BUILDER_MODE_PILL_ID
+import common.BUILDER_MODE_ROAD_ID
+import common.BUILDER_MODE_TREE_ID
+import common.BUILDER_MODE_WALL_ID
+import common.CANVAS_ID
+import common.MATERIAL_ID
+import common.MINES_ID
+import common.SHELLS_ID
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject

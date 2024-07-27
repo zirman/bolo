@@ -10,6 +10,8 @@ import bmap.Entity
 import bmap.TerrainTile
 import bmap.WORLD_HEIGHT
 import bmap.WORLD_WIDTH
+import common.TILE_PIXEL_HEIGHT
+import common.TILE_PIXEL_WIDTH
 import frame.FrameClient
 import frame.FrameServer
 import frame.Owner

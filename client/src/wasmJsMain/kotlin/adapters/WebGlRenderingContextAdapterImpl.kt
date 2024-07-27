@@ -1,19 +1,19 @@
 package adapters
 
 import assert.assertNotNull
-import bmap.ind
 import bmap.WORLD_HEIGHT
 import bmap.WORLD_WIDTH
+import bmap.ind
 import client.ImageTileArray
 import client.SpriteInstance
 import client.SpriteProgram
+import client.TILES_COUNT
+import client.TILE_SHEET_HEIGHT
+import client.TILE_SHEET_WIDTH
 import client.TileProgram
 import client.imageTileIndex
-import client.SPRITE_SHEET_SRC
-import client.TILE_SHEET_HEIGHT
-import client.TILE_SHEET_SRC
-import client.TILE_SHEET_WIDTH
-import client.TILES_COUNT
+import common.SPRITE_SHEET_SRC
+import common.TILE_SHEET_SRC
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred

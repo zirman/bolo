@@ -2,6 +2,11 @@ package client
 
 import adapters.HTMLCanvasElementAdapter
 import adapters.WindowAdapter
+import common.BUILDER_MODE_MINE_ID
+import common.BUILDER_MODE_PILL_ID
+import common.BUILDER_MODE_ROAD_ID
+import common.BUILDER_MODE_TREE_ID
+import common.BUILDER_MODE_WALL_ID
 
 class Control(window: WindowAdapter, canvas: HTMLCanvasElementAdapter) {
     private var builderMode: BuilderMode = BuilderMode.Tree.also { setBuilderMode(it) }

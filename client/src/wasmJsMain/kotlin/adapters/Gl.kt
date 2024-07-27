@@ -3,8 +3,8 @@ package adapters
 import bmap.WORLD_HEIGHT
 import client.Sprite
 import client.SpriteInstance
-import client.SPRITE_SHEET_HEIGHT
-import client.SPRITE_SHEET_WIDTH
+import common.SPRITE_SHEET_HEIGHT
+import common.SPRITE_SHEET_WIDTH
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.WebGLProgram

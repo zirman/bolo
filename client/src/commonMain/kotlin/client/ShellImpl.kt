@@ -2,6 +2,7 @@ package client
 
 import bmap.Entity
 import bmap.TerrainTile
+import common.isWater
 import math.V2
 import math.clamp
 import math.dirToVec

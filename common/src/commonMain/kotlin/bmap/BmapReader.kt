@@ -3,14 +3,14 @@ package bmap
 import assert.assertEqual
 import assert.assertLessThan
 import assert.assertLessThanOrEqual
-import client.BASE_ARMOR_MAX
-import client.BASE_MINES_MAX
-import client.BASE_SHELLS_MAX
-import client.BASES_MAX
-import client.PILL_ARMOR_MAX
-import client.PILL_SPEED_MAX
-import client.PILLS_MAX
-import client.STARTS_MAX
+import common.BASE_ARMOR_MAX
+import common.BASE_MINES_MAX
+import common.BASE_SHELLS_MAX
+import common.BASES_MAX
+import common.PILL_ARMOR_MAX
+import common.PILL_SPEED_MAX
+import common.PILLS_MAX
+import common.STARTS_MAX
 import kotlin.math.min
 
 const val WORLD_WIDTH: Int = 256

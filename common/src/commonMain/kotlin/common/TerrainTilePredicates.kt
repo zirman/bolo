@@ -1,4 +1,4 @@
-package client
+package common
 
 import bmap.TerrainTile
 import bmap.TerrainTile.*

@@ -1,5 +1,6 @@
 package client
 
+import common.SPRITE_SHEET_WIDTH
 import math.pi
 
 enum class Sprite(val int: Int) {

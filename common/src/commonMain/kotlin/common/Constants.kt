@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package client
+package common
 
 const val CANVAS_ID = "canvas"
 const val ARMOR_ID = "armor"

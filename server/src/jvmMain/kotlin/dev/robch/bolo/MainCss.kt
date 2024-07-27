@@ -1,8 +1,8 @@
 package dev.robch.bolo
 
-import client.BUILDER_MODE_PANEL_ID
-import client.CANVAS_ID
-import client.STATUS_PANEL_ID
+import common.BUILDER_MODE_PANEL_ID
+import common.CANVAS_ID
+import common.STATUS_PANEL_ID
 import kotlinx.css.Border
 import kotlinx.css.BorderStyle
 import kotlinx.css.Color
