@@ -19,4 +19,4 @@ rootProject.name = "Bolo"
 include("common")
 include("client")
 include("server")
-include("server-app")
+include("jvm-app")
