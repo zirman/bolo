@@ -28,6 +28,7 @@ kotlin {
 
             implementation(project(":common"))
             implementation(libs.kotlinCss)
+            implementation(libs.kotlinxAtomicfu)
             implementation(libs.kotlinxSerializationProtobuf)
             implementation(libs.koinCore)
             implementation(libs.ktorServerNetty)

@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.kotlinxAtomicfu)
     alias(libs.plugins.kotlinxJsPlainObjects)
 }
 
@@ -87,7 +86,6 @@ kotlin {
             implementation(libs.kotlinxCoroutinesCore)
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxSerializationProtobuf)
-            implementation(libs.kotlinxAtomicfu)
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }
@@ -100,7 +98,6 @@ kotlin {
         }
 
         wasmJsMain.dependencies {
-            implementation(libs.kotlinxCoroutinesCoreWasmJs)
             implementation(libs.ktorClientJsWasmJs)
             implementation(libs.ktorClientJsonWasmJs)
             implementation(libs.ktorClientSerializationWasmJs)
