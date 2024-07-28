@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package server
+package server.frame
 
 import common.frame.FrameClient
 import common.frame.FrameServer

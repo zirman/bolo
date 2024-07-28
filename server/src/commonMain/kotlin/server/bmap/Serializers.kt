@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package server
+package server.bmap
 
 import common.bmap.BmapExtra
 import common.bmap.bmapExtraSerializer

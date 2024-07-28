@@ -1,23 +1,22 @@
-package client
+package client.bmap
 
 import common.assert.assertEqual
 import common.assert.assertLessThan
 import common.assert.assertLessThanOrEqual
-import common.bmap.BmapCode
+import common.bmap.Bmap
 import common.bmap.NibbleReader
 import common.bmap.Run
 
-class BmapCodeReader(
+class BmapDamageReader(
     offset: Int,
+    bmap: Bmap,
     private val buffer: UByteArray,
 ) {
-    var offset: Int = offset
+    var offset = offset
         private set
 
-    val bmapCode: BmapCode = BmapCode()
-
     init {
-        matchString("BMAPCODE")
+        matchString("BMAPDAMG")
         matchUByte(1.toUByte())
 
         while (true) {
@@ -37,16 +36,23 @@ class BmapCodeReader(
                     endCol.assertLessThanOrEqual(run.endCol)
 
                     while (col < endCol) {
-                        bmapCode[col, run.row] = run.data.readNibble()
+                        val dLevel: Int = run.data.readNibble()
+
+                        for (i in 0..<dLevel) {
+                            bmap.damage(col, run.row)
+                        }
                         col++
                     }
                 } else if (nib in 8..15) { // sequence of the same terrain
                     val endCol = col + nib - 6
                     endCol.assertLessThanOrEqual(run.endCol)
-                    val t = run.data.readNibble()
+                    val dLevel: Int = run.data.readNibble()
 
                     while (col < endCol) {
-                        bmapCode[col, run.row] = t
+                        for (i in 0..<dLevel) {
+                            bmap.damage(col, run.row)
+                        }
+
                         col++
                     }
                 }
@@ -57,11 +63,11 @@ class BmapCodeReader(
     }
 
     private fun matchString(string: String) {
-        val bytes = string.encodeToByteArray()
+        val bytes = string.encodeToByteArray().toUByteArray()
 
         for (byte in bytes) {
             offset.assertLessThan(buffer.size)
-            byte.assertEqual(buffer[offset].toByte())
+            byte.assertEqual(buffer[offset])
             offset++
         }
     }

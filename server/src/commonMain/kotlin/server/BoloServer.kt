@@ -5,9 +5,6 @@ package server
 import common.bmap.Bmap
 import common.bmap.BmapCode
 import common.bmap.TerrainTile
-import common.bmap.writeBmap
-import common.bmap.writeBmapCode
-import common.bmap.writeDamage
 import common.PILL_ARMOR_MAX
 import common.isMined
 import common.isRoadBuildable
@@ -28,6 +25,13 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
+import server.bmap.toByteArray
+import server.bmap.toExtra
+import server.bmap.writeBmap
+import server.bmap.writeBmapCode
+import server.bmap.writeDamage
+import server.frame.toByteArray
+import server.frame.toFrameClient
 
 class BoloServer(
     private val bmap: Bmap,

@@ -1,4 +1,17 @@
-package common.bmap
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
+package server.bmap
+
+import common.bmap.BORDER_WIDTH
+import common.bmap.Base
+import common.bmap.Bmap
+import common.bmap.BmapCode
+import common.bmap.Pill
+import common.bmap.StartInfo
+import common.bmap.TerrainTile
+import common.bmap.WORLD_HEIGHT
+import common.bmap.WORLD_WIDTH
+import common.bmap.defaultTerrain
 
 fun getDamageLevel(terrain: TerrainTile): Int =
     when (terrain) {
@@ -367,41 +380,3 @@ class NibbleWriter {
         return buffer
     }
 }
-
-//fun writeBmapExtra(
-//    owner: Int,
-//    pills: Array<common.bmap.Pill>,
-//    buffer: MutableList<UByte>,
-//) {
-//    fun writeString(str: String) {
-//        for (c in str.encodeToByteArray().toUByteArray()) {
-//            buffer.add(c)
-//        }
-//    }
-//
-//    fun writeUByte(n: UByte) {
-//        buffer.add(n)
-//    }
-//
-//    fun writeInt(n: Int) {
-//        buffer.add(n)
-//    }
-//
-//    fun writeBoolean(n: Boolean) {
-//        buffer.add((if (n) 1 else 0).toUByte())
-//    }
-//
-//    writeString("BMAPEXTR")
-//    writeUByte(1.toUByte())
-//    writeUByte(owner.toUByte())
-//
-////    for (pill in pills) {
-////        writeInt(pill.code)
-////        writeBoolean(pill.isPlaced)
-////    }
-////
-////    for (bases in bases) {
-////        writeInt(pill.code.toUByte())
-////        writeBoolean(pill.isPlaced)
-////    }
-//}

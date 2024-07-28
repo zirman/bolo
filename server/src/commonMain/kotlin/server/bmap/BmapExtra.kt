@@ -1,4 +1,4 @@
-package server
+package server.bmap
 
 import common.bmap.Bmap
 import common.bmap.BmapExtra

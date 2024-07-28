@@ -1,5 +1,8 @@
 package client
 
+import client.bmap.BmapCodeReader
+import client.bmap.BmapDamageReader
+import client.bmap.loadCodes
 import common.bmap.BmapReader
 import common.frame.Owner
 import io.ktor.client.HttpClient

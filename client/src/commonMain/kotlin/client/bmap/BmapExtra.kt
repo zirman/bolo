@@ -1,4 +1,4 @@
-package client
+package client.bmap
 
 import common.bmap.Bmap
 import common.bmap.BmapExtra
