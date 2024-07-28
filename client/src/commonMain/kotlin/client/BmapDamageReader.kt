@@ -1,8 +1,11 @@
-package common.bmap
+package client
 
 import common.assert.assertEqual
 import common.assert.assertLessThan
 import common.assert.assertLessThanOrEqual
+import common.bmap.Bmap
+import common.bmap.NibbleReader
+import common.bmap.Run
 
 class BmapDamageReader(
     offset: Int,
