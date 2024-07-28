@@ -1,4 +1,7 @@
-package common.bmap
+package client.bmap
+
+import common.bmap.TerrainTile
+import common.bmap.TypeTile
 
 fun TerrainTile.toTypeTile(): TypeTile = when (this) {
     TerrainTile.Sea -> TypeTile.Sea

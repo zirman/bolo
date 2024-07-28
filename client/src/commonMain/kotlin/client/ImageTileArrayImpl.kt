@@ -1,21 +1,21 @@
 package client
 
 import client.adapters.Uint8ArrayAdapter
+import client.bmap.isCraterLikeTile
+import client.bmap.isRoadLikeTile
+import client.bmap.isSeaLikeTile
+import client.bmap.isTreeLikeTile
+import client.bmap.isWallLikeTile
+import client.bmap.isWaterLikeToLandTile
+import client.bmap.isWaterLikeToWaterTile
+import client.bmap.toTypeTile
 import common.assert.never
+import common.bmap.BORDER_WIDTH
 import common.bmap.Bmap
 import common.bmap.TypeTile
-import common.bmap.BORDER_WIDTH
-import common.bmap.ind
-import common.bmap.isCraterLikeTile
-import common.bmap.isRoadLikeTile
-import common.bmap.isSeaLikeTile
-import common.bmap.isTreeLikeTile
-import common.bmap.isWallLikeTile
-import common.bmap.isWaterLikeToLandTile
-import common.bmap.isWaterLikeToWaterTile
-import common.bmap.toTypeTile
 import common.bmap.WORLD_HEIGHT
 import common.bmap.WORLD_WIDTH
+import common.bmap.ind
 import common.frame.Owner
 
 class ImageTileArrayImpl(

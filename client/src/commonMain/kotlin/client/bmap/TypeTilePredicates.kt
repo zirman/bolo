@@ -1,5 +1,6 @@
-package common.bmap
+package client.bmap
 
+import common.bmap.TypeTile
 import common.bmap.TypeTile.BaseFriendly
 import common.bmap.TypeTile.BaseHostile
 import common.bmap.TypeTile.BaseNeutral
