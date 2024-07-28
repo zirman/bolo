@@ -29,10 +29,7 @@ kotlin {
             implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
             implementation(dependencies.platform(libs.kotlinWrappersBom))
 
-            implementation(libs.kotlinxCoroutinesCore)
-            implementation(libs.kotlinxSerializationJson)
-            implementation(libs.kotlinxSerializationProtobuf)
-            implementation(libs.kotlinxAtomicfu)
+            implementation(libs.kotlinxSerializationCore)
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }

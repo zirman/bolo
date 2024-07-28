@@ -15,7 +15,6 @@ import common.TILE_PIXEL_WIDTH
 import common.frame.FrameClient
 import common.frame.FrameServer
 import common.frame.Owner
-import common.frame.toFrame
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CoroutineName
@@ -37,6 +36,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import client.math.M4
 import client.math.V2
 import client.math.dirToVec
+import common.frame.frameServerSerializer
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
@@ -642,7 +642,7 @@ class GameImpl(
                         else -> never()
                     }
                 }
-                .map { ProtoBuf.decodeFromByteArray(FrameServer.serializer(), it.readBytes()) }
+                .map { ProtoBuf.decodeFromByteArray(frameServerSerializer, it.readBytes()) }
                 .map { frameServerFlow.emit(it) }
                 .collect()
         }

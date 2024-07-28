@@ -5,7 +5,6 @@ package server
 import common.bmap.Bmap
 import common.bmap.BmapCode
 import common.bmap.TerrainTile
-import common.bmap.toByteArray
 import common.bmap.toExtra
 import common.bmap.writeBmap
 import common.bmap.writeBmapCode

@@ -4,7 +4,6 @@ import common.bmap.BmapCodeReader
 import common.bmap.BmapDamageReader
 import common.bmap.BmapReader
 import common.bmap.loadCodes
-import common.bmap.toBmapExtra
 import common.frame.Owner
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession

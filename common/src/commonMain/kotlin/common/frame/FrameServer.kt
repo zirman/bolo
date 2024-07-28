@@ -3,6 +3,8 @@ package common.frame
 import common.bmap.TerrainTile
 import kotlinx.serialization.Serializable
 
+val frameServerSerializer = FrameServer.serializer()
+
 @Serializable
 sealed interface FrameServer {
 
