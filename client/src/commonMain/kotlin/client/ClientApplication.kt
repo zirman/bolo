@@ -1,6 +1,5 @@
 package client
 
-import common.bmap.BmapCodeReader
 import common.bmap.BmapDamageReader
 import common.bmap.BmapReader
 import common.bmap.loadCodes
