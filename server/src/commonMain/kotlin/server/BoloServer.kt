@@ -21,11 +21,10 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.locks.reentrantLock
-import kotlinx.atomicfu.locks.withLock
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import server.bmap.toByteArray
 import server.bmap.toExtra
 import server.bmap.writeBmap
@@ -38,20 +37,23 @@ class BoloServer(
     private val bmap: Bmap,
     private val bmapCode: BmapCode,
 ) {
-    private val nextOwnerId = atomic(0)
+    private var nextOwnerId = 0
+
+    private val coroutineContext = Dispatchers.Default.limitedParallelism(1)
 
     private val clients: MutableMap<Owner, DefaultWebSocketServerSession> = mutableMapOf()
-    private val lock = reentrantLock()
 
-    suspend fun handleWebSocket(session: DefaultWebSocketServerSession): Unit = lock.withLock {
-        if (clients.size >= 16) {
-            throw IllegalStateException("clients full")
-        }
+    suspend fun handleWebSocket(session: DefaultWebSocketServerSession): Unit = withContext(coroutineContext) {
+        val owner = run {
+            if (clients.size >= 16) {
+                throw IllegalStateException("clients full")
+            }
 
-        val owner = Owner(nextOwnerId.getAndIncrement())
-        clients[owner] = session
+            val owner = Owner(nextOwnerId++)
+            clients[owner] = session
 
-        try {
+            val x = clients.toList()
+
             mutableListOf<UByte>()
                 .writeBmap(bmap)
                 .writeDamage(bmap)
@@ -60,8 +62,7 @@ class BoloServer(
                 .toByteArray()
                 .plus(bmap.toExtra(owner.int).toByteArray())
                 .run { session.send(this) }
-
-            clients.forEach { (callee) ->
+            x.forEach { (callee) ->
                 if (callee != owner) {
                     FrameServer.Signal
                         .NewPeer(callee)
@@ -69,7 +70,9 @@ class BoloServer(
                         .run { session.send(this) }
                 }
             }
-
+            owner
+        }
+        try {
             for (frame in session.incoming) {
                 if (session.handleFrame(owner, frame)) break
             }
@@ -82,7 +85,9 @@ class BoloServer(
         }
     }
 
-    private suspend fun DefaultWebSocketServerSession.handleBinary(owner: Owner, frame: Frame.Binary) {
+    private suspend fun DefaultWebSocketServerSession.handleBinary(
+        owner: Owner, frame: Frame.Binary
+    ): Unit = withContext(coroutineContext) {
         when (val frameClient = frame.toFrameClient()) {
             is FrameClient.Signal -> {
                 handleSignal(owner, frameClient)
@@ -122,7 +127,10 @@ class BoloServer(
         }
     }
 
-    private suspend fun handleSignal(owner: Owner, frameClient: FrameClient.Signal): Unit = lock.withLock {
+    private suspend fun handleSignal(
+        owner: Owner,
+        frameClient: FrameClient.Signal,
+    ): Unit = withContext(coroutineContext) {
         clients[frameClient.owner]?.run {
             when (frameClient) {
                 is FrameClient.Signal.Offer -> FrameServer.Signal.Offer(
@@ -147,7 +155,7 @@ class BoloServer(
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainBuild(
         frameClient: FrameClient.TerrainBuild,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         val terrainTile = bmap[frameClient.col, frameClient.row]
 
         if (terrainTile.isMined()) {
@@ -196,7 +204,10 @@ class BoloServer(
         }
     }
 
-    private suspend fun DefaultWebSocketServerSession.handleFrame(owner: Owner, frame: Frame): Boolean {
+    private suspend fun DefaultWebSocketServerSession.handleFrame(
+        owner: Owner,
+        frame: Frame,
+    ): Boolean = withContext(coroutineContext) {
         when (frame) {
             is Frame.Binary -> {
                 handleBinary(owner, frame)
@@ -212,16 +223,16 @@ class BoloServer(
             }
 
             is Frame.Close -> {
-                return true
+                return@withContext true
             }
         }
 
-        return false
+        return@withContext false
     }
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainDamage(
         frameClient: FrameClient.TerrainDamage,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         bmap.damage(frameClient.col, frameClient.row)
         val codeMatches = bmapCode[frameClient.col, frameClient.row] == frameClient.code
 
@@ -243,7 +254,7 @@ class BoloServer(
 
     private suspend fun DefaultWebSocketServerSession.handleTerrainMine(
         frameClient: FrameClient.TerrainMine,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         bmap.mine(frameClient.col, frameClient.row)
 
         val serverFrame = FrameServer
@@ -262,7 +273,7 @@ class BoloServer(
 
     private suspend fun DefaultWebSocketServerSession.handleBaseDamage(
         frameClient: FrameClient.BaseDamage,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         val base = bmap.bases[frameClient.index]
         base.armor = max(0, base.armor - 8)
 
@@ -281,7 +292,7 @@ class BoloServer(
             .forEach { (_, client) -> client.send(serverFrame) }
     }
 
-    private suspend fun handlePillDamage(frameClient: FrameClient.PillDamage): Unit = lock.withLock {
+    private suspend fun handlePillDamage(frameClient: FrameClient.PillDamage): Unit = withContext(coroutineContext) {
         val pill = bmap.pills[frameClient.index]
 
         if (pill.isPlaced &&
@@ -304,7 +315,7 @@ class BoloServer(
 
     private suspend fun DefaultWebSocketServerSession.handlePillRepair(
         frameClient: FrameClient.PillRepair,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         val pill = bmap.pills[frameClient.index]
 
         if (pill.isPlaced &&
@@ -337,7 +348,7 @@ class BoloServer(
     private suspend fun DefaultWebSocketServerSession.handlePillPlacement(
         owner: Owner,
         frameClient: FrameClient.PillPlacement,
-    ): Unit = lock.withLock {
+    ): Unit = withContext(coroutineContext) {
         val pill = bmap.pills[frameClient.index]
 
         if (pill.isPlaced.not() &&
@@ -366,7 +377,10 @@ class BoloServer(
         }
     }
 
-    private suspend fun handlePosition(owner: Owner, frameClient: FrameClient.Position): Unit = lock.withLock {
+    private suspend fun handlePosition(
+        owner: Owner,
+        frameClient: FrameClient.Position,
+    ): Unit = withContext(coroutineContext) {
         // update held pill positions
         bmap.pills
             .filter { it.owner == owner.int && it.isPlaced.not() }
@@ -440,59 +454,69 @@ class BoloServer(
         }
     }
 
-    private suspend fun DefaultWebSocketServerSession.cleanup(owner: Owner): Unit = lock.withLock {
-        close()
-        clients.remove(owner)
+    private suspend fun DefaultWebSocketServerSession.cleanup(owner: Owner): Unit = withContext(coroutineContext) {
+        runCatching {
+            close()
+            clients.remove(owner)
 
-        // drop pills
-        bmap.pills.forEachIndexed { index, pill ->
-            if (pill.owner == owner.int) {
-                pill.owner = 0xff
+            println("FOOBAR drop pills $owner")
 
-                if (pill.isPlaced.not()) {
-                    // TODO check placement
-                    pill.isPlaced = true
-                }
+            // drop pills
+            bmap.pills.forEachIndexed { index, pill ->
+                if (pill.owner == owner.int) {
+                    pill.owner = 0xff
 
-                val frameServer = FrameServer
-                    .PillDrop(
-                        index = index,
-                        owner = pill.owner,
-                        col = pill.col,
-                        row = pill.row,
-                    )
-                    .toByteArray()
+                    if (pill.isPlaced.not()) {
+                        // TODO check placement
+                        pill.isPlaced = true
+                    }
 
-                clients.forEach { (_, client) -> client.send(frameServer) }
-            }
-        }
+                    val frameServer = FrameServer
+                        .PillDrop(
+                            index = index,
+                            owner = pill.owner,
+                            col = pill.col,
+                            row = pill.row,
+                        )
+                        .toByteArray()
 
-        // neutralize bases
-        bmap.bases.forEachIndexed { index, base ->
-            if (base.owner == owner.int) {
-                base.owner = 0xff
-
-                val frameServer = FrameServer
-                    .BaseTake(
-                        index = index,
-                        owner = base.owner,
-                        armor = base.armor,
-                        shells = base.shells,
-                        mines = base.mines,
-                    )
-                    .toByteArray()
-
-                clients.forEach { (_, client) -> client.send(frameServer) }
-            }
-        }
-
-        FrameServer.Signal
-            .Disconnect(from = owner)
-            .toByteArray()
-            .run {
-                clients.forEach { (_, client) ->
-                    client.send(this)
+                    clients.forEach { (_, client) -> client.send(frameServer) }
                 }
             }
+
+            println("FOOBAR neutralize bases $owner")
+
+            // neutralize bases
+            bmap.bases.forEachIndexed { index, base ->
+                if (base.owner == owner.int) {
+                    base.owner = 0xff
+
+                    val frameServer = FrameServer
+                        .BaseTake(
+                            index = index,
+                            owner = base.owner,
+                            armor = base.armor,
+                            shells = base.shells,
+                            mines = base.mines,
+                        )
+                        .toByteArray()
+
+                    clients.forEach { (_, client) -> client.send(frameServer) }
+                }
+            }
+
+            println("FOOBAR signal $owner")
+
+            FrameServer.Signal
+                .Disconnect(from = owner)
+                .toByteArray()
+                .run {
+                    clients.forEach { (_, client) ->
+                        client.send(this)
+                    }
+                }
+
+            println("FOOBAR done $owner")
+        }
     }
 }
