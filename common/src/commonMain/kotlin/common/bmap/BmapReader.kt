@@ -455,7 +455,9 @@ private fun TerrainTile.toTerrainDamage(): TerrainTile = when (this) {
     TerrainTile.TreeMined -> TerrainTile.Crater
     TerrainTile.RubbleMined -> TerrainTile.Crater
     TerrainTile.GrassMined -> TerrainTile.Crater
-    else -> throw IllegalStateException("toTerrainDamage(): Invalid terrain")
+    TerrainTile.Sea -> TerrainTile.Sea
+    TerrainTile.River -> TerrainTile.River
+    TerrainTile.SeaMined -> TerrainTile.SeaMined
 }
 
 fun TerrainTile.toMinedTerrain(): TerrainTile? = when (this) {
