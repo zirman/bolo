@@ -459,7 +459,7 @@ class BoloServer(
             close()
             clients.remove(owner)
 
-            println("FOOBAR drop pills $owner")
+            // println("FOOBAR drop pills $owner")
 
             // drop pills
             bmap.pills.forEachIndexed { index, pill ->
@@ -484,7 +484,7 @@ class BoloServer(
                 }
             }
 
-            println("FOOBAR neutralize bases $owner")
+            // println("FOOBAR neutralize bases $owner")
 
             // neutralize bases
             bmap.bases.forEachIndexed { index, base ->
@@ -505,7 +505,7 @@ class BoloServer(
                 }
             }
 
-            println("FOOBAR signal $owner")
+            // println("FOOBAR signal $owner")
 
             FrameServer.Signal
                 .Disconnect(from = owner)
@@ -516,7 +516,7 @@ class BoloServer(
                     }
                 }
 
-            println("FOOBAR done $owner")
+            // println("FOOBAR done $owner")
         }
     }
 }

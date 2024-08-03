@@ -8,15 +8,15 @@ import common.bmap.BmapReader
 import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
-import java.io.File
 
 val serverModule = module {
     single { BoloServer(get(), get()) } withOptions {
         createdAtStart()
     }
 
+    // TODO make deferred and platform agnostic
     single<Bmap> {
-        File("build/resources/main/maps/Bob\'s Country Bunker rev. 1.1.map")
+        BoloServer::class.java.classLoader.getResource("maps/Easter Island III.map")!!
             .readBytes()
             .toUByteArray()
             .let { BmapReader(offset = 0, buffer = it) }
