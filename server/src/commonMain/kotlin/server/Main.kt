@@ -12,7 +12,7 @@ import java.io.FileInputStream
 import java.security.KeyStore
 import org.slf4j.LoggerFactory
 
-private const val USE_KEYSTORE_PATH: String = ""
+private val USE_KEYSTORE_PATH: String? = null
 private const val KEY_ALIAS = "robch.dev"
 private const val KEY_STORE_PASSWORD_STRING = ""
 private const val PRIVATE_KEY_PASSWORD_STRING = ""
@@ -33,10 +33,10 @@ private fun ApplicationEngine.Configuration.envConfig() {
         port = HTTP_PORT
     }
 
-    val ks = if (USE_KEYSTORE_PATH.isNotBlank()) {
+    val ks = if (USE_KEYSTORE_PATH != null) {
         KeyStore.getInstance("JKS").apply {
             load(
-                /* stream = */ FileInputStream("keystore.jks"),
+                /* stream = */ FileInputStream(USE_KEYSTORE_PATH),
                 /* password = */ KEY_STORE_PASSWORD_STRING.toCharArray(),
             )
         }
