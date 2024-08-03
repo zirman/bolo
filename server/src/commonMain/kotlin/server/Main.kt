@@ -8,9 +8,9 @@ import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.sslConnector
 import io.ktor.server.netty.Netty
-import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.security.KeyStore
+import org.slf4j.LoggerFactory
 
 private const val USE_KEYSTORE_PATH: String = ""
 private const val KEY_ALIAS = "robch.dev"

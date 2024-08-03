@@ -11,6 +11,10 @@ plugins {
     alias(libs.plugins.kotlinxJsPlainObjects)
 }
 
+java {
+    targetCompatibility = JavaVersion.VERSION_22
+}
+
 kotlin {
     jvm {
         compilerOptions {

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     application
     kotlin("jvm")
@@ -5,6 +7,16 @@ plugins {
 
 group = "dev.robch.bolo"
 version = "1.0-SNAPSHOT"
+
+java {
+    targetCompatibility = JavaVersion.VERSION_22
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_22
+    }
+}
 
 application {
     mainClass.set("server.MainKt")

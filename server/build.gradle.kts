@@ -7,8 +7,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.kotlinxAtomicfu)
     alias(libs.plugins.kotlinxJsPlainObjects)
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_22
 }
 
 kotlin {
@@ -28,7 +31,6 @@ kotlin {
 
             implementation(project(":common"))
             implementation(libs.kotlinCss)
-            implementation(libs.kotlinxAtomicfu)
             implementation(libs.kotlinxSerializationProtobuf)
             implementation(libs.koinCore)
             implementation(libs.ktorServerNetty)
