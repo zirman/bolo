@@ -11,6 +11,8 @@ import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
+private const val MAP = "MAP"
+
 val serverModule = module {
     single { BoloServer(get(), get()) } withOptions {
         createdAtStart()
@@ -25,7 +27,11 @@ val serverModule = module {
 
     // TODO make deferred and platform agnostic
     single<Bmap> {
-        BoloServer::class.java.classLoader.getResource("maps/Easter Island III.map")!!
+        BoloServer::class.java.classLoader.getResource(
+            "maps${File.separator}${
+                get<Properties>().getProperty(MAP, "Flame War.map")
+            }"
+        )!!
             .readBytes()
             .toUByteArray()
             .let { BmapReader(offset = 0, buffer = it) }
