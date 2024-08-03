@@ -546,10 +546,10 @@ class ImageTileArrayImpl(
                     8 -> ImageTile.Wall31
                     6 -> ImageTile.Wall34
                     9 -> ImageTile.Wall35
-                    10 -> ImageTile.Wall38
-                    5 -> ImageTile.Wall39
-                    12 -> ImageTile.Wall42
-                    3 -> ImageTile.Wall43
+                    10 -> ImageTile.Wall39
+                    5 -> ImageTile.Wall42
+                    12 -> ImageTile.Wall43
+                    3 -> ImageTile.Wall38
                     0 -> ImageTile.Wall46
                     else -> never()
                 }
