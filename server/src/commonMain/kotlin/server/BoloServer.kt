@@ -132,17 +132,17 @@ class BoloServer(
             when (frameClient) {
                 is FrameClient.Signal.Offer -> FrameServer.Signal.Offer(
                     from = owner,
-                    sessionDescription = frameClient.sessionDescription
+                    sessionDescription = frameClient.sessionDescription,
                 )
 
                 is FrameClient.Signal.Answer -> FrameServer.Signal.Answer(
                     from = owner,
-                    sessionDescription = frameClient.sessionDescription
+                    sessionDescription = frameClient.sessionDescription,
                 )
 
                 is FrameClient.Signal.IceCandidate -> FrameServer.Signal.IceCandidate(
                     from = owner,
-                    iceCandidate = frameClient.iceCandidate
+                    iceCandidate = frameClient.iceCandidate,
                 )
             }
                 .toByteArray()
