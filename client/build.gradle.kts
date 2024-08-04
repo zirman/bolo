@@ -122,8 +122,8 @@ tasks.named<Copy>("jvmProcessResources") {
     // dist files
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
     // source map files
-    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
-//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
+//    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
+    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
     from("src") { into("src") }
 }
 

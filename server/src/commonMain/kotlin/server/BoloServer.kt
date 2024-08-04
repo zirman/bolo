@@ -238,7 +238,7 @@ class BoloServer(
 
         run {
             if (codeMatches) {
-                clients.filter { (_, client) -> client != this }
+                clients.filter { (_, client) -> client != this@handleTerrainDamage }
             } else {
                 clients
             }
