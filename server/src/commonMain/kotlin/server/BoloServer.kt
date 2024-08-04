@@ -44,33 +44,26 @@ class BoloServer(
     private val clients: MutableMap<Owner, DefaultWebSocketServerSession> = mutableMapOf()
 
     suspend fun handleWebSocket(session: DefaultWebSocketServerSession): Unit = withContext(context) {
-        val owner = run {
-            if (clients.size >= 16) {
-                throw IllegalStateException("clients full")
+        if (clients.size >= 16) {
+            throw IllegalStateException("clients full")
+        }
+        val owner = Owner(nextOwnerId++)
+        clients[owner] = session
+        mutableListOf<UByte>()
+            .writeBmap(bmap)
+            .writeDamage(bmap)
+            .writeBmapCode(bmapCode)
+            .toUByteArray()
+            .toByteArray()
+            .plus(bmap.toExtra(owner.int).toByteArray())
+            .run { session.send(this) }
+        clients.forEach { (callee) ->
+            if (callee != owner) {
+                FrameServer.Signal
+                    .NewPeer(callee)
+                    .toByteArray()
+                    .run { session.send(this) }
             }
-
-            val owner = Owner(nextOwnerId++)
-            clients[owner] = session
-
-            val x = clients.toList()
-
-            mutableListOf<UByte>()
-                .writeBmap(bmap)
-                .writeDamage(bmap)
-                .writeBmapCode(bmapCode)
-                .toUByteArray()
-                .toByteArray()
-                .plus(bmap.toExtra(owner.int).toByteArray())
-                .run { session.send(this) }
-            x.forEach { (callee) ->
-                if (callee != owner) {
-                    FrameServer.Signal
-                        .NewPeer(callee)
-                        .toByteArray()
-                        .run { session.send(this) }
-                }
-            }
-            owner
         }
         try {
             for (frame in session.incoming) {
