@@ -32,8 +32,15 @@ fun main() {
 
 private fun ApplicationEngine.Configuration.envConfig() {
     val properties = File("${System.getProperty("user.dir")}${File.separator}bolo.properties")
-        .inputStream()
-        .let { Properties().apply { load(it) } }
+        .takeIf { it.exists() }
+        ?.inputStream()
+        .let { inputStream ->
+            Properties().apply {
+                if (inputStream != null) {
+                    load(inputStream)
+                }
+            }
+        }
 
     val httpPort = properties.getProperty(HTTP_PORT, "8080").toInt()
     val httpsPort = properties.getProperty(HTTPS_PORT, "8443").toInt()

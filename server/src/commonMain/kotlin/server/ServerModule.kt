@@ -21,8 +21,15 @@ val serverModule = module {
     // TODO make deferred and platform agnostic
     single {
         File("${System.getProperty("user.dir")}${File.separator}bolo.properties")
-            .inputStream()
-            .let { Properties().apply { load(it) } }
+            .takeIf { it.exists() }
+            ?.inputStream()
+            .let { inputStream ->
+                Properties().apply {
+                    if (inputStream != null) {
+                        load(inputStream)
+                    }
+                }
+            }
     }
 
     // TODO make deferred and platform agnostic
