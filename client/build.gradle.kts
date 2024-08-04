@@ -119,12 +119,12 @@ kotlin {
 
 // TODO: export without using jvmProcessResources
 tasks.named<Copy>("jvmProcessResources") {
+    // dist files
     from(tasks.named<Copy>("wasmJsBrowserDistribution"))
-    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm")
+    // source map files
     from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
-//    from(tasks.named<Copy>("jsBrowserDistribution"))
-//    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm")
 //    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
+    from("src") { into("src") }
 }
 
 val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {

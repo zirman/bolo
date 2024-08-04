@@ -6,7 +6,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.html.respondHtml
-import io.ktor.server.http.content.staticFiles
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -18,10 +17,9 @@ import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.netty.handler.codec.compression.StandardCompressionOptions.gzip
+import java.time.Duration
 import kotlinx.css.CssBuilder
 import org.koin.core.context.startKoin
-import java.io.File
-import java.time.Duration
 
 fun Application.ktorModule() {
     // Manually start Koin until it's updated for Ktor 3
@@ -61,7 +59,7 @@ fun Application.ktorModule() {
     routing {
         staticResources("/", null)
         staticResources("/", "files")
-        staticFiles("/src", File("src"))
+        staticResources("/src", "src")
 
         get("/") {
             call.respondHtml {
