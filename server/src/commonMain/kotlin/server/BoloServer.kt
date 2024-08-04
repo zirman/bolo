@@ -48,24 +48,24 @@ class BoloServer(
             throw IllegalStateException("clients full")
         }
         val owner = Owner(nextOwnerId++)
-        clients[owner] = session
-        mutableListOf<UByte>()
-            .writeBmap(bmap)
-            .writeDamage(bmap)
-            .writeBmapCode(bmapCode)
-            .toUByteArray()
-            .toByteArray()
-            .plus(bmap.toExtra(owner.int).toByteArray())
-            .run { session.send(this) }
-        clients.forEach { (callee) ->
-            if (callee != owner) {
-                FrameServer.Signal
-                    .NewPeer(callee)
-                    .toByteArray()
-                    .run { session.send(this) }
-            }
-        }
         try {
+            clients[owner] = session
+            mutableListOf<UByte>()
+                .writeBmap(bmap)
+                .writeDamage(bmap)
+                .writeBmapCode(bmapCode)
+                .toUByteArray()
+                .toByteArray()
+                .plus(bmap.toExtra(owner.int).toByteArray())
+                .run { session.send(this) }
+            clients.forEach { (callee) ->
+                if (callee != owner) {
+                    FrameServer.Signal
+                        .NewPeer(callee)
+                        .toByteArray()
+                        .run { session.send(this) }
+                }
+            }
             for (frame in session.incoming) {
                 if (session.handleFrame(owner, frame)) break
             }
