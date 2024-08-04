@@ -40,12 +40,6 @@ class BoloServer(
 
     private val clients: MutableMap<Owner, DefaultWebSocketServerSession> = mutableMapOf()
 
-    private fun ByteArray.sendTo(session: DefaultWebSocketServerSession) {
-        session.launch {
-            session.send(this@sendTo)
-        }
-    }
-
     suspend fun handleWebSocket(session: DefaultWebSocketServerSession) {
         if (clients.size >= 16) {
             throw IllegalStateException("clients full")
@@ -529,5 +523,11 @@ class BoloServer(
         }
 
         // println("FOOBAR done $owner")
+    }
+
+    private fun ByteArray.sendTo(session: DefaultWebSocketServerSession) {
+        session.launch {
+            session.send(this@sendTo)
+        }
     }
 }
