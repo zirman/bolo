@@ -55,7 +55,9 @@ class BoloServer(
                 .toByteArray()
                 .plus(bmap.toExtra(owner.int).toByteArray())
                 .run {
-                    session.send(this@run)
+                    session.launch {
+                        session.send(this@run)
+                    }
                 }
             clients.forEach { (callee) ->
                 if (callee != owner) {
@@ -129,7 +131,7 @@ class BoloServer(
         frameClient: FrameClient.Signal,
     ) {
         clients[frameClient.owner]?.run {
-            val x = when (frameClient) {
+            val signal = when (frameClient) {
                 is FrameClient.Signal.Offer -> FrameServer.Signal.Offer(
                     from = owner,
                     sessionDescription = frameClient.sessionDescription
@@ -144,10 +146,9 @@ class BoloServer(
                     from = owner,
                     iceCandidate = frameClient.iceCandidate
                 )
-            }
-                .toByteArray()
+            }.toByteArray()
             launch {
-                send(x)
+                send(signal)
             }
         }
     }
@@ -168,7 +169,7 @@ class BoloServer(
                 .toByteArray()
 
             clients.forEach { (_, client) ->
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -199,7 +200,7 @@ class BoloServer(
 
                 clients.forEach { (_, client) ->
                     if (client != this@handleTerrainBuild) {
-                        launch {
+                        client.launch {
                             client.send(serverFrame)
                         }
                     }
@@ -208,8 +209,11 @@ class BoloServer(
 
             launch {
                 send(
-                    if (isSuccessful) FrameServer.TerrainBuildSuccess.toByteArray()
-                    else FrameServer.TerrainBuildFailed.toByteArray()
+                    if (isSuccessful) {
+                        FrameServer.TerrainBuildSuccess.toByteArray()
+                    } else {
+                        FrameServer.TerrainBuildFailed.toByteArray()
+                    },
                 )
             }
         }
@@ -221,9 +225,7 @@ class BoloServer(
     ): Boolean {
         when (frame) {
             is Frame.Binary -> {
-                launch {
-                    handleBinary(owner, frame)
-                }
+                handleBinary(owner, frame)
             }
 
             is Frame.Ping,
@@ -258,7 +260,7 @@ class BoloServer(
 
         clients.forEach { (_, client) ->
             if (client != this@handleTerrainDamage || codeMatches.not()) {
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -278,8 +280,8 @@ class BoloServer(
             .toByteArray()
 
         clients.forEach { (_, client) ->
-            if (client != this) {
-                launch {
+            if (client != this@handleTerrainMine) {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -298,7 +300,7 @@ class BoloServer(
 
         clients.forEach { (_, client) ->
             if (client != this@handleBaseDamage || base.code != frameClient.code) {
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -322,7 +324,7 @@ class BoloServer(
 
             clients.forEach { (_, client) ->
                 if (client != this@handlePillDamage || pill.code != frameClient.code) {
-                    launch {
+                    client.launch {
                         client.send(serverFrame)
                     }
                 }
@@ -363,7 +365,7 @@ class BoloServer(
                 .toByteArray()
 
             clients.forEach { (_, client) ->
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -403,14 +405,14 @@ class BoloServer(
                 .toByteArray()
 
             clients.forEach { (_, client) ->
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
         }
     }
 
-    private fun DefaultWebSocketServerSession.handlePosition(
+    private fun handlePosition(
         owner: Owner,
         frameClient: FrameClient.Position,
     ) {
@@ -440,7 +442,7 @@ class BoloServer(
                     .toByteArray()
 
                 clients.forEach { (_, client) ->
-                    launch {
+                    client.launch {
                         client.send(serverFrame)
                     }
                 }
@@ -473,7 +475,7 @@ class BoloServer(
                     .toByteArray()
 
                 clients.forEach { (_, client) ->
-                    launch {
+                    client.launch {
                         client.send(serverFrame)
                     }
                 }
@@ -492,7 +494,7 @@ class BoloServer(
                 .toByteArray()
 
             clients.forEach { (_, client) ->
-                launch {
+                client.launch {
                     client.send(serverFrame)
                 }
             }
@@ -526,7 +528,11 @@ class BoloServer(
                     )
                     .toByteArray()
 
-                clients.forEach { (_, client) -> launch { client.send(frameServer) } }
+                clients.forEach { (_, client) ->
+                    client.launch {
+                        client.send(frameServer)
+                    }
+                }
             }
         }
 
@@ -548,7 +554,7 @@ class BoloServer(
                     .toByteArray()
 
                 clients.forEach { (_, client) ->
-                    launch {
+                    client.launch {
                         client.send(frameServer)
                     }
                 }
@@ -562,7 +568,7 @@ class BoloServer(
             .toByteArray()
             .run {
                 clients.forEach { (_, client) ->
-                    launch {
+                    client.launch {
                         client.send(this@run)
                     }
                 }
