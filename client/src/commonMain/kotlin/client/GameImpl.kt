@@ -95,18 +95,33 @@ class GameImpl(
 //            .let { sendChannel.send(it) }
 //    }
 
-    override fun buildTerrain(
+    override suspend fun ConsumerScope<Tick>.buildTerrain(
         col: Int,
         row: Int,
         terrainTile: TerrainTile,
-        result: (BuildResult) -> Unit,
-    ) {
-        buildQueue.add(BuildOp.Terrain(terrainTile, col, row, result))
-
+    ): Triple<Tick, Float, BuildResult> {
+        var buildResult: BuildResult? = null
+        buildQueue.add(
+            BuildOp.Terrain(terrainTile, col = col, row = row, result = { result ->
+                buildResult = result
+            }),
+        )
         FrameClient
             .TerrainBuild(terrain = terrainTile, col = col, row = row)
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
+        var timeDelta = 0f
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult?.run {
+                if (this == BuildResult.Success) {
+                    bmap[col, row] = terrainTile
+                    tileArray.update(col, row)
+                }
+                return Triple(tick, timeDelta, this)
+            }
+        }
     }
 
     override suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): Triple<Tick, Float, BuildResult> {
@@ -116,12 +131,10 @@ class GameImpl(
                 buildResult = result
             }),
         )
-
         FrameClient
             .TerrainMine(col = col, row = row)
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
-
         var timeDelta = 0f
         while (true) {
             val tick = next()
@@ -707,7 +720,6 @@ class GameImpl(
 
                         is FrameServer.TerrainBuildSuccess -> {
                             val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            bmap[buildOp.col, buildOp.row] = buildOp.terrain
                             bmapCode.inc(buildOp.col, buildOp.row)
                             tileArray.update(buildOp.col, buildOp.row)
                             buildOp.result(BuildResult.Success)

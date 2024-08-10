@@ -352,9 +352,7 @@ class TankImpl(
                     onBoat = false
 
                     if (onTerrain == TerrainTile.River) {
-                        buildTerrain(onCol, onRow, TerrainTile.Boat) {
-
-                        }
+                        // TODO: drop boat
                     }
                 } else if (bmap[col, row] == TerrainTile.Boat) {
                     terrainDamage(col, row)

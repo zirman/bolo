@@ -52,11 +52,11 @@ class BuilderImpl(
                     TerrainTile.SwampMined,
                     TerrainTile.CraterMined,
                     TerrainTile.RubbleMined,
-                    -> MAX_SPEED / 4f
+                        -> MAX_SPEED / 4f
 
                     TerrainTile.Tree,
                     TerrainTile.TreeMined,
-                    -> MAX_SPEED / 2f
+                        -> MAX_SPEED / 2f
 
                     TerrainTile.Grass0,
                     TerrainTile.Grass1,
@@ -66,7 +66,7 @@ class BuilderImpl(
                     TerrainTile.Road,
                     TerrainTile.Boat,
                     TerrainTile.RoadMined,
-                    -> MAX_SPEED
+                        -> MAX_SPEED
 
                     TerrainTile.River,
                     TerrainTile.Sea,
@@ -76,7 +76,7 @@ class BuilderImpl(
                     TerrainTile.WallDamaged2,
                     TerrainTile.WallDamaged3,
                     TerrainTile.SeaMined,
-                    -> 0f
+                        -> 0f
                 }
             }
 
@@ -89,12 +89,12 @@ class BuilderImpl(
                 TerrainTile.WallDamaged1,
                 TerrainTile.WallDamaged2,
                 TerrainTile.WallDamaged3,
-                -> true
+                    -> true
 
                 TerrainTile.River -> true
                 TerrainTile.Sea,
                 TerrainTile.SeaMined,
-                -> true
+                    -> true
 
                 TerrainTile.Swamp0,
                 TerrainTile.Swamp1,
@@ -118,7 +118,7 @@ class BuilderImpl(
                 TerrainTile.TreeMined,
                 TerrainTile.RubbleMined,
                 TerrainTile.GrassMined,
-                -> false
+                    -> false
             }
         }
     }
@@ -127,44 +127,21 @@ class BuilderImpl(
         private set
 
     private suspend fun ConsumerScope<Tick>.harvest(col: Int, row: Int): Tick {
-        var buildResult: BuildResult? = null
-        var done = false
-
-        buildTerrain(col, row, TerrainTile.Grass3) {
-            buildResult = it
-        }
-
-        // wait for servers response
-        var timeDelta = 0f
-
-        while (true) {
-            val tick = next()
-            timeDelta += tick.delta
-
-            when (buildResult) {
-                BuildResult.Success -> {
-                    material = TREE_MATERIAL
-                    done = true
-                }
-
-                BuildResult.Failed -> {
-                    done = true
-                }
-
-                BuildResult.Mined -> {
-                    throw BuilderKilled(tick)
-                }
-
-                null -> {
-                }
+        val (tick, timeDelta, buildResult) = buildTerrain(col, row, TerrainTile.Grass3)
+        when (buildResult) {
+            BuildResult.Success -> {
+                material = TREE_MATERIAL
             }
 
-            buildResult = null
+            BuildResult.Failed -> {
+            }
 
-            if (done && timeDelta >= BUILD_TIME) {
-                return tick
+            BuildResult.Mined -> {
+                // TODO: live if mine was visible
+                throw BuilderKilled(tick)
             }
         }
+        return wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
     }
 
     private suspend fun ConsumerScope<Tick>.build(
@@ -172,62 +149,39 @@ class BuilderImpl(
         row: Int,
         terrainTile: TerrainTile,
     ): Tick {
-        var buildResult: BuildResult? = null
-        var done = false
-
-        buildTerrain(col, row, terrainTile) {
-            buildResult = it
-        }
-
-        // wait for servers response
-        var timeDelta = 0f
-
-        while (true) {
-            val tick = next()
-            timeDelta += tick.delta
-
-            when (buildResult) {
-                BuildResult.Success -> {
-                    material = 0
-                    done = true
-                }
-
-                BuildResult.Failed -> {
-                    done = true
-                }
-
-                BuildResult.Mined -> {
-                    throw BuilderKilled(tick)
-                }
-
-                null -> {
-                }
+        val (tick, timeDelta, buildResult) = buildTerrain(col, row, terrainTile)
+        when (buildResult) {
+            BuildResult.Success -> {
+                material = 0
             }
 
-            buildResult = null
+            BuildResult.Failed -> {
+            }
 
-            if (done && timeDelta >= BUILD_TIME) {
-                return tick
+            BuildResult.Mined -> {
+                // TODO: live if mine was visible
+                throw BuilderKilled(tick)
             }
         }
+        return wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
     }
 
     private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick {
         val (tick, timeDelta, buildResult) = mineTerrain(col = col, row = row)
-        return when (buildResult) {
+        when (buildResult) {
             BuildResult.Success -> {
                 mines = 0
-                wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
             }
 
             BuildResult.Failed -> {
-                wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
             }
 
             BuildResult.Mined -> {
+                // TODO: live if mine was visible
                 throw BuilderKilled(tick)
             }
         }
+        return wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
     }
 
     override val consumer: Consumer<Tick> = consumer {
