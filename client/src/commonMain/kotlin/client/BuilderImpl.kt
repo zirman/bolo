@@ -217,11 +217,11 @@ class BuilderImpl(
         return when (buildResult) {
             BuildResult.Success -> {
                 mines = 0
-                wait((BUILD_TIME - timeDelta).coerceAtLeast(0.0f))
+                wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
             }
 
             BuildResult.Failed -> {
-                wait((BUILD_TIME - timeDelta).coerceAtLeast(0.0f))
+                wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
             }
 
             BuildResult.Mined -> {

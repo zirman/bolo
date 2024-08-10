@@ -114,8 +114,6 @@ class GameImpl(
         var buildResult: BuildResult? = null
         buildQueue.add(
             BuildOp.Mine(col = col, row = row, result = { result ->
-                bmap.mine(col, row)
-                tileArray.update(col, row)
                 buildResult = result
             }),
         )
@@ -125,11 +123,15 @@ class GameImpl(
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
 
-        var timeDelta = 0.0f
+        var timeDelta = 0f
         while (true) {
             val tick = next()
             timeDelta += tick.delta
             buildResult?.run {
+                if (this == BuildResult.Success) {
+                    check(bmap.mine(col, row))
+                    tileArray.update(col, row)
+                }
                 return Triple(tick, timeDelta, this)
             }
         }
