@@ -1,8 +1,5 @@
 package common.bmap
 
-import common.assert.assertEqual
-import common.assert.assertLessThan
-import common.assert.assertLessThanOrEqual
 import common.BASE_ARMOR_MAX
 import common.BASE_MINES_MAX
 import common.BASE_SHELLS_MAX
@@ -230,17 +227,17 @@ class NibbleReader(private val buffer: UByteArray) {
             offset++
             nibble
         } else {
-            offset.assertLessThan(buffer.size)
+            check(offset < buffer.size)
             nibbled = true
             (buffer[offset].toInt().and(0b11110000)).ushr(4)
         }
 
     fun finish() {
         if (nibbled) {
-            readNibble().assertEqual(0)
+            check(readNibble() == 0)
         }
 
-        offset.assertEqual(buffer.size)
+        check(offset == buffer.size)
     }
 }
 
@@ -278,7 +275,7 @@ class BmapReader(
 
                 if (nib in 0..7) { // sequence of different terrain
                     val endCol: Int = col + nib + 1
-                    endCol.assertLessThanOrEqual(run.endCol)
+                    check(endCol <= run.endCol)
 
                     while (col < endCol) {
                         bmap[col, run.row] = nibbleToTerrain(run.data.readNibble())
@@ -286,7 +283,7 @@ class BmapReader(
                     }
                 } else if (nib in 8..15) { // sequence of the same terrain
                     val endCol: Int = col + nib - 6
-                    endCol.assertLessThanOrEqual(run.endCol)
+                    check(endCol <= run.endCol)
                     val t: TerrainTile = nibbleToTerrain(run.data.readNibble())
 
                     while (col < endCol) {
@@ -304,27 +301,27 @@ class BmapReader(
         val bytes = string.encodeToByteArray()
 
         for (byte in bytes) {
-            offset.assertLessThan(buffer.size)
-            byte.assertEqual(buffer[offset].toByte())
+            check(offset < buffer.size)
+            check(byte == buffer[offset].toByte())
             offset++
         }
     }
 
     private fun matchUByte(uByte: UByte) {
-        offset.assertLessThan(buffer.size)
-        buffer[offset].assertEqual(uByte)
+        check(offset < buffer.size)
+        check(buffer[offset] == uByte)
         offset++
     }
 
     private fun readUByte(): UByte {
-        offset.assertLessThan(buffer.size)
+        check(offset < buffer.size)
         val x: UByte = buffer[offset]
         offset++
         return x
     }
 
     private fun readMaxUByte(max: UByte): UByte {
-        offset.assertLessThan(buffer.size)
+        check(offset < buffer.size)
         val x: UByte = buffer[offset]
         offset++
         // x.assertLessThanOrEqual(max)
@@ -342,7 +339,7 @@ class BmapReader(
     }
 
     private fun getNibbleReader(dataLength: Int): NibbleReader {
-        (offset + dataLength).assertLessThanOrEqual(buffer.size)
+        check((offset + dataLength) <= buffer.size)
         val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLength))
         offset += dataLength
         return nibbleReader

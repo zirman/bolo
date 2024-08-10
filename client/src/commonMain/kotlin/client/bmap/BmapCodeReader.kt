@@ -1,8 +1,5 @@
 package client.bmap
 
-import common.assert.assertEqual
-import common.assert.assertLessThan
-import common.assert.assertLessThanOrEqual
 import common.bmap.BmapCode
 import common.bmap.NibbleReader
 import common.bmap.Run
@@ -34,7 +31,7 @@ class BmapCodeReader(
 
                 if (nib in 0..7) { // sequence of different terrain
                     val endCol = col + nib + 1
-                    endCol.assertLessThanOrEqual(run.endCol)
+                    check(endCol <= run.endCol)
 
                     while (col < endCol) {
                         bmapCode[col, run.row] = run.data.readNibble()
@@ -42,7 +39,7 @@ class BmapCodeReader(
                     }
                 } else if (nib in 8..15) { // sequence of the same terrain
                     val endCol = col + nib - 6
-                    endCol.assertLessThanOrEqual(run.endCol)
+                    check(endCol <= run.endCol)
                     val t = run.data.readNibble()
 
                     while (col < endCol) {
@@ -60,27 +57,27 @@ class BmapCodeReader(
         val bytes = string.encodeToByteArray()
 
         for (byte in bytes) {
-            offset.assertLessThan(buffer.size)
-            byte.assertEqual(buffer[offset].toByte())
+            check(offset < buffer.size)
+            check(byte == buffer[offset].toByte())
             offset++
         }
     }
 
     private fun matchUByte(uByte: UByte) {
-        offset.assertLessThan(buffer.size)
-        buffer[offset].assertEqual(uByte)
+        check(offset < buffer.size)
+        check(buffer[offset] == uByte)
         offset++
     }
 
     private fun readUByte(): UByte {
-        offset.assertLessThan(buffer.size)
+        check(offset < buffer.size)
         val x = buffer[offset]
         offset++
         return x
     }
 
     private fun getNibbleReader(dataLength: Int): NibbleReader {
-        (offset + dataLength).assertLessThanOrEqual(buffer.size)
+        check((offset + dataLength) <= buffer.size)
         val nibbleReader = NibbleReader(buffer.sliceArray(offset..<offset + dataLength))
         offset += dataLength
         return nibbleReader

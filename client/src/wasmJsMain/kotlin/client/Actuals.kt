@@ -1,6 +1,5 @@
 package client
 
-import common.assert.assertNotNull
 import client.adapters.AudioAdapter
 import client.adapters.AudioAdapterImpl
 import client.adapters.HTMLCanvasElementAdapter
@@ -45,7 +44,7 @@ actual fun getLocationHost(): String = window.location.host
 actual val windowAdapter: WindowAdapter = WindowAdapterImpl()
 
 actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = HTMLCanvasElementAdapterImpl(
-    document.getElementById(CANVAS_ID).assertNotNull("Canvas not found") as HTMLCanvasElement,
+    checkNotNull(document.getElementById(CANVAS_ID)) { "Canvas not found" } as HTMLCanvasElement
 )
 
 actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter =

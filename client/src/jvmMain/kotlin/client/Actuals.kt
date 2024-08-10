@@ -5,20 +5,19 @@ import client.adapters.HTMLCanvasElementAdapter
 import client.adapters.RTCPeerConnectionAdapter
 import client.adapters.Uint8ArrayAdapter
 import client.adapters.WindowAdapter
-import common.assert.never
 import kotlinx.serialization.json.JsonObject
 
-actual fun alert(message: String): Unit = never()
-actual suspend fun awaitAnimationFrame(): Float = never()
-actual fun getDevicePixelRatio(): Float = never()
-actual fun getLocationHost(): String = never()
-actual val windowAdapter: WindowAdapter = never()
-actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = never()
-actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter = never()
-actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = never()
-actual fun audioAdapterFactory(src: String): AudioAdapter = never()
-actual fun setArmorStatusBar(percent: Float): Unit = never()
-actual fun setShellsStatusBar(percent: Float): Unit = never()
-actual fun setMinesStatusBar(percent: Float): Unit = never()
-actual fun setMaterialStatusBar(percent: Float): Unit = never()
-actual fun setBuilderMode(builderMode: BuilderMode): Unit = never()
+actual fun alert(message: String): Unit = throw UnsupportedOperationException("Alert")
+actual suspend fun awaitAnimationFrame(): Float = throw UnsupportedOperationException("AwaitAnimationFrame")
+actual fun getDevicePixelRatio(): Float = throw UnsupportedOperationException("GetDevicePixelRatio")
+actual fun getLocationHost(): String = throw UnsupportedOperationException("GetLocationHost")
+actual val windowAdapter: WindowAdapter = throw UnsupportedOperationException("GetWindowAdapter")
+actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = throw UnsupportedOperationException("GetHtmlCanvasElementAdapter")
+actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter = throw UnsupportedOperationException("GetRtcPeerConnectionAdapter")
+actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = throw UnsupportedOperationException("GetUint8ArrayAdapter")
+actual fun audioAdapterFactory(src: String): AudioAdapter = throw UnsupportedOperationException("GetAudioAdapter")
+actual fun setArmorStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetArmorStatusBar")
+actual fun setShellsStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetShellsStatusBar")
+actual fun setMinesStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetMinesStatusBar")
+actual fun setMaterialStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetMaterialStatusBar")
+actual fun setBuilderMode(builderMode: BuilderMode): Unit = throw UnsupportedOperationException("SetBuilderMode")

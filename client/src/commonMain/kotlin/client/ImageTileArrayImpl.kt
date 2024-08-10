@@ -9,7 +9,6 @@ import client.bmap.isWallLikeTile
 import client.bmap.isWaterLikeToLandTile
 import client.bmap.isWaterLikeToWaterTile
 import client.bmap.toTypeTile
-import common.assert.never
 import common.bmap.BORDER_WIDTH
 import common.bmap.Bmap
 import common.bmap.TypeTile
@@ -102,7 +101,7 @@ class ImageTileArrayImpl(
                 2, 7 -> ImageTile.Sea6
                 6 -> ImageTile.Sea7
                 3 -> ImageTile.Sea8
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.SeaMined -> ImageTile.SeaMined
@@ -125,7 +124,7 @@ class ImageTileArrayImpl(
                 6 -> ImageTile.River13
                 7 -> ImageTile.River14
                 3 -> ImageTile.River15
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.Grass -> ImageTile.Grass
@@ -141,7 +140,7 @@ class ImageTileArrayImpl(
                 6 -> ImageTile.Tree7
                 3 -> ImageTile.Tree8
                 5, 7, 10, 11, 13, 14, 15 -> ImageTile.Tree9
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.TreeMined -> when (isLikeBits(col, row) { isTreeLikeTile() }) {
@@ -155,7 +154,7 @@ class ImageTileArrayImpl(
                 6 -> ImageTile.TreeMined7
                 3 -> ImageTile.TreeMined8
                 5, 7, 10, 11, 13, 14, 15 -> ImageTile.TreeMined9
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.Crater -> when (isLikeBits(col, row) { isCraterLikeTile() }) {
@@ -175,7 +174,7 @@ class ImageTileArrayImpl(
                 6 -> ImageTile.Crater13
                 7 -> ImageTile.Crater14
                 3 -> ImageTile.Crater15
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.CraterMined -> when (isLikeBits(col, row) { isCraterLikeTile() }) {
@@ -195,7 +194,7 @@ class ImageTileArrayImpl(
                 6 -> ImageTile.CraterMined13
                 7 -> ImageTile.CraterMined14
                 3 -> ImageTile.CraterMined15
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.Road -> {
@@ -321,7 +320,7 @@ class ImageTileArrayImpl(
                         else -> ImageTile.Road7
                     }
 
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
             }
 
@@ -448,7 +447,7 @@ class ImageTileArrayImpl(
                         else -> ImageTile.RoadMined7
                     }
 
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
             }
 
@@ -481,7 +480,7 @@ class ImageTileArrayImpl(
                     0 -> ImageTile.Wall23
                     2 -> ImageTile.Wall33
                     1 -> ImageTile.Wall40
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
 
                 8 -> ImageTile.Wall4
@@ -499,7 +498,7 @@ class ImageTileArrayImpl(
                     0 -> ImageTile.Wall22
                     2 -> ImageTile.Wall32
                     1 -> ImageTile.Wall36
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
 
                 9 -> when (getTypeTile(col - 1, row + 1).isWallLikeTile()) {
@@ -515,7 +514,7 @@ class ImageTileArrayImpl(
                     0 -> ImageTile.Wall18
                     2 -> ImageTile.Wall37
                     1 -> ImageTile.Wall44
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
 
                 11 -> when (
@@ -526,7 +525,7 @@ class ImageTileArrayImpl(
                     0 -> ImageTile.Wall19
                     2 -> ImageTile.Wall41
                     1 -> ImageTile.Wall45
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
 
                 15 -> when (
@@ -551,10 +550,10 @@ class ImageTileArrayImpl(
                     12 -> ImageTile.Wall43
                     3 -> ImageTile.Wall38
                     0 -> ImageTile.Wall46
-                    else -> never()
+                    else -> throw IllegalStateException("this should never happen")
                 }
 
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.Boat -> when (isLikeBits(col, row) { isWaterLikeToLandTile() }) {
@@ -566,7 +565,7 @@ class ImageTileArrayImpl(
                 8, 13 -> ImageTile.Boat5
                 12 -> ImageTile.Boat6
                 4, 5, 14 -> ImageTile.Boat7
-                else -> never()
+                else -> throw IllegalStateException("this should never happen")
             }
 
             TypeTile.BaseFriendly -> ImageTile.BaseFriendly

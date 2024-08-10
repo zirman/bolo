@@ -1,6 +1,5 @@
 package client.adapters
 
-import common.assert.assertNotNull
 import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
 import org.khronos.webgl.WebGLRenderingContext
@@ -45,7 +44,7 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
                 blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
                 disable(DEPTH_TEST)
             }
-            .assertNotNull("Your browser does not have WebGl")
+            .let { checkNotNull(it) { "Your browser does not have WebGl" } }
             .let { WebGlRenderingContextAdapterImpl(it) }
     }
 

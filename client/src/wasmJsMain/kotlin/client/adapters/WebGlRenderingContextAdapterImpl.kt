@@ -1,6 +1,5 @@
 package client.adapters
 
-import common.assert.assertNotNull
 import common.bmap.WORLD_HEIGHT
 import common.bmap.WORLD_WIDTH
 import common.bmap.ind
@@ -55,7 +54,7 @@ class WebGlRenderingContextAdapterImpl(
         scope: CoroutineScope,
     ): Deferred<TileProgram> = scope.async {
         val image = loadImage(TILE_SHEET_SRC)
-        val program = createProgram().assertNotNull("createProgram() returned null")
+        val program = checkNotNull(createProgram()) { "createProgram() returned null" }
 
         createShader(
             program,
@@ -110,22 +109,24 @@ class WebGlRenderingContextAdapterImpl(
 
         val aVertex = getAttribLocation(program, "aVertex")
         val aCoordinate = getAttribLocation(program, "aCoordinate")
-        val uClipMatrix = getUniformLocation(program, "uClipMatrix").assertNotNull("uClipMatrix location not found")
+        val uClipMatrix = checkNotNull(getUniformLocation(program, "uClipMatrix")) { "uClipMatrix location not found" }
 
         // initialize fragment shader locations
-        val uTiles = getUniformLocation(program, "uTiles").assertNotNull("uTiles location not found")
-        val uTileMap = getUniformLocation(program, "uTileMap").assertNotNull("uTileMap location not found")
+        val uTiles = checkNotNull(getUniformLocation(program, "uTiles")) { "uTiles location not found" }
+        val uTileMap = checkNotNull(getUniformLocation(program, "uTileMap")) { "uTileMap location not found" }
 
-        val uSourceToOrigin = getUniformLocation(program, "uSrcToOrigin")
-            .assertNotNull("uSrcToOrigin location not found")
+        val uSourceToOrigin = checkNotNull(getUniformLocation(program, "uSrcToOrigin")) {
+            "uSrcToOrigin location not found"
+        }
 
-        val uOriginToDestination = getUniformLocation(program, "uOriginToDest")
-            .assertNotNull("uOriginToDest location not found")
+        val uOriginToDestination = checkNotNull(getUniformLocation(program, "uOriginToDest")) {
+            "uOriginToDest location not found"
+        }
 
-        val uScale = getUniformLocation(program, "uScale").assertNotNull("uScale location not found")
+        val uScale = checkNotNull(getUniformLocation(program, "uScale")) { "uScale location not found" }
 
         // initialize texture coordinate array buffer
-        val coordBuffer = createBuffer().assertNotNull("createBuffer() failed")
+        val coordBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
         bindBuffer(ARRAY_BUFFER, coordBuffer)
 
         bufferData(
@@ -140,7 +141,7 @@ class WebGlRenderingContextAdapterImpl(
         )
 
         // initialize tiles element array buffer
-        val elementBuffer = createBuffer().assertNotNull("createBuffer() failed")
+        val elementBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
         bindBuffer(ELEMENT_ARRAY_BUFFER, elementBuffer)
 
         bufferData(
@@ -149,7 +150,7 @@ class WebGlRenderingContextAdapterImpl(
             STATIC_DRAW,
         )
 
-        val tilesTexture = createTexture().assertNotNull("createTexture() failed")
+        val tilesTexture = checkNotNull(createTexture()) { "createTexture() failed" }
         renderingContext.setTextureUniform(uTiles, tilesTexture, unit = TEXTURE0, x = 0)
         renderingContext.setTextureParameters()
 
@@ -164,17 +165,19 @@ class WebGlRenderingContextAdapterImpl(
 
         generateMipmap(TEXTURE_2D)
 
-        val tileMapTexture = createTexture().assertNotNull("createTexture() failed")
-        val originToDestinationTexture = createTexture().assertNotNull("createTexture() failed")
+        val tileMapTexture = checkNotNull(createTexture()) { "createTexture() failed" }
+        val originToDestinationTexture = checkNotNull(createTexture()) { "createTexture() failed" }
 
         // initialize source to origin texture
-        val sourceToOriginTexture = createTexture().assertNotNull("createTexture() failed")
+        val sourceToOriginTexture = checkNotNull(createTexture()) { "createTexture() failed" }
         val sourceToOriginArray = Float32Array(TILES_COUNT * 3)
 
         for (y in 0..<TILE_SHEET_HEIGHT) {
             for (x in 0..<TILE_SHEET_WIDTH) {
-                sourceToOriginArray[(imageTileIndex(x, y) * 3)] = x.toFloat() / TILE_SHEET_WIDTH.toFloat()      // s offset
-                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] = y.toFloat() / TILE_SHEET_HEIGHT.toFloat() // t offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3)] =
+                    x.toFloat() / TILE_SHEET_WIDTH.toFloat() // s offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] =
+                    y.toFloat() / TILE_SHEET_HEIGHT.toFloat() // t offset
             }
         }
 
@@ -221,7 +224,7 @@ class WebGlRenderingContextAdapterImpl(
         setTextureParameters()
 
         // set tiles vertex position buffer
-        val tilesVertexBuffer = createBuffer().assertNotNull("createBuffer() failed")
+        val tilesVertexBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
         bindBuffer(ARRAY_BUFFER, tilesVertexBuffer)
 
         bufferData(
@@ -325,7 +328,7 @@ class WebGlRenderingContextAdapterImpl(
         scope: CoroutineScope,
     ): Deferred<SpriteProgram> = scope.async {
         val image = loadImage(SPRITE_SHEET_SRC)
-        val program = createProgram().assertNotNull("createProgram() returned null")
+        val program = checkNotNull(createProgram()) { "createProgram() returned null" }
 
         createShader(
             program,
@@ -375,13 +378,13 @@ class WebGlRenderingContextAdapterImpl(
         // initialize vertex shader locations
         val aVertex = getAttribLocation(program, "aVertex")
         val aCoord = getAttribLocation(program, "aCoord")
-        val uClipMatrix = getUniformLocation(program, "uClipMatrix").assertNotNull("uClipMatrix location not found")
+        val uClipMatrix = checkNotNull(getUniformLocation(program, "uClipMatrix")) { "uClipMatrix location not found" }
 
         // initialize fragment shader locations
-        val uTexture = getUniformLocation(program, "uTexture").assertNotNull("uTexture location not found")
+        val uTexture = checkNotNull(getUniformLocation(program, "uTexture")) { "uTexture location not found" }
 
         // load texture
-        val texture = createTexture().assertNotNull("createTexture() failed")
+        val texture = checkNotNull(createTexture()) { "createTexture() failed" }
         setTextureUniform(uTexture, texture, unit = TEXTURE0, x = 0)
         setTextureParameters()
 
@@ -396,11 +399,11 @@ class WebGlRenderingContextAdapterImpl(
 
         generateMipmap(TEXTURE_2D)
 
-        val vertexBuffer = createBuffer().assertNotNull("createBuffer() failed")
-        val coordBuffer = createBuffer().assertNotNull("createBuffer() failed")
+        val vertexBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
+        val coordBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
 
         // initialize element array buffer
-        val elementBuffer = createBuffer().assertNotNull("createBuffer() failed")
+        val elementBuffer = checkNotNull(createBuffer()) { "createBuffer() failed" }
 
         fun(clipMatrix: M4, sprites: List<SpriteInstance>) {
             val (vertex, coordinate, element) = spriteToBuffer(sprites)

@@ -2,7 +2,6 @@ package client
 
 import client.adapters.HTMLCanvasElementAdapter
 import client.adapters.RTCPeerConnectionAdapter
-import common.assert.never
 import common.bmap.BORDER_WIDTH
 import common.bmap.Bmap
 import common.bmap.BmapCode
@@ -195,7 +194,7 @@ class GameImpl(
                     sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
                         0 -> Sprite.Lgm0
                         1 -> Sprite.Lgm1
-                        else -> never()
+                        else -> throw IllegalStateException("this should never happen")
                     },
                 ).run { add(this) }
             }
@@ -649,7 +648,7 @@ class GameImpl(
                         is Frame.Close -> throw IllegalStateException("connection closed by server")
                         is Frame.Ping -> Unit
                         is Frame.Pong -> Unit
-                        else -> never()
+                        else -> throw IllegalStateException("should never happen")
                     }
                 }
                 .map { ProtoBuf.decodeFromByteArray(frameServerSerializer, it.readBytes()) }
