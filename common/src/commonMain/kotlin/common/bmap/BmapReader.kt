@@ -79,11 +79,10 @@ class Bmap(
         this[col, row] = this[col, row].toTerrainDamage()
     }
 
-    fun mine(col: Int, row: Int) {
-        this[col, row].toMinedTerrain()?.let {
-            this[col, row] = it
-        }
-    }
+    fun mine(col: Int, row: Int): Boolean = get(col, row)
+        .toMinedTerrain()
+        ?.let { set(col, row, it); true }
+        ?: false
 
     fun findPill(col: Int, row: Int): Pill? {
         for (pill in pills) {
@@ -145,7 +144,7 @@ fun Entity.isSolid(owner: Int): Boolean = when (this) {
             TerrainTile.WallDamaged1,
             TerrainTile.WallDamaged2,
             TerrainTile.WallDamaged3,
-            -> true
+                -> true
 
             TerrainTile.Sea,
             TerrainTile.River,
@@ -172,7 +171,7 @@ fun Entity.isSolid(owner: Int): Boolean = when (this) {
             TerrainTile.TreeMined,
             TerrainTile.RubbleMined,
             TerrainTile.GrassMined,
-            -> false
+                -> false
         }
 }
 
@@ -465,7 +464,7 @@ fun TerrainTile.toMinedTerrain(): TerrainTile? = when (this) {
     TerrainTile.Swamp1,
     TerrainTile.Swamp2,
     TerrainTile.Swamp3,
-    -> TerrainTile.SwampMined
+        -> TerrainTile.SwampMined
 
     TerrainTile.Crater -> TerrainTile.CraterMined
     TerrainTile.Road -> TerrainTile.RoadMined
@@ -475,13 +474,13 @@ fun TerrainTile.toMinedTerrain(): TerrainTile? = when (this) {
     TerrainTile.Rubble1,
     TerrainTile.Rubble2,
     TerrainTile.Rubble3,
-    -> TerrainTile.RubbleMined
+        -> TerrainTile.RubbleMined
 
     TerrainTile.Grass0,
     TerrainTile.Grass1,
     TerrainTile.Grass2,
     TerrainTile.Grass3,
-    -> TerrainTile.GrassMined
+        -> TerrainTile.GrassMined
 
     else -> null
 }

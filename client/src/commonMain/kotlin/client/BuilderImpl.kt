@@ -1,9 +1,9 @@
 package client
 
-import common.bmap.Entity
-import common.bmap.TerrainTile
 import client.math.V2
 import client.math.squared
+import common.bmap.Entity
+import common.bmap.TerrainTile
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
@@ -213,42 +213,19 @@ class BuilderImpl(
     }
 
     private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick {
-        var buildResult: BuildResult? = null
-        var done = false
-
-        mineTerrain(col, row) {
-            buildResult = it
-        }
-
-        // wait for servers response
-        var timeDelta = 0f
-
-        while (true) {
-            val tick = next()
-            timeDelta += tick.delta
-
-            when (buildResult) {
-                BuildResult.Success -> {
-                    mines = 0
-                    done = true
-                }
-
-                BuildResult.Failed -> {
-                    done = true
-                }
-
-                BuildResult.Mined -> {
-                    throw BuilderKilled(tick)
-                }
-
-                null -> {
-                }
+        val (tick, timeDelta, buildResult) = mineTerrain(col = col, row = row)
+        return when (buildResult) {
+            BuildResult.Success -> {
+                mines = 0
+                wait((BUILD_TIME - timeDelta).coerceAtLeast(0.0f))
             }
 
-            buildResult = null
+            BuildResult.Failed -> {
+                wait((BUILD_TIME - timeDelta).coerceAtLeast(0.0f))
+            }
 
-            if (done && timeDelta >= BUILD_TIME) {
-                return tick
+            BuildResult.Mined -> {
+                throw BuilderKilled(tick)
             }
         }
     }

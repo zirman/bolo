@@ -45,6 +45,15 @@ sealed interface FrameServer {
     data object TerrainBuildMined : FrameServer
 
     @Serializable
+    data object MinePlaceSuccess : FrameServer
+
+    @Serializable
+    data object MinePlaceFailed : FrameServer
+
+    @Serializable
+    data object MinePlaceMined : FrameServer
+
+    @Serializable
     data class TerrainDamage(
         val col: Int,
         val row: Int,

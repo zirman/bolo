@@ -105,26 +105,34 @@ class GameImpl(
         buildQueue.add(BuildOp.Terrain(terrainTile, col, row, result))
 
         FrameClient
-            .TerrainBuild(
-                terrain = terrainTile,
-                col = col,
-                row = row,
-            )
+            .TerrainBuild(terrain = terrainTile, col = col, row = row)
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
     }
 
-    override fun mineTerrain(col: Int, row: Int, result: (BuildResult) -> Unit) {
-        bmap.mine(col, row)
-        tileArray.update(col, row)
+    override suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): Triple<Tick, Float, BuildResult> {
+        var buildResult: BuildResult? = null
+        buildQueue.add(
+            BuildOp.Mine(col = col, row = row, result = { result ->
+                bmap.mine(col, row)
+                tileArray.update(col, row)
+                buildResult = result
+            }),
+        )
 
         FrameClient
-            .TerrainMine(
-                col = col,
-                row = row,
-            )
+            .TerrainMine(col = col, row = row)
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
+
+        var timeDelta = 0.0f
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult?.run {
+                return Triple(tick, timeDelta, this)
+            }
+        }
     }
 
 //    private suspend fun pillRepair(index: Int, material: Int) {
@@ -482,7 +490,7 @@ class GameImpl(
             TerrainTile.Rubble1,
             TerrainTile.Rubble2,
             TerrainTile.Rubble3,
-            -> tryCreatingBuilder(
+                -> tryCreatingBuilder(
                 tank = tank,
                 builderMission = BuilderMission.BuildRoad(col = col, row = row),
             )
@@ -511,7 +519,7 @@ class GameImpl(
             TerrainTile.Rubble2,
             TerrainTile.Rubble3,
             TerrainTile.WallDamaged0,
-            -> tryCreatingBuilder(
+                -> tryCreatingBuilder(
                 tank = tank,
                 builderMission = BuilderMission.BuildWall(
                     col = col,
@@ -598,7 +606,7 @@ class GameImpl(
             TerrainTile.Rubble1,
             TerrainTile.Rubble2,
             TerrainTile.Rubble3,
-            -> tryCreatingBuilder(
+                -> tryCreatingBuilder(
                 tank = tank,
                 builderMission = BuilderMission.PlaceMine(col = col, row = row),
             )
@@ -711,6 +719,21 @@ class GameImpl(
 
                         is FrameServer.TerrainBuildMined -> {
                             val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
+                            buildOp.result(BuildResult.Mined)
+                        }
+
+                        is FrameServer.MinePlaceSuccess -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
+                            buildOp.result(BuildResult.Success)
+                        }
+
+                        is FrameServer.MinePlaceFailed -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
+                            buildOp.result(BuildResult.Failed)
+                        }
+
+                        is FrameServer.MinePlaceMined -> {
+                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
                             buildOp.result(BuildResult.Mined)
                         }
 

@@ -97,7 +97,7 @@ class BoloServer(
 
             is Frame.Ping,
             is Frame.Pong,
-            -> {
+                -> {
             }
 
             is Frame.Text -> {
@@ -248,20 +248,22 @@ class BoloServer(
     }
 
     private fun DefaultWebSocketServerSession.handleTerrainMine(frameClient: FrameClient.TerrainMine) {
-        bmap.mine(frameClient.col, frameClient.row)
-
-        val serverFrame = FrameServer
-            .TerrainMine(
-                col = frameClient.col,
-                row = frameClient.row,
-            )
-            .toByteArray()
-
-        clients.forEach { (_, client) ->
-            if (client != this@handleTerrainMine) {
-                serverFrame.sendTo(client)
+        val placeMineResult = if (bmap[frameClient.col, frameClient.row].isMined()) {
+            FrameServer.MinePlaceMined
+        } else if (bmap.mine(frameClient.col, frameClient.row)) {
+            val serverFrame = FrameServer
+                .TerrainMine(col = frameClient.col, row = frameClient.row)
+                .toByteArray()
+            clients.forEach { (_, client) ->
+                if (client != this@handleTerrainMine) {
+                    serverFrame.sendTo(client)
+                }
             }
+            FrameServer.MinePlaceSuccess
+        } else {
+            FrameServer.MinePlaceFailed
         }
+        placeMineResult.toByteArray().sendTo(this)
     }
 
     private fun DefaultWebSocketServerSession.handleBaseDamage(frameClient: FrameClient.BaseDamage) {

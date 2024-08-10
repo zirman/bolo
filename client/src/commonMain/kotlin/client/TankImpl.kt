@@ -240,19 +240,19 @@ class TankImpl(
             push = when {
                 fxc.not() && fyc.not() &&
                         (((fx * fx + fy * fy) < (TANK_RADIUS.squared)) && terrainUpLeft.isShore())
-                -> V2.create(fx, fy)
+                    -> V2.create(fx, fy)
 
                 cxc.not() && fyc.not() &&
                         (((cx * cx + fy * fy) < (TANK_RADIUS.squared)) && terrainUpRight.isShore())
-                -> V2.create(-cx, fy)
+                    -> V2.create(-cx, fy)
 
                 fxc.not() && cyc.not() &&
                         (((fx * fx + cy * cy) < (TANK_RADIUS.squared)) && terrainDownLeft.isShore())
-                -> V2.create(fx, -cy)
+                    -> V2.create(fx, -cy)
 
                 cxc.not() && cyc.not() &&
                         (((cx * cx + cy * cy) < (TANK_RADIUS.squared)) && terrainDownRight.isShore())
-                -> V2.create(-cx, -cy)
+                    -> V2.create(-cx, -cy)
 
                 else -> when {
                     fxc -> when {
@@ -380,9 +380,7 @@ class TankImpl(
 
     private fun TerrainKernel.mineLaying(tick: Tick) {
         if (tick.control.layMineButton && mines > 0 && bmap[onCol, onRow].isMined().not()) {
-            mineTerrain(onCol, onRow) {
-
-            }
+            // mineTerrain(onCol, onRow) {}
         }
     }
 
