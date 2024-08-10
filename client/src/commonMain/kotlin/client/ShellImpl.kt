@@ -4,7 +4,6 @@ import common.bmap.Entity
 import common.bmap.TerrainTile
 import common.isWater
 import client.math.V2
-import client.math.clamp
 import client.math.dirToVec
 
 class ShellImpl(
@@ -29,7 +28,7 @@ class ShellImpl(
 
         while (true) {
             val tick = next()
-            val delta = timer.clamp(0f, tick.delta)
+            val delta = timer.coerceIn(0f, tick.delta)
             position = position.add(direction.scale((SHELL_VEL * delta)))
             timer -= delta
 

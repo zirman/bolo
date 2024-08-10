@@ -21,7 +21,6 @@ import common.frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.serialization.protobuf.ProtoBuf
 import client.math.V2
-import client.math.clamp
 import client.math.dirToVec
 import client.math.pi
 import client.math.squared
@@ -110,7 +109,7 @@ class TankImpl(
             val devicePixelRatio = getDevicePixelRatio()
 
             sightRange = (sightRange - (tick.control.deltaY * devicePixelRatio / (zoomLevel * 128)))
-                .clamp(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
+                .coerceIn(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
 
             // check for destruction
             when {
@@ -395,21 +394,21 @@ class TankImpl(
             is Entity.Base -> {
                 if (armor < TANK_ARMOR_MAX && entity.ref.armor >= ARMOR_UNIT) {
                     if (refuelingTime >= REFUEL_ARMOR_TIME) {
-                        armor = (armor + ARMOR_UNIT).clamp(0, TANK_ARMOR_MAX)
+                        armor = (armor + ARMOR_UNIT).coerceIn(0, TANK_ARMOR_MAX)
                         setArmorStatusBar(armor.toFloat() / TANK_ARMOR_MAX)
                         entity.ref.armor -= ARMOR_UNIT
                         refuelingTime = 0f
                     }
                 } else if (shells < TANK_SHELLS_MAX && entity.ref.shells >= SHELL_UNIT) {
                     if (refuelingTime >= REFUEL_SHELL_TIME) {
-                        shells = (shells + SHELL_UNIT).clamp(0, TANK_SHELLS_MAX)
+                        shells = (shells + SHELL_UNIT).coerceIn(0, TANK_SHELLS_MAX)
                         setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
                         entity.ref.shells -= SHELL_UNIT
                         refuelingTime = 0f
                     }
                 } else if (mines < TANK_MINES_MAX && entity.ref.mines >= MIENS_UNIT) {
                     if (refuelingTime >= REFUEL_MINE_TIME) {
-                        mines = (mines + MIENS_UNIT).clamp(0, TANK_MINES_MAX)
+                        mines = (mines + MIENS_UNIT).coerceIn(0, TANK_MINES_MAX)
                         setMinesStatusBar(mines.toFloat() / TANK_MINES_MAX)
                         entity.ref.mines -= MIENS_UNIT
                         refuelingTime = 0f
