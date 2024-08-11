@@ -58,7 +58,7 @@ class GameImpl(
     override var center: V2 = V2.ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
     private val frameRegulator: MutableSet<Float> = mutableSetOf()
-    private val buildQueue: MutableList<BuildOp> = mutableListOf()
+    private val buildQueue: MutableList<(BuildResult) -> Unit> = mutableListOf()
     override val zoomLevel: Float = 2f
 
     override val tank: Tank? get() = gameProcesses.filterIsInstance<Tank>().firstOrNull()
@@ -101,11 +101,9 @@ class GameImpl(
         terrainTile: TerrainTile,
     ): Triple<Tick, Float, BuildResult> {
         var buildResult: BuildResult? = null
-        buildQueue.add(
-            BuildOp.Terrain(terrainTile, col = col, row = row, result = { result ->
-                buildResult = result
-            }),
-        )
+        buildQueue.add { result ->
+            buildResult = result
+        }
         FrameClient
             .TerrainBuild(terrain = terrainTile, col = col, row = row)
             .toFrame()
@@ -117,6 +115,7 @@ class GameImpl(
             buildResult?.run {
                 if (this == BuildResult.Success) {
                     bmap[col, row] = terrainTile
+                    bmapCode.inc(col, row)
                     tileArray.update(col, row)
                 }
                 return Triple(tick, timeDelta, this)
@@ -126,11 +125,36 @@ class GameImpl(
 
     override suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): Triple<Tick, Float, BuildResult> {
         var buildResult: BuildResult? = null
-        buildQueue.add(
-            BuildOp.Mine(col = col, row = row, result = { result ->
-                buildResult = result
-            }),
-        )
+        buildQueue.add { result ->
+            buildResult = result
+        }
+        FrameClient
+            .TerrainMine(col = col, row = row)
+            .toFrame()
+            .let { sendChannel.trySend(it).getOrThrow() }
+        var timeDelta = 0f
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult?.run {
+                if (this == BuildResult.Success) {
+                    check(bmap.mine(col, row))
+                    tileArray.update(col, row)
+                }
+                return Triple(tick, timeDelta, this)
+            }
+        }
+    }
+
+    override suspend fun ConsumerScope<Tick>.placePill(
+        col: Int,
+        row: Int,
+        pill: Int
+    ): Triple<Tick, Float, BuildResult> {
+        var buildResult: BuildResult? = null
+        buildQueue.add { result ->
+            buildResult = result
+        }
         FrameClient
             .TerrainMine(col = col, row = row)
             .toFrame()
@@ -719,35 +743,27 @@ class GameImpl(
                         }
 
                         is FrameServer.TerrainBuildSuccess -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            bmapCode.inc(buildOp.col, buildOp.row)
-                            tileArray.update(buildOp.col, buildOp.row)
-                            buildOp.result(BuildResult.Success)
+                            buildQueue.removeAt(0)(BuildResult.Success)
                         }
 
                         is FrameServer.TerrainBuildFailed -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            buildOp.result(BuildResult.Failed)
+                            buildQueue.removeAt(0)(BuildResult.Failed)
                         }
 
                         is FrameServer.TerrainBuildMined -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Terrain
-                            buildOp.result(BuildResult.Mined)
+                            buildQueue.removeAt(0)(BuildResult.Mined)
                         }
 
                         is FrameServer.MinePlaceSuccess -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
-                            buildOp.result(BuildResult.Success)
+                            buildQueue.removeAt(0)(BuildResult.Success)
                         }
 
                         is FrameServer.MinePlaceFailed -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
-                            buildOp.result(BuildResult.Failed)
+                            buildQueue.removeAt(0)(BuildResult.Failed)
                         }
 
                         is FrameServer.MinePlaceMined -> {
-                            val buildOp = buildQueue.removeAt(0) as BuildOp.Mine
-                            buildOp.result(BuildResult.Mined)
+                            buildQueue.removeAt(0)(BuildResult.Mined)
                         }
 
                         is FrameServer.TerrainDamage -> {

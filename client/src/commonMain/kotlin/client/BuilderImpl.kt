@@ -126,51 +126,27 @@ class BuilderImpl(
     override var position: V2 = startPosition
         private set
 
-    private suspend fun ConsumerScope<Tick>.harvest(col: Int, row: Int): Tick {
-        val (tick, timeDelta, buildResult) = buildTerrain(col, row, TerrainTile.Grass3)
-        when (buildResult) {
-            BuildResult.Success -> {
-                material = TREE_MATERIAL
-            }
+    private suspend fun ConsumerScope<Tick>.harvest(col: Int, row: Int): Tick =
+        general({ buildTerrain(col, row, TerrainTile.Grass3) }) { material = TREE_MATERIAL }
 
-            BuildResult.Failed -> {
-            }
+    private suspend fun ConsumerScope<Tick>.build(col: Int, row: Int, terrainTile: TerrainTile): Tick =
+        general({ buildTerrain(col, row, terrainTile) }) { material = 0 }
 
-            BuildResult.Mined -> {
-                // TODO: live if mine was visible
-                throw BuilderKilled(tick)
-            }
+    private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick =
+        general({ mineTerrain(col = col, row = row) }) { mines = 0 }
+
+    private suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int): Tick =
+        general({ mineTerrain(col = col, row = row) }) {
         }
-        return wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
-    }
 
-    private suspend fun ConsumerScope<Tick>.build(
-        col: Int,
-        row: Int,
-        terrainTile: TerrainTile,
+    private suspend inline fun ConsumerScope<Tick>.general(
+        build: suspend ConsumerScope<Tick>.() -> Triple<Tick, Float, BuildResult>,
+        onSuccess: () -> Unit,
     ): Tick {
-        val (tick, timeDelta, buildResult) = buildTerrain(col, row, terrainTile)
+        val (tick, timeDelta, buildResult) = build()
         when (buildResult) {
             BuildResult.Success -> {
-                material = 0
-            }
-
-            BuildResult.Failed -> {
-            }
-
-            BuildResult.Mined -> {
-                // TODO: live if mine was visible
-                throw BuilderKilled(tick)
-            }
-        }
-        return wait((BUILD_TIME - timeDelta).coerceAtLeast(0f))
-    }
-
-    private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick {
-        val (tick, timeDelta, buildResult) = mineTerrain(col = col, row = row)
-        when (buildResult) {
-            BuildResult.Success -> {
-                mines = 0
+                onSuccess()
             }
 
             BuildResult.Failed -> {
@@ -245,19 +221,7 @@ class BuilderImpl(
                     }
 
                     is BuilderMission.PlacePill -> {
-//                        placeMine(buildMission.col, buildMission.row) { buildResult ->
-//                            when (buildResult) {
-//                                BuildResult.Success -> {
-//                                }
-//
-//                                BuildResult.Failed -> {
-//                                }
-//
-//                                BuildResult.Mined -> {
-//                                    set(get<Parachute>())
-//                                }
-//                            }
-//                        }
+                        placePill(buildMission.col, buildMission.row)
                     }
 
                     is BuilderMission.RepairPill -> {
