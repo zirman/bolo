@@ -12,9 +12,15 @@ actual suspend fun awaitAnimationFrame(): Float = throw UnsupportedOperationExce
 actual fun getDevicePixelRatio(): Float = throw UnsupportedOperationException("GetDevicePixelRatio")
 actual fun getLocationHost(): String = throw UnsupportedOperationException("GetLocationHost")
 actual val windowAdapter: WindowAdapter = throw UnsupportedOperationException("GetWindowAdapter")
-actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter = throw UnsupportedOperationException("GetHtmlCanvasElementAdapter")
-actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter = throw UnsupportedOperationException("GetRtcPeerConnectionAdapter")
-actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter = throw UnsupportedOperationException("GetUint8ArrayAdapter")
+actual val htmlCanvasElementAdapter: HTMLCanvasElementAdapter =
+    throw UnsupportedOperationException("GetHtmlCanvasElementAdapter")
+
+actual fun rtcPeerConnectionAdapterFactory(configuration: JsonObject): RTCPeerConnectionAdapter =
+    throw UnsupportedOperationException("GetRtcPeerConnectionAdapter")
+
+actual fun uint8ArrayAdapterFactory(length: Int): Uint8ArrayAdapter =
+    throw UnsupportedOperationException("GetUint8ArrayAdapter")
+
 actual fun audioAdapterFactory(src: String): AudioAdapter = throw UnsupportedOperationException("GetAudioAdapter")
 actual fun setArmorStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetArmorStatusBar")
 actual fun setShellsStatusBar(percent: Float): Unit = throw UnsupportedOperationException("SetShellsStatusBar")

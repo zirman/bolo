@@ -12,7 +12,7 @@ fun TerrainTile.toTypeTile(): TypeTile = when (this) {
     TerrainTile.Swamp1,
     TerrainTile.Swamp2,
     TerrainTile.Swamp3,
-    -> TypeTile.Swamp
+        -> TypeTile.Swamp
 
     TerrainTile.Crater -> TypeTile.Crater
     TerrainTile.Road -> TypeTile.Road
@@ -21,19 +21,19 @@ fun TerrainTile.toTypeTile(): TypeTile = when (this) {
     TerrainTile.Rubble1,
     TerrainTile.Rubble2,
     TerrainTile.Rubble3,
-    -> TypeTile.Rubble
+        -> TypeTile.Rubble
 
     TerrainTile.Grass0,
     TerrainTile.Grass1,
     TerrainTile.Grass2,
     TerrainTile.Grass3,
-    -> TypeTile.Grass
+        -> TypeTile.Grass
 
     TerrainTile.WallDamaged0,
     TerrainTile.WallDamaged1,
     TerrainTile.WallDamaged2,
     TerrainTile.WallDamaged3,
-    -> TypeTile.DamagedWall
+        -> TypeTile.DamagedWall
 
     TerrainTile.SeaMined -> TypeTile.SeaMined
     TerrainTile.SwampMined -> TypeTile.SwampMined

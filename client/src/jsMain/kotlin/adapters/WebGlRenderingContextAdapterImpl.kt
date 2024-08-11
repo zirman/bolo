@@ -173,8 +173,10 @@ class WebGlRenderingContextAdapterImpl(
 
         for (y in 0..<TILE_SHEET_HEIGHT) {
             for (x in 0..<TILE_SHEET_WIDTH) {
-                sourceToOriginArray[(imageTileIndex(x, y) * 3)] = x.toFloat() / TILE_SHEET_WIDTH.toFloat()      // s offset
-                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] = y.toFloat() / TILE_SHEET_HEIGHT.toFloat() // t offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3)] =
+                    x.toFloat() / TILE_SHEET_WIDTH.toFloat()  // s offset
+                sourceToOriginArray[(imageTileIndex(x, y) * 3) + 1] =
+                    y.toFloat() / TILE_SHEET_HEIGHT.toFloat() // t offset
             }
         }
 

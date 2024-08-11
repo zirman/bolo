@@ -16,7 +16,12 @@ interface Game {
     val tank: Tank?
     val zoomLevel: Float
     fun terrainDamage(col: Int, row: Int)
-    suspend fun ConsumerScope<Tick>.buildTerrain(col: Int, row: Int, terrainTile: TerrainTile): Triple<Tick, Float, BuildResult>
+    suspend fun ConsumerScope<Tick>.buildTerrain(
+        col: Int,
+        row: Int,
+        terrainTile: TerrainTile,
+    ): Triple<Tick, Float, BuildResult>
+
     suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): Triple<Tick, Float, BuildResult>
     suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pill: Int): Triple<Tick, Float, BuildResult>
     fun baseDamage(index: Int)

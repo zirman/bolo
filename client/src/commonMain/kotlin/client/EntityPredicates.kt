@@ -43,7 +43,7 @@ fun Entity.isShore(owner: Int): Boolean = when (this) {
         Sea,
         River,
         SeaMined,
-        -> false
+            -> false
 
         Boat,
         Wall,
@@ -72,7 +72,7 @@ fun Entity.isShore(owner: Int): Boolean = when (this) {
         TreeMined,
         RubbleMined,
         GrassMined,
-        -> true
+            -> true
     }
 }
 
@@ -103,7 +103,7 @@ fun Entity.isShellable(owner: Int): Boolean = when (this) {
         RoadMined,
         RubbleMined,
         GrassMined,
-        -> false
+            -> false
 
         Wall,
         Tree,
@@ -112,6 +112,6 @@ fun Entity.isShellable(owner: Int): Boolean = when (this) {
         WallDamaged2,
         WallDamaged3,
         TreeMined,
-        -> true
+            -> true
     }
 }

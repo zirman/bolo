@@ -134,7 +134,7 @@ class GameImpl(
     override suspend fun ConsumerScope<Tick>.placePill(
         col: Int,
         row: Int,
-        pill: Int
+        pill: Int,
     ): Triple<Tick, Float, BuildResult> {
         var buildResult: BuildResult? = null
         buildQueue.add { result ->

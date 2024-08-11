@@ -19,19 +19,19 @@ fun getDamageLevel(terrain: TerrainTile): Int =
         TerrainTile.Rubble0,
         TerrainTile.Grass0,
         TerrainTile.WallDamaged0,
-        -> 3
+            -> 3
 
         TerrainTile.Swamp1,
         TerrainTile.Rubble1,
         TerrainTile.Grass1,
         TerrainTile.WallDamaged1,
-        -> 2
+            -> 2
 
         TerrainTile.Swamp2,
         TerrainTile.Rubble2,
         TerrainTile.Grass2,
         TerrainTile.WallDamaged2,
-        -> 1
+            -> 1
 
         else -> 0
     }
@@ -44,7 +44,7 @@ fun terrainToNibble(t: TerrainTile): Int =
         TerrainTile.Swamp1,
         TerrainTile.Swamp2,
         TerrainTile.Swamp3,
-        -> 2
+            -> 2
 
         TerrainTile.Crater -> 3
         TerrainTile.Road -> 4
@@ -53,19 +53,19 @@ fun terrainToNibble(t: TerrainTile): Int =
         TerrainTile.Rubble1,
         TerrainTile.Rubble2,
         TerrainTile.Rubble3,
-        -> 6
+            -> 6
 
         TerrainTile.Grass0,
         TerrainTile.Grass1,
         TerrainTile.Grass2,
         TerrainTile.Grass3,
-        -> 7
+            -> 7
 
         TerrainTile.WallDamaged0,
         TerrainTile.WallDamaged1,
         TerrainTile.WallDamaged2,
         TerrainTile.WallDamaged3,
-        -> 8
+            -> 8
 
         TerrainTile.Boat -> 9
         TerrainTile.SwampMined -> 10

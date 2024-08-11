@@ -172,7 +172,7 @@ class BuilderImpl(
     }
 
     private suspend fun ConsumerScope<Tick>.gotoTarget(buildMission: BuilderMission): Tick {
-        val targetPosition: V2 = V2.create(buildMission.col + .5f, buildMission.row + .5f)
+        val targetPosition: V2 = V2.create(x = buildMission.col + .5f, y = buildMission.row + .5f)
 
         while (true) {
             val tick = next()

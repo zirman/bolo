@@ -54,7 +54,7 @@ import common.bmap.TypeTile.Wall
 fun TypeTile.isTreeLikeTile(): Int = when (this) {
     Tree,
     TreeMined,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -66,7 +66,7 @@ fun TypeTile.isCraterLikeTile(): Int = when (this) {
     Sea,
     SeaMined,
     Boat,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -109,7 +109,7 @@ fun TypeTile.isRoadLikeTile(): Int = when (this) {
     PillHostile13,
     PillHostile14,
     PillHostile15,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -119,7 +119,7 @@ fun TypeTile.isWaterLikeToLandTile(): Int = when (this) {
     Boat,
     Sea,
     SeaMined,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -168,7 +168,7 @@ fun TypeTile.isWaterLikeToWaterTile(): Int = when (this) {
     PillHostile13,
     PillHostile14,
     PillHostile15,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -178,7 +178,7 @@ fun TypeTile.isWallLikeTile(): Int = when (this) {
     RubbleMined,
     Wall,
     DamagedWall,
-    -> 1
+        -> 1
 
     else -> 0
 }
@@ -186,7 +186,7 @@ fun TypeTile.isWallLikeTile(): Int = when (this) {
 fun TypeTile.isSeaLikeTile(): Int = when (this) {
     Sea,
     SeaMined,
-    -> 1
+        -> 1
 
     else -> 0
 }
