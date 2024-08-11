@@ -79,22 +79,6 @@ class GameImpl(
         launchGameLoop(scope)
     }
 
-//    private suspend fun treeHarvest(x: Int, y: Int) {
-//        buildQueue.add(BuildOp.Terrain(Terrain.Grass3, x, y))
-//
-//        ProtoBuf
-//            .encodeToByteArray(
-//                FrameClient.serializer(),
-//                FrameClient.TerrainBuild(
-//                    terrain = Terrain.Grass3,
-//                    x = x,
-//                    y = y,
-//                ),
-//            )
-//            .let { Frame.Binary(fin = true, it) }
-//            .let { sendChannel.send(it) }
-//    }
-
     override suspend fun ConsumerScope<Tick>.buildTerrain(
         col: Int,
         row: Int,
@@ -139,6 +123,7 @@ class GameImpl(
             buildResult?.run {
                 if (this == BuildResult.Success) {
                     check(bmap.mine(col, row))
+                    bmapCode.inc(col, row)
                     tileArray.update(col, row)
                 }
                 return Triple(tick, timeDelta, this)
@@ -664,7 +649,7 @@ class GameImpl(
             tank.mines -= builderMission.mines
             setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
             tank.hasBuilder = false
-            get<Builder> { parametersOf(tank.position, builderMission, mat, builderMission.mines) }
+            get<Builder> { parametersOf(tank.position, builderMission, mat, builderMission.mines, null) }
         } else {
             // TODO: print message
             null

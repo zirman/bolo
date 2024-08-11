@@ -28,7 +28,7 @@ class ParachuteImpl(
             if (mag > move) {
                 position = diff.scale(move / mag).add(position)
             } else {
-                tick.set(get<Builder> { parametersOf(position, null, 0, 0) })
+                tick.set(get<Builder> { parametersOf(position, null, 0, 0, null) })
                 break
             }
         }

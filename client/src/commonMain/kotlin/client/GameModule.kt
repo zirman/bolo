@@ -96,6 +96,7 @@ val gameModule = module {
                 buildOp: BuilderMission,
                 material: Int,
                 mines: Int,
+                pillIndex: Int?,
             ),
         ->
         BuilderImpl(
@@ -104,6 +105,7 @@ val gameModule = module {
             buildMission = buildOp,
             material = material,
             mines = mines,
+            pill = pillIndex,
         )
     }
 

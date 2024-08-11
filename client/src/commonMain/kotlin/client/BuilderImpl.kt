@@ -22,6 +22,7 @@ class BuilderImpl(
     private val buildMission: BuilderMission?,
     private var material: Int,
     private var mines: Int,
+    private var pill: Int?,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
     class BuilderKilled(val listIterator: MutableListIterator<GameProcess>?) : Throwable()
 

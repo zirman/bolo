@@ -251,6 +251,7 @@ class BoloServer(
         val placeMineResult = if (bmap[frameClient.col, frameClient.row].isMined()) {
             FrameServer.MinePlaceMined
         } else if (bmap.mine(frameClient.col, frameClient.row)) {
+            bmapCode.inc(frameClient.col, frameClient.row)
             val serverFrame = FrameServer
                 .TerrainMine(col = frameClient.col, row = frameClient.row)
                 .toByteArray()
