@@ -141,7 +141,7 @@ class BuilderImpl(
         }
 
     private suspend inline fun ConsumerScope<Tick>.general(
-        build: suspend ConsumerScope<Tick>.() -> Triple<Tick, Float, BuildResult>,
+        build: suspend ConsumerScope<Tick>.() -> BuildTask,
         onSuccess: () -> Unit,
     ): Tick {
         val (tick, timeDelta, buildResult) = build()

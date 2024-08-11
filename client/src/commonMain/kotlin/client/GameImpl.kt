@@ -79,11 +79,7 @@ class GameImpl(
         launchGameLoop(scope)
     }
 
-    override suspend fun ConsumerScope<Tick>.buildTerrain(
-        col: Int,
-        row: Int,
-        terrainTile: TerrainTile,
-    ): Triple<Tick, Float, BuildResult> {
+    override suspend fun ConsumerScope<Tick>.buildTerrain(col: Int, row: Int, terrainTile: TerrainTile): BuildTask {
         var buildResult: BuildResult? = null
         buildQueue.add { result ->
             buildResult = result
@@ -102,12 +98,12 @@ class GameImpl(
                     bmapCode.inc(col, row)
                     tileArray.update(col, row)
                 }
-                return Triple(tick, timeDelta, this)
+                return BuildTask(tick, timeDelta, this)
             }
         }
     }
 
-    override suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): Triple<Tick, Float, BuildResult> {
+    override suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): BuildTask {
         var buildResult: BuildResult? = null
         buildQueue.add { result ->
             buildResult = result
@@ -126,16 +122,12 @@ class GameImpl(
                     bmapCode.inc(col, row)
                     tileArray.update(col, row)
                 }
-                return Triple(tick, timeDelta, this)
+                return BuildTask(tick, timeDelta, this)
             }
         }
     }
 
-    override suspend fun ConsumerScope<Tick>.placePill(
-        col: Int,
-        row: Int,
-        pill: Int,
-    ): Triple<Tick, Float, BuildResult> {
+    override suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pill: Int): BuildTask {
         var buildResult: BuildResult? = null
         buildQueue.add { result ->
             buildResult = result
@@ -153,7 +145,7 @@ class GameImpl(
                     check(bmap.mine(col, row))
                     tileArray.update(col, row)
                 }
-                return Triple(tick, timeDelta, this)
+                return BuildTask(tick, timeDelta, this)
             }
         }
     }
