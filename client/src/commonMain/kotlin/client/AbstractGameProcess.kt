@@ -2,13 +2,13 @@ package client
 
 abstract class AbstractGameProcess : GameProcess {
     suspend fun ConsumerScope<Tick>.wait(time: Float): Tick {
-        var x = 0f
+        var totalDelta = 0f
 
         while (true) {
             val tick = next()
-            x += tick.delta
+            totalDelta += tick.delta
 
-            if (x >= time) {
+            if (totalDelta >= time) {
                 return tick
             }
         }

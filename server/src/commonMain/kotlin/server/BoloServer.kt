@@ -2,6 +2,7 @@
 
 package server
 
+import common.MATERIAL_PER_PILL_ARMOR
 import common.PILL_ARMOR_MAX
 import common.bmap.Bmap
 import common.bmap.BmapCode
@@ -16,11 +17,6 @@ import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.send
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
-import kotlin.math.max
-import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -34,6 +30,9 @@ import server.bmap.writeBmapCode
 import server.bmap.writeDamage
 import server.frame.toByteArray
 import server.frame.toFrameClient
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 class BoloServer(
     private val bmap: Bmap,
@@ -269,7 +268,7 @@ class BoloServer(
 
     private fun DefaultWebSocketServerSession.handleBaseDamage(frameClient: FrameClient.BaseDamage) {
         val base = bmap.bases[frameClient.index]
-        base.armor = max(0, base.armor - 8)
+        base.armor = (base.armor - 8).coerceAtLeast(0)
 
         val serverFrame = FrameServer
             .BaseDamage(index = frameClient.index)
@@ -289,7 +288,7 @@ class BoloServer(
             pill.col == frameClient.col &&
             pill.row == frameClient.row
         ) {
-            pill.armor = max(0, pill.armor - 1)
+            pill.armor = (pill.armor - 1).coerceAtLeast(0)
 
             val serverFrame = FrameServer
                 .PillDamage(index = frameClient.index)
@@ -313,7 +312,7 @@ class BoloServer(
         ) {
             val additionalArmor = frameClient.material * 4
             val oldArmor = pill.armor
-            val newArmor = min(PILL_ARMOR_MAX, oldArmor + additionalArmor)
+            val newArmor = (oldArmor + additionalArmor).coerceAtMost(PILL_ARMOR_MAX)
             pill.armor = newArmor
             pill.code++
 
@@ -340,20 +339,17 @@ class BoloServer(
         frameClient: FrameClient.PillPlacement,
     ) {
         val pill = bmap.pills[frameClient.index]
-
         if (pill.isPlaced.not() &&
             pill.owner == owner.int
         ) {
             pill.isPlaced = true
-            pill.armor = min(PILL_ARMOR_MAX, frameClient.material * 4)
+            pill.armor = (frameClient.material * MATERIAL_PER_PILL_ARMOR).coerceAtMost(PILL_ARMOR_MAX)
             pill.col = frameClient.col
             pill.row = frameClient.row
             pill.code++
-
             FrameServer.PillPlacementSuccess
                 .toByteArray()
                 .sendTo(this)
-
             val serverFrame = FrameServer
                 .PillPlacement(
                     index = frameClient.index,
@@ -362,10 +358,15 @@ class BoloServer(
                     row = pill.row,
                 )
                 .toByteArray()
-
             clients.forEach { (_, client) ->
-                serverFrame.sendTo(client)
+                if (client != this@handlePillPlacement) {
+                    serverFrame.sendTo(client)
+                }
             }
+        } else {
+            FrameServer.PillPlacementFailed
+                .toByteArray()
+                .sendTo(this)
         }
     }
 
@@ -452,8 +453,6 @@ class BoloServer(
     private fun Owner.cleanup(session: DefaultWebSocketServerSession) {
         clients.remove(this)
 
-        // println("FOOBAR drop pills $owner")
-
         // drop pills
         bmap.pills.forEachIndexed { index, pill ->
             if (pill.owner == int) {
@@ -479,8 +478,6 @@ class BoloServer(
             }
         }
 
-        // println("FOOBAR neutralize bases $owner")
-
         // neutralize bases
         bmap.bases.forEachIndexed { index, base ->
             if (base.owner == int) {
@@ -502,8 +499,6 @@ class BoloServer(
             }
         }
 
-        // println("FOOBAR signal $owner")
-
         val disconnectSignal = FrameServer.Signal
             .Disconnect(from = this)
             .toByteArray()
@@ -511,8 +506,6 @@ class BoloServer(
         clients.forEach { (_, client) ->
             disconnectSignal.sendTo(client)
         }
-
-        // println("FOOBAR done $owner")
 
         session.launch {
             session.close()

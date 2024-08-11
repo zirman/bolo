@@ -24,6 +24,10 @@ const val PILL_ARMOR_MAX = 15
 const val PILL_SPEED_MAX = 50
 
 const val MATERIAL_PER_TREE = 4
+const val MATERIAL_PER_PILL_ARMOR = 4
+
+const val BASE_DAMAGE_PER_SHOT = 8
+const val PILL_DAMAGE_PER_SHOT = 1
 
 const val BASE_ARMOR_MAX = 90
 const val BASE_SHELLS_MAX = 90

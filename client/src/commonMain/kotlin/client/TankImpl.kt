@@ -1,35 +1,33 @@
 package client
 
-import common.bmap.Base
-import common.bmap.Entity
-import common.bmap.StartInfo
-import common.bmap.TerrainTile
-import common.bmap.WORLD_HEIGHT
-import common.bmap.isSolid
+import client.math.V2
+import client.math.dirToVec
+import client.math.pi
+import client.math.squared
+import client.math.tau
 import common.ARMOR_UNIT
 import common.MIENS_UNIT
 import common.REFUEL_ARMOR_TIME
 import common.REFUEL_MINE_TIME
 import common.REFUEL_SHELL_TIME
 import common.SHELL_UNIT
+import common.bmap.Base
+import common.bmap.Entity
+import common.bmap.StartInfo
+import common.bmap.TerrainTile
+import common.bmap.WORLD_HEIGHT
+import common.bmap.isSolid
+import common.frame.FrameClient
 import common.getMaxAngularVelocity
 import common.getSpeedMax
 import common.isDrivable
 import common.isMined
 import common.isShore
-import common.frame.FrameClient
 import io.ktor.websocket.Frame
 import kotlinx.serialization.protobuf.ProtoBuf
-import client.math.V2
-import client.math.dirToVec
-import client.math.pi
-import client.math.squared
-import client.math.tau
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -180,12 +178,12 @@ class TankImpl(
 
         when (control.directionHorizontal) {
             DirectionHorizontal.Left -> {
-                rotVel = min(maxVelocity, rotVel + (TURN_RATE_PER_SEC2 / ticksPerSec))
+                rotVel = (rotVel + (TURN_RATE_PER_SEC2 / ticksPerSec)).coerceAtMost(maxVelocity)
                 bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
             DirectionHorizontal.Right -> {
-                rotVel = max(-maxVelocity, rotVel - (TURN_RATE_PER_SEC2 / ticksPerSec))
+                rotVel = (rotVel - (TURN_RATE_PER_SEC2 / ticksPerSec)).coerceAtLeast(-maxVelocity)
                 bearing = (bearing + (rotVel / ticksPerSec)).mod(Float.tau)
             }
 
@@ -200,18 +198,18 @@ class TankImpl(
 
         when {
             speed > max ->
-                speed = max(max, speed - (ACC_PER_SEC2 / ticksPerSec))
+                speed = (speed - (ACC_PER_SEC2 / ticksPerSec)).coerceAtMost(max)
 
             control.directionVertical == DirectionVertical.Up ->
-                speed = min(max, speed + (ACC_PER_SEC2 / ticksPerSec))
+                speed = (speed + (ACC_PER_SEC2 / ticksPerSec)).coerceAtMost(max)
 
             control.directionVertical == DirectionVertical.Down ->
-                speed = max(0f, speed - (ACC_PER_SEC2 / ticksPerSec))
+                speed = (speed - (ACC_PER_SEC2 / ticksPerSec)).coerceAtLeast(0f)
         }
     }
 
     private fun Tick.updateKick() {
-        kickSpeed = max(0f, kickSpeed - (12f / ticksPerSec))
+        kickSpeed = (kickSpeed - (12f / ticksPerSec)).coerceAtLeast(0f)
     }
 
     private fun Tick.updatePosition() {
@@ -283,7 +281,7 @@ class TankImpl(
 
                 // apply breaks if not accelerating
                 if (tick.control.directionVertical != DirectionVertical.Up) {
-                    speed = max(0f, speed - (ACC_PER_SEC2 / tick.ticksPerSec))
+                    speed = (speed - (ACC_PER_SEC2 / tick.ticksPerSec)).coerceAtLeast(0f)
                 }
             }
         }

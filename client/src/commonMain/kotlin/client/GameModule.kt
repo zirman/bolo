@@ -105,7 +105,7 @@ val gameModule = module {
             buildMission = buildOp,
             material = material,
             mines = mines,
-            pill = pillIndex,
+            pillIndex = pillIndex,
         )
     }
 

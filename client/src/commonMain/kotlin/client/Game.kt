@@ -20,7 +20,7 @@ interface Game {
     fun terrainDamage(col: Int, row: Int)
     suspend fun ConsumerScope<Tick>.buildTerrain(col: Int, row: Int, terrainTile: TerrainTile): BuildTask
     suspend fun ConsumerScope<Tick>.mineTerrain(col: Int, row: Int): BuildTask
-    suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pill: Int): BuildTask
+    suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pillIndex: Int, material: Int): BuildTask
     fun baseDamage(index: Int)
     fun pillDamage(index: Int)
     operator fun get(col: Int, row: Int): Entity

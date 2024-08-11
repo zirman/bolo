@@ -2,6 +2,15 @@ package client
 
 import client.adapters.HTMLCanvasElementAdapter
 import client.adapters.RTCPeerConnectionAdapter
+import client.math.M4
+import client.math.V2
+import client.math.dirToVec
+import common.BASE_DAMAGE_PER_SHOT
+import common.MATERIAL_PER_PILL_ARMOR
+import common.PILL_ARMOR_MAX
+import common.PILL_DAMAGE_PER_SHOT
+import common.TILE_PIXEL_HEIGHT
+import common.TILE_PIXEL_WIDTH
 import common.bmap.BORDER_WIDTH
 import common.bmap.Bmap
 import common.bmap.BmapCode
@@ -9,11 +18,10 @@ import common.bmap.Entity
 import common.bmap.TerrainTile
 import common.bmap.WORLD_HEIGHT
 import common.bmap.WORLD_WIDTH
-import common.TILE_PIXEL_HEIGHT
-import common.TILE_PIXEL_WIDTH
 import common.frame.FrameClient
 import common.frame.FrameServer
 import common.frame.Owner
+import common.frame.frameServerSerializer
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CoroutineName
@@ -32,14 +40,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
-import client.math.M4
-import client.math.V2
-import client.math.dirToVec
-import common.frame.frameServerSerializer
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
-import kotlin.math.max
 import kotlin.math.min
 
 class GameImpl(
@@ -127,13 +130,12 @@ class GameImpl(
         }
     }
 
-    override suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pill: Int): BuildTask {
+    override suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int, pillIndex: Int, material: Int): BuildTask {
         var buildResult: BuildResult? = null
         buildQueue.add { result ->
             buildResult = result
         }
-        FrameClient
-            .TerrainMine(col = col, row = row)
+        FrameClient.PillPlacement(index = pillIndex, col = col, row = row, material = material)
             .toFrame()
             .let { sendChannel.trySend(it).getOrThrow() }
         var timeDelta = 0f
@@ -142,7 +144,12 @@ class GameImpl(
             timeDelta += tick.delta
             buildResult?.run {
                 if (this == BuildResult.Success) {
-                    check(bmap.mine(col, row))
+                    val pill = bmap.pills[pillIndex]
+                    pill.col = col
+                    pill.row = row
+                    pill.isPlaced = true
+                    pill.armor = (material * MATERIAL_PER_PILL_ARMOR).coerceAtMost(PILL_ARMOR_MAX)
+                    pill.code++
                     tileArray.update(col, row)
                 }
                 return BuildTask(tick, timeDelta, this)
@@ -310,7 +317,7 @@ class GameImpl(
 
     override fun baseDamage(index: Int) {
         val base = bmap.bases[index]
-        base.armor = max(0, base.armor - 8)
+        base.armor = (base.armor - BASE_DAMAGE_PER_SHOT).coerceAtLeast(0)
 
         FrameClient
             .BaseDamage(
@@ -323,7 +330,7 @@ class GameImpl(
 
     override fun pillDamage(index: Int) {
         val pill = bmap.pills[index]
-        pill.armor = max(0, pill.armor - 1)
+        pill.armor = (pill.armor - PILL_DAMAGE_PER_SHOT).coerceAtLeast(0)
         tileArray.update(pill.col, pill.row)
 
         FrameClient
@@ -370,7 +377,7 @@ class GameImpl(
         val time = awaitAnimationFrame()
         frameRegulator.removeAll { time - it > 1000.0 }
         frameRegulator.add(time)
-        val ticksPerSec = max(1, frameRegulator.size).toFloat()
+        val ticksPerSec = (frameRegulator.size).coerceAtLeast(1).toFloat()
 
         val tick = Tick(
             frameCount = frameCount,
@@ -583,27 +590,51 @@ class GameImpl(
             else -> null
         }
 
-        BuilderMode.Pill -> null
-//                                var index =
-//                                    bmap.pills.indexOfFirst { it.isPlaced && it.x == sqrX && it.y == sqrY }
-//
-//                                if (index >= 0) {
-//                                    val pill = bmap.pills[index]
-//
-//                                    if (tankMaterial > 0) {
-//                                        val material = min(tankMaterial, (pill.armor + 1) / 4)
-//                                        tankMaterial -= material
-////                                        pillRepair(index, material = material)
-//                                    }
-//                                } else {
-//                                    index = bmap.pills.indexOfFirst { it.isPlaced.not() && it.owner == owner }
-//
-//                                    if (index >= 0 && tankMaterial >= pillPerMaterial) {
-//                                        tankMaterial =
-//                                            (tankMaterial - pillPerMaterial).clampRange(0, tankMaterialMax)
-////                                        pillPlacement(index, x = sqrX, y = sqrY, material = pillPerMaterial)
-//                                    }
-//                                }
+        BuilderMode.Pill -> when (bmap[col, row]) {
+            TerrainTile.Grass0,
+            TerrainTile.Grass1,
+            TerrainTile.Grass2,
+            TerrainTile.Grass3,
+            TerrainTile.Swamp0,
+            TerrainTile.Swamp1,
+            TerrainTile.Swamp2,
+            TerrainTile.Swamp3,
+            TerrainTile.Road,
+            TerrainTile.Crater,
+            TerrainTile.Rubble0,
+            TerrainTile.Rubble1,
+            TerrainTile.Rubble2,
+            TerrainTile.Rubble3,
+            TerrainTile.WallDamaged0,
+                -> {
+                val pillIndex = bmap.pills.indexOfFirst { it.owner == owner.int && it.isPlaced.not() }
+                if (pillIndex != -1 && tank.material > 0) {
+                    tryCreatingBuilder(
+                        tank = tank,
+                        builderMission = BuilderMission.PlacePill(
+                            col = col,
+                            row = row,
+                            index = pillIndex,
+                            material = MATERIAL_PER_PILL_ARMOR,
+                        ),
+                    )
+                } else {
+                    null
+                }
+            }
+
+            TerrainTile.Tree -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.HarvestTree(col = col, row = row),
+            )
+
+            TerrainTile.River -> tryCreatingBuilder(
+                tank = tank,
+                builderMission = BuilderMission.BuildBoat(col = col, row = row),
+            )
+
+            else -> null
+        }
 
         BuilderMode.Mine -> when (bmap[col, row]) {
             TerrainTile.Tree,
@@ -634,14 +665,22 @@ class GameImpl(
         tank: Tank,
         builderMission: BuilderMission,
     ): Builder? {
-        return if (tank.material >= builderMission.material && tank.mines >= builderMission.mines) {
+        return if (tank.mines >= builderMission.mines) {
             val mat = min(tank.material, builderMission.material)
             tank.material -= mat
             setMaterialStatusBar(tank.material.toFloat() / TankImpl.TANK_MATERIAL_MAX)
             tank.mines -= builderMission.mines
             setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
             tank.hasBuilder = false
-            get<Builder> { parametersOf(tank.position, builderMission, mat, builderMission.mines, null) }
+            get<Builder> {
+                parametersOf(
+                    tank.position,
+                    builderMission,
+                    mat,
+                    builderMission.mines,
+                    (builderMission as? BuilderMission.PlacePill)?.index
+                )
+            }
         } else {
             // TODO: print message
             null
@@ -743,6 +782,28 @@ class GameImpl(
                             buildQueue.removeAt(0)(BuildResult.Mined)
                         }
 
+                        is FrameServer.PillPlacementSuccess -> {
+                            buildQueue.removeAt(0)(BuildResult.Success)
+                        }
+
+                        is FrameServer.PillPlacementFailed -> {
+                            buildQueue.removeAt(0)(BuildResult.Failed)
+                        }
+
+                        is FrameServer.PillPlacementMined -> {
+                            buildQueue.removeAt(0)(BuildResult.Mined)
+                        }
+
+                        is FrameServer.PillRepairSuccess -> {
+                            // buildQueue.removeAt(0) as BuildOp.PillRepair
+                            // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
+                        }
+
+                        is FrameServer.PillRepairFailed -> {
+                            // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
+                            // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
+                        }
+
                         is FrameServer.TerrainDamage -> {
                             // damage from other players
                             bmap.damage(frameServer.col, frameServer.row)
@@ -767,12 +828,12 @@ class GameImpl(
 
                         is FrameServer.BaseDamage -> {
                             val base = bmap.bases[frameServer.index]
-                            base.armor = max(0, base.armor - 8)
+                            base.armor = (base.armor - 8).coerceAtLeast(0)
                         }
 
                         is FrameServer.PillDamage -> {
                             val pill = bmap.pills[frameServer.index]
-                            pill.armor = max(0, pill.armor - 1)
+                            pill.armor = (pill.armor - 1).coerceAtLeast(0)
                             tileArray.update(pill.col, pill.row)
                         }
 
@@ -781,16 +842,6 @@ class GameImpl(
                             pill.armor = frameServer.armor
                             pill.code++
                             tileArray.update(pill.col, pill.row)
-                        }
-
-                        is FrameServer.PillRepairSuccess -> {
-                            // buildQueue.removeAt(0) as BuildOp.PillRepair
-                            // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
-                        }
-
-                        is FrameServer.PillRepairFailed -> {
-                            // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
-                            // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
                         }
 
                         is FrameServer.PillTake -> {
@@ -817,16 +868,6 @@ class GameImpl(
                             pill.isPlaced = true
                             pill.code++
                             tileArray.update(pill.col, pill.row)
-                        }
-
-                        is FrameServer.PillPlacementSuccess -> {
-                            // buildQueue.removeAt(0) is BuildOp.PillPlacement
-                            // Unit
-                        }
-
-                        is FrameServer.PillPlacementFailed -> {
-                            // buildQueue.removeAt(0) is BuildOp.PillPlacement
-                            // tankMaterial = (tankMaterial + pillPerMaterial).clampRange(0, tankMaterialMax)
                         }
                     }
                 }

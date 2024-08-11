@@ -7,7 +7,6 @@ import common.bmap.TerrainTile
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
-import kotlin.math.min
 import kotlin.math.sqrt
 
 enum class BuildResult {
@@ -22,7 +21,7 @@ class BuilderImpl(
     private val buildMission: BuilderMission?,
     private var material: Int,
     private var mines: Int,
-    private var pill: Int?,
+    private var pillIndex: Int?,
 ) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
     class BuilderKilled(val listIterator: MutableListIterator<GameProcess>?) : Throwable()
 
@@ -127,17 +126,28 @@ class BuilderImpl(
     override var position: V2 = startPosition
         private set
 
-    private suspend fun ConsumerScope<Tick>.harvest(col: Int, row: Int): Tick =
-        general({ buildTerrain(col, row, TerrainTile.Grass3) }) { material = TREE_MATERIAL }
+    private fun getCol(): Int = position.x.toInt()
+    private fun getRow(): Int = position.y.toInt()
 
-    private suspend fun ConsumerScope<Tick>.build(col: Int, row: Int, terrainTile: TerrainTile): Tick =
-        general({ buildTerrain(col, row, terrainTile) }) { material = 0 }
+    private suspend fun ConsumerScope<Tick>.harvest(): Tick =
+        general({ buildTerrain(col = getCol(), row = getRow(), terrainTile = TerrainTile.Grass3) }) {
+            material = TREE_MATERIAL
+        }
 
-    private suspend fun ConsumerScope<Tick>.placeMine(col: Int, row: Int): Tick =
-        general({ mineTerrain(col = col, row = row) }) { mines = 0 }
+    private suspend fun ConsumerScope<Tick>.build(terrainTile: TerrainTile): Tick =
+        general({ buildTerrain(col = getCol(), row = getRow(), terrainTile = terrainTile) }) {
+            material = 0
+        }
 
-    private suspend fun ConsumerScope<Tick>.placePill(col: Int, row: Int): Tick =
-        general({ mineTerrain(col = col, row = row) }) {
+    private suspend fun ConsumerScope<Tick>.placeMine(): Tick =
+        general({ mineTerrain(col = getCol(), row = getRow()) }) {
+            mines = 0
+        }
+
+    private suspend fun ConsumerScope<Tick>.placePill2(): Tick =
+        general({ placePill(col = getCol(), row = getRow(), pillIndex = pillIndex!!, material = material) }) {
+            pillIndex = null
+            material = 0
         }
 
     private suspend inline fun ConsumerScope<Tick>.general(
@@ -178,8 +188,8 @@ class BuilderImpl(
             val tick = next()
             val diff = targetPosition.sub(position)
             val mag = diff.magnitude
-            val col = position.x.toInt()
-            val row = position.y.toInt()
+            val col = getCol()
+            val row = getRow()
 
             val speed = this@BuilderImpl[col, row].builderSpeed(owner.int).let {
                 if (it == 0f && col == buildMission.col && row == buildMission.row) {
@@ -202,27 +212,27 @@ class BuilderImpl(
             } else {
                 when (buildMission) {
                     is BuilderMission.HarvestTree -> {
-                        harvest(buildMission.col, buildMission.row)
+                        harvest()
                     }
 
                     is BuilderMission.BuildWall -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Wall)
+                        build(TerrainTile.Wall)
                     }
 
                     is BuilderMission.BuildRoad -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Road)
+                        build(TerrainTile.Road)
                     }
 
                     is BuilderMission.BuildBoat -> {
-                        build(buildMission.col, buildMission.row, TerrainTile.Boat)
+                        build(TerrainTile.Boat)
                     }
 
                     is BuilderMission.PlaceMine -> {
-                        placeMine(buildMission.col, buildMission.row)
+                        placeMine()
                     }
 
                     is BuilderMission.PlacePill -> {
-                        placePill(buildMission.col, buildMission.row)
+                        placePill2()
                     }
 
                     is BuilderMission.RepairPill -> {
@@ -240,8 +250,8 @@ class BuilderImpl(
             val tank = tank ?: continue
             val diff = tank.position.sub(position)
             val mag = diff.magnitude
-            val col = position.x.toInt()
-            val row = position.y.toInt()
+            val col = getCol()
+            val row = getRow()
 
             val speed = this@BuilderImpl[col, row].builderSpeed(owner.int).let { speed ->
                 if (speed == 0f && col == buildMission?.col && row == buildMission.row) {
@@ -256,11 +266,11 @@ class BuilderImpl(
             if (mag >= move) {
                 position = diff.scale(move / mag).add(position).collisionDetect()
             } else {
-                tank.material = min(tank.material + material, TankImpl.TANK_MATERIAL_MAX)
+                tank.material = (tank.material + material).coerceAtMost(TankImpl.TANK_MATERIAL_MAX)
                 setMaterialStatusBar(tank.material.toFloat() / TankImpl.TANK_MATERIAL_MAX)
                 material = 0
 
-                tank.mines = min(tank.mines + mines, TankImpl.TANK_MINES_MAX)
+                tank.mines = (tank.mines + mines).coerceAtMost(TankImpl.TANK_MINES_MAX)
                 setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
                 mines = 0
 

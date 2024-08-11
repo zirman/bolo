@@ -119,6 +119,9 @@ sealed interface FrameServer {
     data object PillPlacementFailed : FrameServer
 
     @Serializable
+    data object PillPlacementMined : FrameServer
+
+    @Serializable
     data class PillDrop(
         val index: Int,
         val owner: Int,
