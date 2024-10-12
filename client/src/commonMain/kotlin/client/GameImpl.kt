@@ -96,7 +96,7 @@ class GameImpl(
             val tick = next()
             timeDelta += tick.delta
             buildResult?.run {
-                if (this == BuildResult.Success) {
+                if (this is BuildResult.Success) {
                     bmap[col, row] = terrainTile
                     bmapCode.inc(col, row)
                     tileArray.update(col, row)
@@ -120,7 +120,7 @@ class GameImpl(
             val tick = next()
             timeDelta += tick.delta
             buildResult?.run {
-                if (this == BuildResult.Success) {
+                if (this is BuildResult.Success) {
                     check(bmap.mine(col, row))
                     bmapCode.inc(col, row)
                     tileArray.update(col, row)
@@ -143,11 +143,35 @@ class GameImpl(
             val tick = next()
             timeDelta += tick.delta
             buildResult?.run {
-                if (this == BuildResult.Success) {
+                if (this is BuildResult.Success) {
                     val pill = bmap.pills[pillIndex]
                     pill.col = col
                     pill.row = row
                     pill.isPlaced = true
+                    pill.armor = (material * MATERIAL_PER_PILL_ARMOR).coerceAtMost(PILL_ARMOR_MAX)
+                    pill.code++
+                    tileArray.update(col, row)
+                }
+                return BuildTask(tick, timeDelta, this)
+            }
+        }
+    }
+
+    override suspend fun ConsumerScope<Tick>.repairPill(col: Int, row: Int, pillIndex: Int, material: Int): BuildTask {
+        var buildResult: BuildResult? = null
+        buildQueue.add { result ->
+            buildResult = result
+        }
+        FrameClient.PillRepair(index = pillIndex, col = col, row = row, material = material)
+            .toFrame()
+            .let { sendChannel.trySend(it).getOrThrow() }
+        var timeDelta = 0f
+        while (true) {
+            val tick = next()
+            timeDelta += tick.delta
+            buildResult?.run {
+                if (this is BuildResult.Success) {
+                    val pill = bmap.pills[pillIndex]
                     pill.armor = (material * MATERIAL_PER_PILL_ARMOR).coerceAtMost(PILL_ARMOR_MAX)
                     pill.code++
                     tileArray.update(col, row)
@@ -590,50 +614,74 @@ class GameImpl(
             else -> null
         }
 
-        BuilderMode.Pill -> when (bmap[col, row]) {
-            TerrainTile.Grass0,
-            TerrainTile.Grass1,
-            TerrainTile.Grass2,
-            TerrainTile.Grass3,
-            TerrainTile.Swamp0,
-            TerrainTile.Swamp1,
-            TerrainTile.Swamp2,
-            TerrainTile.Swamp3,
-            TerrainTile.Road,
-            TerrainTile.Crater,
-            TerrainTile.Rubble0,
-            TerrainTile.Rubble1,
-            TerrainTile.Rubble2,
-            TerrainTile.Rubble3,
-            TerrainTile.WallDamaged0,
-                -> {
-                val pillIndex = bmap.pills.indexOfFirst { it.owner == owner.int && it.isPlaced.not() }
-                if (pillIndex != -1 && tank.material > 0) {
+        BuilderMode.Pill -> {
+            var pillIndex = bmap.pills.indexOfFirst {
+                it.col == col && it.row == row && it.isPlaced
+            }
+            if (pillIndex != -1) {
+                val armor = PILL_ARMOR_MAX - bmap.pills[pillIndex].armor
+                if (tank.material > 0 && armor > 0) {
                     tryCreatingBuilder(
                         tank = tank,
-                        builderMission = BuilderMission.PlacePill(
+                        builderMission = BuilderMission.RepairPill(
                             col = col,
                             row = row,
                             index = pillIndex,
-                            material = MATERIAL_PER_PILL_ARMOR,
+                            material = ((armor + MATERIAL_PER_PILL_ARMOR - 1) / MATERIAL_PER_PILL_ARMOR).coerceAtMost(
+                                tank.material
+                            ),
                         ),
                     )
                 } else {
                     null
                 }
+            } else {
+                when (bmap[col, row]) {
+                    TerrainTile.Grass0,
+                    TerrainTile.Grass1,
+                    TerrainTile.Grass2,
+                    TerrainTile.Grass3,
+                    TerrainTile.Swamp0,
+                    TerrainTile.Swamp1,
+                    TerrainTile.Swamp2,
+                    TerrainTile.Swamp3,
+                    TerrainTile.Road,
+                    TerrainTile.Crater,
+                    TerrainTile.Rubble0,
+                    TerrainTile.Rubble1,
+                    TerrainTile.Rubble2,
+                    TerrainTile.Rubble3,
+                    TerrainTile.WallDamaged0,
+                        -> {
+                        pillIndex = bmap.pills.indexOfFirst { it.owner == owner.int && it.isPlaced.not() }
+                        if (pillIndex != -1 && tank.material > 0) {
+                            tryCreatingBuilder(
+                                tank = tank,
+                                builderMission = BuilderMission.PlacePill(
+                                    col = col,
+                                    row = row,
+                                    index = pillIndex,
+                                    material = (PILL_ARMOR_MAX + MATERIAL_PER_PILL_ARMOR - 1) / MATERIAL_PER_PILL_ARMOR,
+                                ),
+                            )
+                        } else {
+                            null
+                        }
+                    }
+
+                    TerrainTile.Tree -> tryCreatingBuilder(
+                        tank = tank,
+                        builderMission = BuilderMission.HarvestTree(col = col, row = row),
+                    )
+
+                    TerrainTile.River -> tryCreatingBuilder(
+                        tank = tank,
+                        builderMission = BuilderMission.BuildBoat(col = col, row = row),
+                    )
+
+                    else -> null
+                }
             }
-
-            TerrainTile.Tree -> tryCreatingBuilder(
-                tank = tank,
-                builderMission = BuilderMission.HarvestTree(col = col, row = row),
-            )
-
-            TerrainTile.River -> tryCreatingBuilder(
-                tank = tank,
-                builderMission = BuilderMission.BuildBoat(col = col, row = row),
-            )
-
-            else -> null
         }
 
         BuilderMode.Mine -> when (bmap[col, row]) {
@@ -678,7 +726,7 @@ class GameImpl(
                     builderMission,
                     mat,
                     builderMission.mines,
-                    (builderMission as? BuilderMission.PlacePill)?.index
+                    (builderMission as? BuilderMission.PlacePill)?.index// ?:(builderMission as? BuilderMission.RepairPill)?.index
                 )
             }
         } else {
@@ -759,7 +807,7 @@ class GameImpl(
                         }
 
                         is FrameServer.TerrainBuildSuccess -> {
-                            buildQueue.removeAt(0)(BuildResult.Success)
+                            buildQueue.removeAt(0)(BuildResult.Success(frameServer.material))
                         }
 
                         is FrameServer.TerrainBuildFailed -> {
@@ -771,7 +819,7 @@ class GameImpl(
                         }
 
                         is FrameServer.MinePlaceSuccess -> {
-                            buildQueue.removeAt(0)(BuildResult.Success)
+                            buildQueue.removeAt(0)(BuildResult.Success(0))
                         }
 
                         is FrameServer.MinePlaceFailed -> {
@@ -783,7 +831,8 @@ class GameImpl(
                         }
 
                         is FrameServer.PillPlacementSuccess -> {
-                            buildQueue.removeAt(0)(BuildResult.Success)
+                            //frameServer.material
+                            buildQueue.removeAt(0)(BuildResult.Success(0))
                         }
 
                         is FrameServer.PillPlacementFailed -> {
@@ -795,13 +844,11 @@ class GameImpl(
                         }
 
                         is FrameServer.PillRepairSuccess -> {
-                            // buildQueue.removeAt(0) as BuildOp.PillRepair
-                            // tankMaterial = (tankMaterial + frameServer.material).clampRange(0, tankMaterialMax)
+                            buildQueue.removeAt(0)(BuildResult.Success(frameServer.material))
                         }
 
                         is FrameServer.PillRepairFailed -> {
-                            // val pillRepair = buildQueue.removeAt(0) as BuildOp.PillRepair
-                            // tankMaterial = (tankMaterial + pillRepair.material).clampRange(0, tankMaterialMax)
+                            buildQueue.removeAt(0)(BuildResult.Failed)
                         }
 
                         is FrameServer.TerrainDamage -> {

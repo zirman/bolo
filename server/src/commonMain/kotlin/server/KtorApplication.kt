@@ -17,9 +17,9 @@ import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.netty.handler.codec.compression.StandardCompressionOptions.gzip
-import java.time.Duration
 import kotlinx.css.CssBuilder
 import org.koin.core.context.startKoin
+import kotlin.time.Duration.Companion.seconds
 
 fun Application.ktorModule() {
     // Manually start Koin until it's updated for Ktor 3
@@ -49,8 +49,8 @@ fun Application.ktorModule() {
     }
 
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(60) // Disabled (null) by default
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = 60.seconds
+        timeout = 15.seconds
         // Disabled (max value). The connection will be closed if surpassed this length.
         maxFrameSize = Long.MAX_VALUE
         masking = false

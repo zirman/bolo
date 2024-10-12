@@ -36,7 +36,7 @@ sealed interface FrameServer {
     ) : FrameServer
 
     @Serializable
-    data object TerrainBuildSuccess : FrameServer
+    data class TerrainBuildSuccess(val material: Int) : FrameServer
 
     @Serializable
     data object TerrainBuildFailed : FrameServer

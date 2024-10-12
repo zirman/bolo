@@ -9,10 +9,10 @@ import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import kotlin.math.sqrt
 
-enum class BuildResult {
-    Success,
-    Failed,
-    Mined,
+sealed interface BuildResult {
+    data class Success(val material: Int) : BuildResult
+    data object Failed : BuildResult
+    data object Mined : BuildResult
 }
 
 class BuilderImpl(
@@ -130,41 +130,36 @@ class BuilderImpl(
     private fun getRow(): Int = position.y.toInt()
 
     private suspend fun ConsumerScope<Tick>.harvest(): Tick =
-        general({ buildTerrain(col = getCol(), row = getRow(), terrainTile = TerrainTile.Grass3) }) {
-            material = TREE_MATERIAL
-        }
+        general { buildTerrain(col = getCol(), row = getRow(), terrainTile = TerrainTile.Grass3) }
 
     private suspend fun ConsumerScope<Tick>.build(terrainTile: TerrainTile): Tick =
-        general({ buildTerrain(col = getCol(), row = getRow(), terrainTile = terrainTile) }) {
-            material = 0
-        }
+        general { buildTerrain(col = getCol(), row = getRow(), terrainTile = terrainTile) }
 
     private suspend fun ConsumerScope<Tick>.placeMine(): Tick =
-        general({ mineTerrain(col = getCol(), row = getRow()) }) {
-            mines = 0
-        }
+        general { mineTerrain(col = getCol(), row = getRow()) }
 
     private suspend fun ConsumerScope<Tick>.placePill2(): Tick =
-        general({ placePill(col = getCol(), row = getRow(), pillIndex = pillIndex!!, material = material) }) {
-            pillIndex = null
-            material = 0
+        general { placePill(col = getCol(), row = getRow(), pillIndex = pillIndex!!, material = material) }
+
+    private suspend fun ConsumerScope<Tick>.repairPill2(pillIndex: Int): Tick =
+        general {
+            repairPill(col = getCol(), row = getRow(), pillIndex = pillIndex, material = material)
         }
 
-    private suspend inline fun ConsumerScope<Tick>.general(
-        build: suspend ConsumerScope<Tick>.() -> BuildTask,
-        onSuccess: () -> Unit,
-    ): Tick {
+    private suspend inline fun ConsumerScope<Tick>.general(build: suspend ConsumerScope<Tick>.() -> BuildTask): Tick {
         val (tick, timeDelta, buildResult) = build()
         when (buildResult) {
-            BuildResult.Success -> {
-                onSuccess()
+            is BuildResult.Success -> {
+                material = buildResult.material
+                mines = 0
+                pillIndex = null
             }
 
-            BuildResult.Failed -> {
+            is BuildResult.Failed -> {
+                // no-op
             }
 
-            BuildResult.Mined -> {
-                // TODO: live if mine was visible
+            is BuildResult.Mined -> {
                 throw BuilderKilled(tick)
             }
         }
@@ -236,6 +231,7 @@ class BuilderImpl(
                     }
 
                     is BuilderMission.RepairPill -> {
+                        repairPill2(buildMission.index)
                     }
                 }
 

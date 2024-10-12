@@ -59,7 +59,6 @@ sealed interface FrameClient {
     @Serializable
     data class PillRepair(
         val index: Int,
-        val owner: Int,
         val col: Int,
         val row: Int,
         val material: Int,
