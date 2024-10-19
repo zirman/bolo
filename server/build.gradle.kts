@@ -15,6 +15,9 @@ java {
 }
 
 kotlin {
+    compilerOptions {
+        extraWarnings.set(true)
+    }
     jvm {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_22
