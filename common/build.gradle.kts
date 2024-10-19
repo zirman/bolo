@@ -25,6 +25,9 @@ kotlin {
     wasmJs {
         browser {
         }
+        compilerOptions {
+            freeCompilerArgs.add("-Xwasm-debugger-custom-formatters")
+        }
     }
 
 //    js(IR) {

@@ -1,6 +1,5 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
+@file:OptIn(ExperimentalWasmDsl::class)
 
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -30,6 +29,7 @@ kotlin {
 
         compilerOptions {
             useEsClasses = true
+            freeCompilerArgs.add("-Xwasm-debugger-custom-formatters")
         }
 
         browser {
@@ -101,12 +101,17 @@ kotlin {
             implementation(libs.koinTest)
         }
 
-        wasmJsMain.dependencies {
-            implementation(libs.ktorClientJsWasmJs)
-            implementation(libs.ktorClientJsonWasmJs)
-            implementation(libs.ktorClientSerializationWasmJs)
-            implementation(libs.ktorClientWebsocketsWasmJs)
+        wasmJsMain {
+            dependencies {
+                implementation(libs.kotlinxBrowser)
+                implementation(libs.ktorClientJsWasmJs)
+                implementation(libs.ktorClientJsonWasmJs)
+                implementation(libs.ktorClientSerializationWasmJs)
+                implementation(libs.ktorClientWebsocketsWasmJs)
+            }
         }
+
+//        wasmJsMain.
 
 //        jsMain.dependencies {
 //            implementation(libs.kotlinxCoroutinesCoreJs)
