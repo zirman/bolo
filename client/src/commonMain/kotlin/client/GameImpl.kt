@@ -749,7 +749,6 @@ class GameImpl(
                         is Frame.Close -> throw IllegalStateException("connection closed by server")
                         is Frame.Ping -> Unit
                         is Frame.Pong -> Unit
-                        else -> throw IllegalStateException("should never happen")
                     }
                 }
                 .map { ProtoBuf.decodeFromByteArray(frameServerSerializer, it.readBytes()) }
