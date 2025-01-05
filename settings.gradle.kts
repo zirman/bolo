@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Bolo"
 
-include("common")
-include("client")
-include("server")
-include("jvm-app")
+include(":common")
+include(":client")
+include(":server")
+include(":jvm-app")
