@@ -9,13 +9,13 @@ group = "dev.robch.bolo"
 version = "1.0-SNAPSHOT"
 
 java {
-    targetCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 kotlin {
     compilerOptions {
         extraWarnings.set(true)
-        jvmTarget = JvmTarget.JVM_22
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 

@@ -10,7 +10,7 @@ plugins {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 kotlin {
@@ -19,7 +19,7 @@ kotlin {
     }
     jvm {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_22
+            jvmTarget = JvmTarget.JVM_21
         }
 
         withJava()
