@@ -22,8 +22,6 @@ kotlin {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_21
         }
-
-        withJava()
     }
 
     sourceSets {

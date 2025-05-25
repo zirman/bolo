@@ -1,17 +1,17 @@
 [versions]
 kotlin = "2.1.20-Beta1"
-kotlinxCoroutines = "1.10.1"
-kotlinxSerialization = "1.8.0-RC"
+kotlinxCoroutines = "1.10.2"
+kotlinxSerialization = "1.8.1"
 ktor = "3.0.3"
-kotlinWrappersBom = "1.0.0-pre.798"
-koinBom = "4.1.0-Beta3"
+kotlinWrappersBom = "2025.5.8"
+koinBom = "4.1.0-RC1"
 kotlinxDatetime = "0.6.1"
 kotlinxCollectionsImmutable = "0.4-wasm1"
-logbackClassic = "1.5.15"
+logbackClassic = "1.5.18"
 slf4jSimple = "2.0.7"
 kotlinxBrowser = "0.3"
 junit = "4.13.2"
-versions = "0.51.0"
+versions = "0.52.0"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

@@ -22,8 +22,6 @@ kotlin {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_21
         }
-
-        withJava()
     }
 
     wasmJs {
@@ -66,7 +64,7 @@ kotlin {
     }
 
 //    js(IR) {
-//        moduleName = "jsClient"
+////        moduleName = "jsClient"
 //        useEsModules()
 //
 //        compilerOptions {
