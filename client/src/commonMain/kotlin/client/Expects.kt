@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package client
 
 import client.adapters.AudioAdapter

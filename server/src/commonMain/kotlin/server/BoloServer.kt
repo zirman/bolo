@@ -52,14 +52,14 @@ class BoloServer(
                     throw IllegalStateException("clients full")
                 }
                 owner = Owner(nextOwnerId++)
-                clients[owner!!] = session
+                clients[owner] = session
                 mutableListOf<UByte>()
                     .writeBmap(bmap)
                     .writeDamage(bmap)
                     .writeBmapCode(bmapCode)
                     .toUByteArray()
                     .toByteArray()
-                    .plus(bmap.toExtra(owner!!.int).toByteArray())
+                    .plus(bmap.toExtra(owner.int).toByteArray())
                     .sendTo(session)
                 clients.forEach { (callee) ->
                     if (callee != owner) {
@@ -193,7 +193,12 @@ class BoloServer(
             FrameServer.TerrainBuildMined.toByteArray().sendTo(this)
         } else {
             val isSuccessful = when (frameClient.terrain) {
-                TerrainTile.Grass3 -> if (bmap[frameClient.col, frameClient.row] == TerrainTile.Tree) MATERIAL_PER_TREE else null
+                TerrainTile.Grass3 -> if (bmap[frameClient.col, frameClient.row] == TerrainTile.Tree) {
+                    MATERIAL_PER_TREE
+                } else {
+                    null
+                }
+
                 TerrainTile.Road -> if (terrainTile.isRoadBuildable()) 0 else null
                 TerrainTile.Wall -> if (terrainTile.isWallBuildable()) 0 else null
                 TerrainTile.Boat -> if (terrainTile == TerrainTile.River) 0 else null
@@ -304,7 +309,9 @@ class BoloServer(
             pill.armor = newArmor
             pill.code++
             FrameServer
-                .PillRepairSuccess(material = (newArmor - oldArmor + MATERIAL_PER_PILL_ARMOR - 1) / MATERIAL_PER_PILL_ARMOR)
+                .PillRepairSuccess(
+                    material = (newArmor - oldArmor + MATERIAL_PER_PILL_ARMOR - 1) / MATERIAL_PER_PILL_ARMOR,
+                )
                 .toByteArray()
                 .sendTo(this)
             val serverFrame = FrameServer

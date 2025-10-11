@@ -124,30 +124,30 @@ val gameModule = module {
         )
     }
 
-    single<AudioManager>(named(Sound.Bubbles)) { AudioManager("bubbles.mp3") }
-    single<AudioManager>(named(Sound.Build)) { AudioManager("build.mp3") }
-    single<AudioManager>(named(Sound.BuilderDeath)) { AudioManager("builder_death.mp3") }
-    single<AudioManager>(named(Sound.BuilderDeathFar)) { AudioManager("builder_death_far.mp3") }
-    single<AudioManager>(named(Sound.BuildFar)) { AudioManager("build_far.mp3") }
-    single<AudioManager>(named(Sound.Explosion)) { AudioManager("explosion.mp3") }
-    single<AudioManager>(named(Sound.ExplosionFar)) { AudioManager("explosion_far.mp3") }
-    single<AudioManager>(named(Sound.HitTank)) { AudioManager("hit_tank.mp3") }
-    single<AudioManager>(named(Sound.HitTankFar)) { AudioManager("hit_tank_far.mp3") }
-    single<AudioManager>(named(Sound.HitTerrain)) { AudioManager("hit_terrain.mp3") }
-    single<AudioManager>(named(Sound.HitTerrainFar)) { AudioManager("hit_terrain_far.mp3") }
-    single<AudioManager>(named(Sound.HitTree)) { AudioManager("hit_tree.mp3") }
-    single<AudioManager>(named(Sound.HitTreeFar)) { AudioManager("hit_tree_far.mp3") }
-    single<AudioManager>(named(Sound.MessageReceived)) { AudioManager("message_received.mp3") }
-    single<AudioManager>(named(Sound.Mine)) { AudioManager("mine.mp3") }
-    single<AudioManager>(named(Sound.PillShot)) { AudioManager("pill_shot.mp3") }
-    single<AudioManager>(named(Sound.ShotFar)) { AudioManager("shot_far.mp3") }
-    single<AudioManager>(named(Sound.Sink)) { AudioManager("sink.mp3") }
-    single<AudioManager>(named(Sound.SinkFar)) { AudioManager("sink_far.mp3") }
-    single<AudioManager>(named(Sound.SuperBoom)) { AudioManager("super_boom.mp3") }
-    single<AudioManager>(named(Sound.SuperBoomFar)) { AudioManager("super_boom_far.mp3") }
-    single<AudioManager>(named(Sound.TankShot)) { AudioManager("tank_shot.mp3") }
-    single<AudioManager>(named(Sound.Tree)) { AudioManager("tree.mp3") }
-    single<AudioManager>(named(Sound.TreeFar)) { AudioManager("tree_far.mp3") }
+    single<AudioManager>(named(Sound.Bubbles)) { AudioManager("/files/bubbles.mp3") }
+    single<AudioManager>(named(Sound.Build)) { AudioManager("/files/build.mp3") }
+    single<AudioManager>(named(Sound.BuilderDeath)) { AudioManager("/files/builder_death.mp3") }
+    single<AudioManager>(named(Sound.BuilderDeathFar)) { AudioManager("/files/builder_death_far.mp3") }
+    single<AudioManager>(named(Sound.BuildFar)) { AudioManager("/files/build_far.mp3") }
+    single<AudioManager>(named(Sound.Explosion)) { AudioManager("/files/explosion.mp3") }
+    single<AudioManager>(named(Sound.ExplosionFar)) { AudioManager("/files/explosion_far.mp3") }
+    single<AudioManager>(named(Sound.HitTank)) { AudioManager("/files/hit_tank.mp3") }
+    single<AudioManager>(named(Sound.HitTankFar)) { AudioManager("/files/hit_tank_far.mp3") }
+    single<AudioManager>(named(Sound.HitTerrain)) { AudioManager("/files/hit_terrain.mp3") }
+    single<AudioManager>(named(Sound.HitTerrainFar)) { AudioManager("/files/hit_terrain_far.mp3") }
+    single<AudioManager>(named(Sound.HitTree)) { AudioManager("/files/hit_tree.mp3") }
+    single<AudioManager>(named(Sound.HitTreeFar)) { AudioManager("/files/hit_tree_far.mp3") }
+    single<AudioManager>(named(Sound.MessageReceived)) { AudioManager("/files/message_received.mp3") }
+    single<AudioManager>(named(Sound.Mine)) { AudioManager("/files/mine.mp3") }
+    single<AudioManager>(named(Sound.PillShot)) { AudioManager("/files/pill_shot.mp3") }
+    single<AudioManager>(named(Sound.ShotFar)) { AudioManager("/files/shot_far.mp3") }
+    single<AudioManager>(named(Sound.Sink)) { AudioManager("/files/sink.mp3") }
+    single<AudioManager>(named(Sound.SinkFar)) { AudioManager("/files/sink_far.mp3") }
+    single<AudioManager>(named(Sound.SuperBoom)) { AudioManager("/files/super_boom.mp3") }
+    single<AudioManager>(named(Sound.SuperBoomFar)) { AudioManager("/files/super_boom_far.mp3") }
+    single<AudioManager>(named(Sound.TankShot)) { AudioManager("/files/tank_shot.mp3") }
+    single<AudioManager>(named(Sound.Tree)) { AudioManager("/files/tree.mp3") }
+    single<AudioManager>(named(Sound.TreeFar)) { AudioManager("/files/tree_far.mp3") }
 
     single<Game> {
             (

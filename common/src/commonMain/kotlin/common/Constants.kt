@@ -46,9 +46,9 @@ const val REFUEL_MINE_TIME = 7f / 60f
 const val TILE_PIXEL_WIDTH = 16
 const val TILE_PIXEL_HEIGHT = 16
 
-const val TILE_SHEET_SRC = "tile_sheet.png"
+const val TILE_SHEET_SRC = "/files/tile_sheet.png"
 
 const val SPRITE_SHEET_WIDTH = 16
 const val SPRITE_SHEET_HEIGHT = 16
 
-const val SPRITE_SHEET_SRC = "sprite_sheet.png"
+const val SPRITE_SHEET_SRC = "/files/sprite_sheet.png"

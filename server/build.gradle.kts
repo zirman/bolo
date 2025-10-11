@@ -9,11 +9,9 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kotlinxJsPlainObjects)
 }
-
 java {
     targetCompatibility = JavaVersion.VERSION_21
 }
-
 kotlin {
     compilerOptions {
         extraWarnings.set(true)
@@ -23,7 +21,6 @@ kotlin {
             jvmTarget = JvmTarget.JVM_21
         }
     }
-
     sourceSets {
         commonMain.dependencies {
             implementation(dependencies.platform(libs.koinBom))
@@ -43,7 +40,6 @@ kotlin {
             implementation(libs.ktorNetworkTlsCertificates)
             implementation(libs.logbackClassic)
         }
-
         commonTest.dependencies {
             implementation(libs.kotlinTest)
             implementation(libs.kotlinTestCommon)
@@ -52,12 +48,10 @@ kotlin {
         }
     }
 }
-
 val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
-
 artifacts {
     add(distribution.name, tasks.named("jvmProcessResources"))
 }

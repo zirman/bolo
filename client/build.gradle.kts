@@ -9,11 +9,9 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kotlinxJsPlainObjects)
 }
-
 java {
     targetCompatibility = JavaVersion.VERSION_21
 }
-
 kotlin {
     compilerOptions {
         extraWarnings.set(true)
@@ -23,25 +21,20 @@ kotlin {
             jvmTarget = JvmTarget.JVM_21
         }
     }
-
     wasmJs {
-        moduleName = "wasmClient"
+        // moduleName = "wasmClient"
         useEsModules()
-
         compilerOptions {
             useEsClasses = true
             freeCompilerArgs.add("-Xwasm-debugger-custom-formatters")
         }
-
         browser {
             commonWebpackConfig {
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
                 outputFileName = "boloWasm.js"
             }
         }
-
         binaries.executable()
-
 //        if (project.gradle.startParameter.taskNames.find { it.contains("run") } != null) {
 //            applyBinaryen {
 //                binaryenArgs = mutableListOf(
@@ -62,7 +55,6 @@ kotlin {
 //            }
 //        }
     }
-
 //    js(IR) {
 ////        moduleName = "jsClient"
 //        useEsModules()
@@ -80,7 +72,6 @@ kotlin {
 //
 //        binaries.executable()
 //    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(dependencies.platform(libs.koinBom))
@@ -94,14 +85,12 @@ kotlin {
             implementation(libs.koinCore)
             implementation(libs.ktorClientCore)
         }
-
         commonTest.dependencies {
             implementation(libs.kotlinTest)
             implementation(libs.kotlinTestCommon)
             implementation(libs.kotlinTestAnnotationsCommon)
             implementation(libs.koinTest)
         }
-
         wasmJsMain {
             dependencies {
                 implementation(libs.kotlinxBrowser)
@@ -111,7 +100,6 @@ kotlin {
                 implementation(libs.ktorClientWebsocketsWasmJs)
             }
         }
-
 //        wasmJsMain.
 
 //        jsMain.dependencies {
@@ -122,17 +110,15 @@ kotlin {
 //        }
     }
 }
-
 // TODO: export without using jvmProcessResources
 tasks.named<Copy>("jvmProcessResources") {
     // dist files
-    from(tasks.named<Copy>("wasmJsBrowserDistribution"))
+    from(tasks.named("wasmJsBrowserDistribution"))
     // source map files
 //    from("build/compileSync/wasmJs/main/productionExecutable/kotlin/wasmClient.wasm.map")
-    from("build/compileSync/wasmJs/main/productionExecutable/optimized/wasmClient.wasm.map")
+    from("build/compileSync/wasmJs/main/productionExecutable/optimized/Bolo-client.wasm.map")
     from("src") { into("src") }
 }
-
 val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
     isCanBeConsumed = true
     isCanBeResolved = false

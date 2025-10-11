@@ -58,7 +58,7 @@ fun Application.ktorModule() {
 
     routing {
         staticResources("/", null)
-        staticResources("/", "files")
+        staticResources("/files", "files")
         staticResources("/src", "src")
 
         get("/") {
