@@ -5,3 +5,4 @@
 /build/
 */build/
 jvm-app/bolo.properties
+local.properties
