@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kotlinxJsPlainObjects)
+    alias(libs.plugins.metro)
 }
 java {
     targetCompatibility = JavaVersion.VERSION_21
@@ -23,14 +24,12 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(dependencies.platform(libs.koinBom))
             implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
             implementation(dependencies.platform(libs.kotlinWrappersBom))
 
             implementation(project(":common"))
             implementation(libs.kotlinCss)
             implementation(libs.kotlinxSerializationProtobuf)
-            implementation(libs.koinCore)
             implementation(libs.ktorServerNetty)
             implementation(libs.ktorServerHtmlBuilder)
             implementation(libs.ktorServerContentNegotiation)
@@ -44,7 +43,6 @@ kotlin {
             implementation(libs.kotlinTest)
             implementation(libs.kotlinTestCommon)
             implementation(libs.kotlinTestAnnotationsCommon)
-            implementation(libs.koinTest)
         }
     }
 }

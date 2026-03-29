@@ -1,5 +1,6 @@
 package server
 
+import dev.zacsweers.metro.createGraph
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -18,20 +19,10 @@ import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.netty.handler.codec.compression.StandardCompressionOptions.gzip
 import kotlinx.css.CssBuilder
-import org.koin.core.context.startKoin
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.ktorModule() {
-    // Manually start Koin until it's updated for Ktor 3
-    val koinApp = startKoin {
-        modules(serverModule)
-        createEagerInstances()
-    }
-
-    // install(Koin) {
-    //     slf4jLogger()
-    //     modules(serverModule)
-    // }
+    val serverGraph = createGraph<ServerGraph>()
 
     install(ContentNegotiation) {
         json()
@@ -73,7 +64,7 @@ fun Application.ktorModule() {
             }
         }
 
-        val boloServer: BoloServer = koinApp.koin.get() // by inject()
+        val boloServer = serverGraph.boloServer
 
         webSocket("/wss") {
             boloServer.handleWebSocket(this)

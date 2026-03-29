@@ -4,9 +4,9 @@ import client.math.V2
 import client.math.squared
 import common.bmap.Entity
 import common.bmap.TerrainTile
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlin.math.sqrt
 
 sealed interface BuildResult {
@@ -15,14 +15,28 @@ sealed interface BuildResult {
     data object Mined : BuildResult
 }
 
+@Suppress("LongParameterList", "TooManyFunctions")
+@AssistedInject
 class BuilderImpl(
     game: Game,
-    startPosition: V2,
-    private val buildMission: BuilderMission?,
-    private var material: Int,
-    private var mines: Int,
-    private var pillIndex: Int?,
-) : AbstractGameProcess(), Builder, Game by game, KoinComponent {
+    private val parachuteFactory: ParachuteImpl.Factory,
+    @Assisted startPosition: V2,
+    @Assisted private val buildMission: BuilderMission?,
+    @Assisted private var material: Int,
+    @Assisted private var mines: Int,
+    @Assisted private var pillIndex: Int?,
+) : AbstractGameProcess(), Builder, Game by game {
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            startPosition: V2,
+            buildMission: BuilderMission?,
+            material: Int,
+            mines: Int,
+            pillIndex: Int?,
+        ): BuilderImpl
+    }
+
     class BuilderKilled(val listIterator: MutableListIterator<GameProcess>?) : Throwable()
 
     companion object {
@@ -172,7 +186,7 @@ class BuilderImpl(
             gotoTank()
         } catch (builderKilled: BuilderKilled) {
             tank?.setNextBuilderMission(null)
-            builderKilled.listIterator?.set(get<Parachute> { parametersOf(position) })
+            builderKilled.listIterator?.set(parachuteFactory.create(position))
         }
     }
 

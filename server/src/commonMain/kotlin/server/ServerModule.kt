@@ -3,47 +3,48 @@
 package server
 
 import common.bmap.Bmap
-import common.bmap.BmapCode
 import common.bmap.BmapReader
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.BindingContainer
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import java.io.File
 import java.util.Properties
-import org.koin.core.module.dsl.createdAtStart
-import org.koin.core.module.dsl.withOptions
-import org.koin.dsl.module
 
 private const val MAP = "MAP"
 
-val serverModule = module {
-    single { BoloServer(get(), get()) } withOptions {
-        createdAtStart()
-    }
-
-    // TODO make deferred and platform agnostic
-    single {
-        File("${System.getProperty("user.dir")}${File.separator}bolo.properties")
-            .takeIf { it.exists() }
-            ?.inputStream()
-            .let { inputStream ->
-                Properties().apply {
-                    if (inputStream != null) {
-                        load(inputStream)
+@ContributesTo(AppScope::class)
+@BindingContainer
+interface ServerModule {
+    companion object {
+        @SingleIn(AppScope::class)
+        @Provides
+        fun provideProperties(): Properties {
+            return File("${System.getProperty("user.dir")}${File.separator}bolo.properties")
+                .takeIf { it.exists() }
+                ?.inputStream()
+                .let { inputStream ->
+                    Properties().apply {
+                        if (inputStream != null) {
+                            load(inputStream)
+                        }
                     }
                 }
-            }
-    }
+        }
 
-    // TODO make deferred and platform agnostic
-    single<Bmap> {
-        BoloServer::class.java.classLoader.getResource(
-            "maps${File.separator}${
-                get<Properties>().getProperty(MAP, "Flame War.map")
-            }"
-        )!!
-            .readBytes()
-            .toUByteArray()
-            .let { BmapReader(offset = 0, buffer = it) }
-            .bmap
+        @SingleIn(AppScope::class)
+        @Provides
+        fun provideBmap(properties: Properties): Bmap {
+            return BoloServer::class.java.classLoader.getResource(
+                "maps${File.separator}${
+                    properties.getProperty(MAP, "Flame War.map")
+                }"
+            )!!
+                .readBytes()
+                .toUByteArray()
+                .let { BmapReader(offset = 0, buffer = it) }
+                .bmap
+        }
     }
-
-    single { BmapCode() }
 }

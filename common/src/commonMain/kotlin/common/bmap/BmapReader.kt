@@ -1,13 +1,16 @@
 package common.bmap
 
+import common.BASES_MAX
 import common.BASE_ARMOR_MAX
 import common.BASE_MINES_MAX
 import common.BASE_SHELLS_MAX
-import common.BASES_MAX
+import common.PILLS_MAX
 import common.PILL_ARMOR_MAX
 import common.PILL_SPEED_MAX
-import common.PILLS_MAX
 import common.STARTS_MAX
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.math.min
 
 const val WORLD_WIDTH: Int = 256
@@ -406,6 +409,8 @@ fun defaultTerrain(col: Int, row: Int): TerrainTile =
     if (col < BORDER_WIDTH || row < BORDER_WIDTH || col >= WORLD_WIDTH - BORDER_WIDTH || row >= WORLD_HEIGHT - BORDER_WIDTH) TerrainTile.SeaMined
     else TerrainTile.Sea
 
+@SingleIn(AppScope::class)
+@Inject
 class BmapCode {
     private val code = UByteArray(WORLD_WIDTH * WORLD_HEIGHT)
 

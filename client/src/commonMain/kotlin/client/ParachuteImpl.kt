@@ -1,20 +1,27 @@
 package client
 
 import client.math.V2
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlin.random.Random
 
+@AssistedInject
 class ParachuteImpl(
     game: Game,
-    targetPosition: V2,
-) : AbstractGameProcess(), Parachute, Game by game, KoinComponent {
+    private val builderFactory: BuilderImpl.Factory,
+    @Assisted targetPosition: V2,
+) : AbstractGameProcess(), Parachute, Game by game {
+    @AssistedFactory
+    interface Factory {
+        fun create(targetPosition: V2): ParachuteImpl
+    }
+
     companion object {
         private const val SPEED = 0.5859375f
     }
 
-    override var position: V2 = bmap.starts[Random.Default.nextInt(bmap.starts.size)]
+    override var position: V2 = bmap.starts[Random.nextInt(bmap.starts.size)]
         .let { V2.create(it.col + .5f, it.row + .5f) }
         private set
 
@@ -28,7 +35,15 @@ class ParachuteImpl(
             if (mag > move) {
                 position = diff.scale(move / mag).add(position)
             } else {
-                tick.set(get<Builder> { parametersOf(position, null, 0, 0, null) })
+                tick.set(
+                    builderFactory.create(
+                        startPosition = position,
+                        buildMission = null,
+                        material = 0,
+                        mines = 0,
+                        pillIndex = null,
+                    )
+                )
                 break
             }
         }

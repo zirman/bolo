@@ -1,10 +1,7 @@
 package client
 
-import org.koin.core.context.startKoin
+import dev.zacsweers.metro.createGraph
 
 fun main() {
-    startKoin {
-        modules(clientModule, gameModule)
-        createEagerInstances()
-    }
+    createGraph<ClientGraph>().clientApplication
 }

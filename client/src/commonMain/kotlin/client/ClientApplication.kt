@@ -5,6 +5,9 @@ import client.bmap.BmapDamageReader
 import client.bmap.loadCodes
 import common.bmap.BmapReader
 import common.frame.Owner
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.wss
@@ -14,16 +17,16 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 
 interface ClientApplication
 
+@SingleIn(AppScope::class)
+@Inject
 class ClientApplicationImpl(
-    val scope: CoroutineScope,
+    scope: CoroutineScope,
     val httpClient: HttpClient,
-) : ClientApplication, KoinComponent {
+    val gameGraphFactory: GameGraph.Factory,
+) : ClientApplication {
     init {
         scope.launch(CoroutineName("ClientApplicationImpl")) {
             httpClient.wss(
@@ -52,16 +55,13 @@ class ClientApplicationImpl(
         bmapExtra.loadCodes(bmap)
 
         // instantiate game
-        get<Game> {
-            parametersOf(
-                outgoing,
-                owner,
-                bmap,
-                incoming,
-                bmapCode,
-            )
-        }
-
+        gameGraphFactory.createGameGraph(
+            outgoing = outgoing,
+            incoming = incoming,
+            bmap = bmap,
+            bmapCode = bmapCode,
+            owner = owner,
+        ).game
         awaitCancellation()
     }
 }

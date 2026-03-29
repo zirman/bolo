@@ -15,6 +15,9 @@ import common.frame.Owner
 import common.isMined
 import common.isRoadBuildable
 import common.isWallBuildable
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
@@ -36,6 +39,8 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
+@SingleIn(AppScope::class)
+@Inject
 class BoloServer(
     private val bmap: Bmap,
     private val bmapCode: BmapCode,

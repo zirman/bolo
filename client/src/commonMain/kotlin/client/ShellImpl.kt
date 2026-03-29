@@ -1,18 +1,32 @@
 package client
 
+import client.math.V2
+import client.math.dirToVec
 import common.bmap.Entity
 import common.bmap.TerrainTile
 import common.isWater
-import client.math.V2
-import client.math.dirToVec
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 
+@AssistedInject
 class ShellImpl(
     game: Game,
-    startPosition: V2,
-    override val bearing: Float,
-    private val fromBoat: Boolean,
-    private val sightRange: Float,
+    @Assisted startPosition: V2,
+    @Assisted override val bearing: Float,
+    @Assisted private val fromBoat: Boolean,
+    @Assisted private val sightRange: Float,
 ) : AbstractGameProcess(), Shell, Game by game {
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            startPosition: V2,
+            bearing: Float,
+            fromBoat: Boolean,
+            sightRange: Float,
+        ): ShellImpl
+    }
+
     companion object {
         private const val SHELL_VEL: Float = 7f
         private const val LEAD = 1f / 2f

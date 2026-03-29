@@ -13,7 +13,7 @@ data class BuildTask(val tick: Tick, val delta: Float, val buildResult: BuildRes
 interface Game {
     val bmap: Bmap
     val owner: Owner
-    val sendChannel: SendChannel<Frame>
+    val outgoing: SendChannel<Frame>
     var center: V2
     val tank: Tank?
     val zoomLevel: Float

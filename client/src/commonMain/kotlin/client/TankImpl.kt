@@ -23,19 +23,30 @@ import common.getSpeedMax
 import common.isDrivable
 import common.isMined
 import common.isShore
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.Named
 import io.ktor.websocket.Frame
-import kotlinx.serialization.protobuf.ProtoBuf
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlinx.serialization.protobuf.ProtoBuf
 
+@Suppress("TooManyFunctions")
+@AssistedInject
 class TankImpl(
+    @Named("Sound.TankShot")
     private val tankShotAudioManager: AudioManager,
     game: Game,
-    override var hasBuilder: Boolean,
-) : AbstractGameProcess(), Tank, Game by game, KoinComponent {
+    private val tankFactory: Factory,
+    private val shellFactory: ShellImpl.Factory,
+    @Assisted override var hasBuilder: Boolean,
+) : AbstractGameProcess(), Tank, Game by game {
+    @AssistedFactory
+    interface Factory {
+        fun create(hasBuilder: Boolean): TankImpl
+    }
+
     companion object {
         private const val TANK_RADIUS: Float = 3f / 8f
         private const val FORCE_PUSH: Float = 25f / 16f
@@ -53,7 +64,7 @@ class TankImpl(
         // private const val FORCE_KICK: Float = 25f / 8f
     }
 
-    private val start: StartInfo = bmap.starts[Random.Default.nextInt(bmap.starts.size)]
+    private val start: StartInfo = bmap.starts[Random.nextInt(bmap.starts.size)]
 
     override var position: V2 = V2.create(x = start.col.toFloat() + .5f, y = start.row.toFloat() + .5f)
         private set
@@ -117,7 +128,7 @@ class TankImpl(
                     // TODO: drop pills
                     tick.set(LogicGameProcess {
                         wait(5f).apply {
-                            set(get<Tank> { parametersOf(hasBuilder) })
+                            set(tankFactory.create(hasBuilder))
                         }
                     })
 
@@ -131,7 +142,7 @@ class TankImpl(
                     // TODO: drop pills
                     tick.set(LogicGameProcess {
                         wait(5f).apply {
-                            set(get<Tank> { parametersOf(hasBuilder) })
+                            set(tankFactory.create(hasBuilder))
                         }
                     })
 
@@ -144,7 +155,7 @@ class TankImpl(
                     // TODO: drop pills
                     tick.set(LogicGameProcess {
                         wait(5f).apply {
-                            set(get<Tank> { parametersOf(hasBuilder) })
+                            set(tankFactory.create(hasBuilder))
                         }
                     })
 
@@ -364,7 +375,14 @@ class TankImpl(
 
     private fun Tick.firing() {
         if (control.fireButton && shells > 0 && reload >= RELOAD_SEC) {
-            add(get<Shell> { parametersOf(position, bearing, onBoat, sightRange) })
+            add(
+                shellFactory.create(
+                    startPosition = position,
+                    bearing = bearing,
+                    fromBoat = onBoat,
+                    sightRange = sightRange,
+                ),
+            )
             reload = 0f
             shells--
             setShellsStatusBar(shells.toFloat() / TANK_SHELLS_MAX)
@@ -428,7 +446,7 @@ class TankImpl(
                     ),
                 )
                 .let { Frame.Binary(fin = true, it) }
-                .let { sendChannel.trySend(it).getOrThrow() }
+                .let { outgoing.trySend(it).getOrThrow() }
         }
     }
 

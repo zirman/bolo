@@ -22,6 +22,9 @@ import common.frame.FrameClient
 import common.frame.FrameServer
 import common.frame.Owner
 import common.frame.frameServerSerializer
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metro.SingleIn
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import kotlinx.coroutines.CoroutineName
@@ -40,24 +43,27 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 import kotlin.math.min
 
+@Suppress("LongParameterList", "TooManyFunctions", "LargeClass")
+@SingleIn(GameScope::class)
+@Inject
 class GameImpl(
     private val scope: CoroutineScope,
-    override val sendChannel: SendChannel<Frame>,
-    private val receiveChannel: ReceiveChannel<Frame>,
     private val control: Control,
     private val canvas: HTMLCanvasElementAdapter,
     private val tileProgram: Deferred<TileProgram>,
     private val spriteProgram: Deferred<SpriteProgram>,
     private val tileArray: ImageTileArray,
+    private val tankFactory: TankImpl.Factory,
+    private val builderFactory: BuilderImpl.Factory,
+    private val rtcPeerConnectionAdapterFactory: Provider<RTCPeerConnectionAdapter>,
+    override val outgoing: SendChannel<Frame>,
+    private val incoming: ReceiveChannel<Frame>,
     override val owner: Owner,
     override val bmap: Bmap,
     private val bmapCode: BmapCode,
-) : Game, KoinComponent {
+) : Game {
     override var center: V2 = V2.ORIGIN
     private val frameServerFlow = MutableSharedFlow<FrameServer>()
     private val frameRegulator: MutableSet<Float> = mutableSetOf()
@@ -72,7 +78,7 @@ class GameImpl(
     private val gameProcesses: MutableList<GameProcess> = mutableListOf(LogicGameProcess {
         // creates tank on first frame
         next().apply {
-            set(get<Tank> { parametersOf(true) })
+            set(tankFactory.create(hasBuilder = true))
         }
     })
 
@@ -90,7 +96,7 @@ class GameImpl(
         FrameClient
             .TerrainBuild(terrain = terrainTile, col = col, row = row)
             .toFrame()
-            .let { sendChannel.trySend(it).getOrThrow() }
+            .let { outgoing.trySend(it).getOrThrow() }
         var timeDelta = 0f
         while (true) {
             val tick = next()
@@ -114,7 +120,7 @@ class GameImpl(
         FrameClient
             .TerrainMine(col = col, row = row)
             .toFrame()
-            .let { sendChannel.trySend(it).getOrThrow() }
+            .let { outgoing.trySend(it).getOrThrow() }
         var timeDelta = 0f
         while (true) {
             val tick = next()
@@ -137,7 +143,7 @@ class GameImpl(
         }
         FrameClient.PillPlacement(index = pillIndex, col = col, row = row, material = material)
             .toFrame()
-            .let { sendChannel.trySend(it).getOrThrow() }
+            .let { outgoing.trySend(it).getOrThrow() }
         var timeDelta = 0f
         while (true) {
             val tick = next()
@@ -164,7 +170,7 @@ class GameImpl(
         }
         FrameClient.PillRepair(index = pillIndex, col = col, row = row, material = material)
             .toFrame()
-            .let { sendChannel.trySend(it).getOrThrow() }
+            .let { outgoing.trySend(it).getOrThrow() }
         var timeDelta = 0f
         while (true) {
             val tick = next()
@@ -239,7 +245,7 @@ class GameImpl(
                     sprite = when (((2 * frameCount) / ticksPerSec.toInt()).mod(2)) {
                         0 -> Sprite.Lgm0
                         1 -> Sprite.Lgm1
-                        else -> throw IllegalStateException("this should never happen")
+                        else -> error("this should never happen")
                     },
                 ).run { add(this) }
             }
@@ -323,7 +329,7 @@ class GameImpl(
                 row = row,
             )
             .toFrame()
-            .run { sendChannel.trySend(this).getOrThrow() }
+            .run { outgoing.trySend(this).getOrThrow() }
     }
 
     private fun killBuilderInTile(col: Int, row: Int) {
@@ -349,7 +355,7 @@ class GameImpl(
                 code = base.code,
             )
             .toFrame()
-            .run { sendChannel.trySend(this).getOrThrow() }
+            .run { outgoing.trySend(this).getOrThrow() }
     }
 
     override fun pillDamage(index: Int) {
@@ -365,7 +371,7 @@ class GameImpl(
                 row = pill.row,
             )
             .toFrame()
-            .run { sendChannel.trySend(this).getOrThrow() }
+            .run { outgoing.trySend(this).getOrThrow() }
     }
 
     override operator fun get(col: Int, row: Int): Entity {
@@ -720,15 +726,14 @@ class GameImpl(
             tank.mines -= builderMission.mines
             setMinesStatusBar(tank.mines.toFloat() / TankImpl.TANK_MINES_MAX)
             tank.hasBuilder = false
-            get<Builder> {
-                parametersOf(
-                    tank.position,
-                    builderMission,
-                    mat,
-                    builderMission.mines,
-                    (builderMission as? BuilderMission.PlacePill)?.index// ?:(builderMission as? BuilderMission.RepairPill)?.index
-                )
-            }
+            builderFactory.create(
+                startPosition = tank.position,
+                buildMission = builderMission,
+                material = mat,
+                mines = builderMission.mines,
+                pillIndex = (builderMission as? BuilderMission.PlacePill)?.index,
+                // ?:(builderMission as? BuilderMission.RepairPill)?.index
+            )
         } else {
             // TODO: print message
             null
@@ -740,13 +745,13 @@ class GameImpl(
     private fun launchReceiverFlow(scope: CoroutineScope): Job {
         // emit decoded server frames to game
         return scope.launch(CoroutineName("launchReceiverFlow")) {
-            receiveChannel
+            incoming
                 .consumeAsFlow()
                 .transform { frame ->
                     when (frame) {
                         is Frame.Binary -> emit(frame)
-                        is Frame.Text -> throw IllegalStateException("unexpected text frame")
-                        is Frame.Close -> throw IllegalStateException("connection closed by server")
+                        is Frame.Text -> error("unexpected text frame")
+                        is Frame.Close -> error("connection closed by server")
                         is Frame.Ping -> Unit
                         is Frame.Pong -> Unit
                     }
@@ -781,7 +786,7 @@ class GameImpl(
                                             sessionDescription = peerConnection.localDescription!!,
                                         )
                                         .toFrame()
-                                        .run { sendChannel.send(this) }
+                                        .run { outgoing.send(this) }
                                 }
 
                                 is FrameServer.Signal.Answer -> {
@@ -923,7 +928,7 @@ class GameImpl(
 
     private fun getPeer(from: Owner): Peer {
         return peers.getOrPut(from) {
-            val peerConnection: RTCPeerConnectionAdapter = get()
+            val peerConnection: RTCPeerConnectionAdapter = rtcPeerConnectionAdapterFactory()
 
             peerConnection.setOnnegotiationneeded { event ->
                 println("PeerConnection.onnegotiationneeded: $from $event")
@@ -937,7 +942,7 @@ class GameImpl(
                         sessionDescription = peerConnection.localDescription!!,
                     )
                         .toFrame()
-                        .run { sendChannel.send(this) }
+                        .run { outgoing.send(this) }
                 }
             }
 
@@ -979,7 +984,7 @@ class GameImpl(
                             iceCandidate = candidate,
                         )
                         .toFrame()
-                        .run { sendChannel.send(this) }
+                        .run { outgoing.send(this) }
                 }
             }
 
