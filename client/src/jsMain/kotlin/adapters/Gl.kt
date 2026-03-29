@@ -29,7 +29,7 @@ fun WebGLRenderingContext.createShader(program: WebGLProgram, type: Int, source:
     compileShader(vertexShader)
 
     if ((getShaderParameter(vertexShader, COMPILE_STATUS) as Boolean).not()) {
-        throw IllegalStateException(getShaderInfoLog(vertexShader))
+        error(getShaderInfoLog(vertexShader))
     }
 
     attachShader(program, vertexShader)

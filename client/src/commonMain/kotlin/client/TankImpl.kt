@@ -35,7 +35,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 @Suppress("TooManyFunctions")
 @AssistedInject
 class TankImpl(
-    @Named("Sound.TankShot")
+    @param:Named("Sound.TankShot")
     private val tankShotAudioManager: AudioManager,
     game: Game,
     private val tankFactory: Factory,

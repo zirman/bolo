@@ -103,7 +103,7 @@ class WebGlRenderingContextAdapterImpl(
 
         if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
             window.alert("Unable to initialize the shader program: ${getProgramInfoLog(program)}")
-            throw IllegalStateException(getProgramInfoLog(program))
+            error(getProgramInfoLog(program))
         }
 
         useProgram(program)
@@ -369,7 +369,7 @@ class WebGlRenderingContextAdapterImpl(
 
         if ((getProgramParameter(program, LINK_STATUS) as Boolean).not()) {
             window.alert("linkProgram() failed: ${getProgramInfoLog(program)}")
-            throw IllegalStateException()
+            error("linkProgram() failed: ${getProgramInfoLog(program)}")
         }
 
         useProgram(program)

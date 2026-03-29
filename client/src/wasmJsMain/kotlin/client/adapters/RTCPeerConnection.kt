@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package client.adapters
 
 import kotlin.js.Promise

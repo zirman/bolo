@@ -54,7 +54,7 @@ class BoloServer(
         try {
             lock {
                 if (clients.size >= 16) {
-                    throw IllegalStateException("clients full")
+                    error("clients full")
                 }
                 owner = Owner(nextOwnerId++)
                 clients[owner] = session
@@ -107,7 +107,7 @@ class BoloServer(
             }
 
             is Frame.Text -> {
-                throw IllegalStateException("Unexpected text frame")
+                error("Unexpected text frame")
             }
 
             is Frame.Close -> {

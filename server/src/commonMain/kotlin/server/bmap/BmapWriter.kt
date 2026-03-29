@@ -74,7 +74,7 @@ fun terrainToNibble(t: TerrainTile): Int =
         TerrainTile.TreeMined -> 13
         TerrainTile.RubbleMined -> 14
         TerrainTile.GrassMined -> 15
-        else -> throw IllegalStateException()
+        else -> error("Invalid TerrainTile")
     }
 
 fun MutableList<UByte>.writeBmap(bmap: Bmap): MutableList<UByte> {
@@ -231,7 +231,11 @@ fun MutableList<UByte>.writeDamage(bmap: Bmap): MutableList<UByte> {
                             val t = getDamageLevel(bmap[col, row])
 
                             col += 2
-                            while (col - beginX < 9 && col < WORLD_WIDTH - BORDER_WIDTH && getDamageLevel(bmap[col, row]) == t) {
+                            while (
+                                col - beginX < 9 &&
+                                col < WORLD_WIDTH - BORDER_WIDTH &&
+                                getDamageLevel(bmap[col, row]) == t
+                            ) {
                                 col++
                             }
 

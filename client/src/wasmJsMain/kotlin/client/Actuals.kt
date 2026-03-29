@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+@file:Suppress("TooManyFunctions")
+
 package client
 
 import client.adapters.AudioAdapter
@@ -21,6 +24,8 @@ import common.CANVAS_ID
 import common.MATERIAL_ID
 import common.MINES_ID
 import common.SHELLS_ID
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
@@ -28,8 +33,6 @@ import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLProgressElement
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 actual fun alert(message: String) {
     window.alert(message)

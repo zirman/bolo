@@ -22,7 +22,7 @@ class HTMLCanvasElementAdapterImpl(private val canvas: HTMLCanvasElement) : HTML
             ?.let { it as? WebGLRenderingContext }
             ?.apply {
                 if (getExtension("OES_texture_float") == null) {
-                    throw IllegalStateException("Your WebGL does not support floating point texture")
+                    error("Your WebGL does not support floating point texture")
                 }
 
                 fun resize() {

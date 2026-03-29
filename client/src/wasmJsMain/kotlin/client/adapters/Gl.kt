@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package client.adapters
 
 import common.bmap.WORLD_HEIGHT
@@ -28,7 +30,7 @@ fun WebGLRenderingContextBase.createShader(program: WebGLProgram, type: Int, sou
     compileShader(vertexShader)
 
     if ((getShaderParameter(vertexShader, COMPILE_STATUS) as JsBoolean).toBoolean().not()) {
-        throw IllegalStateException(getShaderInfoLog(vertexShader))
+        error(getShaderInfoLog(vertexShader).orEmpty())
     }
 
     attachShader(program, vertexShader)

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package client.adapters
 
 import common.bmap.WORLD_HEIGHT
@@ -102,7 +104,7 @@ class WebGlRenderingContextAdapterImpl(
 
         if ((getProgramParameter(program, LINK_STATUS) as JsBoolean).toBoolean().not()) {
             window.alert("Unable to initialize the shader program: ${getProgramInfoLog(program)}")
-            throw IllegalStateException(getProgramInfoLog(program))
+            error(getProgramInfoLog(program).orEmpty())
         }
 
         useProgram(program)
@@ -370,7 +372,7 @@ class WebGlRenderingContextAdapterImpl(
 
         if ((getProgramParameter(program, LINK_STATUS) as JsBoolean).toBoolean().not()) {
             window.alert("linkProgram() failed: ${getProgramInfoLog(program)}")
-            throw IllegalStateException()
+            error("linkProgram() failed: ${getProgramInfoLog(program)}")
         }
 
         useProgram(program)

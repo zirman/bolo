@@ -477,11 +477,17 @@ class GameImpl(
             // builder actions
             is MouseEvent.Up -> {
                 fun Int.toRow(): Int {
-                    return (WORLD_WIDTH.toFloat() - (((canvas.clientHeight.toFloat() / 2f) - this) * (devicePixelRatio / (zoomLevel * 16f))) - center.y).toInt()
+                    return (WORLD_WIDTH.toFloat() -
+                            (((canvas.clientHeight.toFloat() / 2f) - this) * (devicePixelRatio / (zoomLevel * 16f))) -
+                            center.y
+                            ).toInt()
                 }
 
                 fun Int.toCol(): Int {
-                    return (((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio / (zoomLevel * 16f))) + center.x).toInt()
+                    return (
+                            ((toFloat() - (canvas.clientWidth.toFloat() / 2f)) * (devicePixelRatio / (zoomLevel * 16f))
+                                    ) + center.x
+                            ).toInt()
                 }
 
                 val row = mouse.row.toRow()
@@ -499,7 +505,7 @@ class GameImpl(
                 ) {
                     if (tank.hasBuilder) {
                         control.builderMode.tryBuilderAction(tank, col, row)?.run {
-                            if (builder != null) throw IllegalStateException("only one builder should exist at a time")
+                            if (builder != null) error("only one builder should exist at a time")
                             add(this)
                         }
                     } else {
@@ -1026,7 +1032,7 @@ class GameImpl(
     }
 
     private fun peerEventUpdate(from: Owner, peerUpdate: PeerUpdate) {
-        val peer = peers[from] ?: throw IllegalStateException("peers[${from}] is null")
+        val peer = peers[from] ?: error("peers[${from}] is null")
         peer.tank = peerUpdate.tank
         peer.shells = peerUpdate.shells
         peer.builder = peerUpdate.builder

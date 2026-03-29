@@ -42,12 +42,12 @@ class ConsumerImpl<T> internal constructor() : ConsumerScope<T>, Consumer<T>, Co
     }
 
     override fun yield(input: T) {
-        if (done) throw IllegalStateException("called yield() on a completed Consumer")
+        if (done) error("called yield() on a completed Consumer")
         nextStep.resume(input)
     }
 
     override fun finish(input: Throwable) {
-        if (done) throw IllegalStateException("called yield() on a completed Consumer")
+        if (done) error("called yield() on a completed Consumer")
         nextStep.resumeWithException(input)
     }
 }

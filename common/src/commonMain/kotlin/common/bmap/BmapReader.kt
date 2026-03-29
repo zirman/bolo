@@ -70,7 +70,11 @@ class Bmap(
         else TerrainTile.entries[terrain[ind(col, row)].toInt()]
 
     operator fun set(col: Int, row: Int, t: TerrainTile) {
-        if (col >= BORDER_WIDTH && col < WORLD_WIDTH - BORDER_WIDTH && row >= BORDER_WIDTH && row < WORLD_HEIGHT - BORDER_WIDTH) {
+        if (col >= BORDER_WIDTH &&
+            col < WORLD_WIDTH - BORDER_WIDTH &&
+            row >= BORDER_WIDTH &&
+            row < WORLD_HEIGHT - BORDER_WIDTH
+        ) {
             terrain[ind(col, row)] = t.ordinal.toUByte()
         }
     }
@@ -402,11 +406,15 @@ fun nibbleToTerrain(nibble: Int): TerrainTile = when (nibble) {
     13 -> TerrainTile.TreeMined
     14 -> TerrainTile.RubbleMined
     15 -> TerrainTile.GrassMined
-    else -> throw IllegalStateException("invalid nibble")
+    else -> error("invalid nibble")
 }
 
 fun defaultTerrain(col: Int, row: Int): TerrainTile =
-    if (col < BORDER_WIDTH || row < BORDER_WIDTH || col >= WORLD_WIDTH - BORDER_WIDTH || row >= WORLD_HEIGHT - BORDER_WIDTH) TerrainTile.SeaMined
+    if (col < BORDER_WIDTH ||
+        row < BORDER_WIDTH ||
+        col >= WORLD_WIDTH - BORDER_WIDTH ||
+        row >= WORLD_HEIGHT - BORDER_WIDTH
+    ) TerrainTile.SeaMined
     else TerrainTile.Sea
 
 @SingleIn(AppScope::class)
