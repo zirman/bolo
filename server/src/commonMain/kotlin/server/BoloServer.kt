@@ -35,9 +35,6 @@ import server.bmap.writeBmapCode
 import server.bmap.writeDamage
 import server.frame.toByteArray
 import server.frame.toFrameClient
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 
 @SingleIn(AppScope::class)
 @Inject
