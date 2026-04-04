@@ -738,7 +738,7 @@ class GameImpl(
                 material = mat,
                 mines = builderMission.mines,
                 pillIndex = (builderMission as? BuilderMission.PlacePill)?.index,
-                // ?:(builderMission as? BuilderMission.RepairPill)?.index
+                // ?: (builderMission as? BuilderMission.RepairPill)?.index
             )
         } else {
             // TODO: print message
@@ -760,6 +760,7 @@ class GameImpl(
                         is Frame.Close -> error("connection closed by server")
                         is Frame.Ping -> Unit
                         is Frame.Pong -> Unit
+                        else -> {}
                     }
                 }
                 .map { ProtoBuf.decodeFromByteArray(frameServerSerializer, it.readBytes()) }

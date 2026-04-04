@@ -9,11 +9,9 @@ plugins {
     alias(libs.plugins.kotlinxJsPlainObjects)
     alias(libs.plugins.metro)
 }
-
 java {
     targetCompatibility = JavaVersion.VERSION_21
 }
-
 kotlin {
     compilerOptions {
         extraWarnings.set(true)
@@ -23,7 +21,6 @@ kotlin {
             jvmTarget = JvmTarget.JVM_21
         }
     }
-
     wasmJs {
         browser {
         }
@@ -31,12 +28,10 @@ kotlin {
             freeCompilerArgs.add("-Xwasm-debugger-custom-formatters")
         }
     }
-
 //    js(IR) {
 //        browser {
 //        }
 //    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(dependencies.platform(libs.kotilnxCoroutinesBom))
@@ -45,7 +40,6 @@ kotlin {
             implementation(libs.kotlinxSerializationCore)
             implementation(libs.ktorClientCore)
         }
-
         commonTest.dependencies {
             implementation(libs.kotlinTest)
             implementation(libs.kotlinTestCommon)

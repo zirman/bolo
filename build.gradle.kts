@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.metro) apply false
     alias(libs.plugins.versions) apply true
 }
-
 subprojects {
     val compilerArgs = listOf(
         "-Xexpect-actual-classes",
@@ -19,39 +18,33 @@ subprojects {
         "-opt-in=kotlinx.coroutines.DelicateCoroutinesApi",
         "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
     )
-
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.addAll(compilerArgs)
         }
     }
-
     tasks.withType<KotlinJsCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.addAll(compilerArgs)
         }
     }
-
     tasks.withType<KotlinCompileCommon>().configureEach {
         compilerOptions {
             freeCompilerArgs.addAll(compilerArgs)
         }
     }
 }
-
 tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
     checkForGradleUpdate = true
     outputFormatter = "json"
     outputDir = "build/dependencyUpdates"
     reportfileName = "report"
 }
-
 tasks.withType<DependencyUpdatesTask> {
     rejectVersionIf {
         isNonStable(candidate.version)
     }
 }
-
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA", "BETA", "RC").any { version.uppercase().contains(it) }
     val regex = "^[0-9,.v-]+(-r)?$".toRegex()

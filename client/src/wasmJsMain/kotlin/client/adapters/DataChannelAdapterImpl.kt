@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package client.adapters
 
 class DataChannelAdapterImpl(private val dataChannel: DataChannel) : DataChannelAdapter {
