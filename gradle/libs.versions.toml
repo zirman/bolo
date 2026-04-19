@@ -1,13 +1,13 @@
 [versions]
-kotlin = "2.3.20" # https://github.com/jetbrains/kotlin/releases
-kotlinxCoroutines = "1.10.2"
-kotlinxSerialization = "1.10.0"
+kotlin = "2.4.0-Beta1" # https://github.com/jetbrains/kotlin/releases
+kotlinxCoroutines = "1.11.0-rc01"
+kotlinxSerialization = "1.11.0"
 ktor = "3.4.2"
-kotlinWrappersBom = "2026.4.2"
+kotlinWrappersBom = "2026.4.9"
 kotlinxDatetime = "0.7.1"
 kotlinxCollectionsImmutable = "0.4.0"
 logbackClassic = "1.5.32"
-metro = "0.12.1"
+metro = "1.0.0-RC2"
 slf4jSimple = "2.0.7"
 kotlinxBrowser = "0.5.0"
 junit = "4.13.2"

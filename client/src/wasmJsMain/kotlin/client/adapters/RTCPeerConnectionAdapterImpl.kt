@@ -10,15 +10,15 @@ class RTCPeerConnectionAdapterImpl(configuration: JsAny) : RTCPeerConnectionAdap
 
     override suspend fun setRemoteDescription(description: String) {
         println("setRemoteDescription $description")
-        return rtcPeerConnection.setRemoteDescription(JSON.parse(description)!!).await()
+        rtcPeerConnection.setRemoteDescription(JSON.parse(description)!!).await()
     }
 
     override suspend fun setLocalDescription(description: String) {
-        return rtcPeerConnection.setLocalDescription(JSON.parse(description)!!).await()
+        rtcPeerConnection.setLocalDescription(JSON.parse(description)!!).await()
     }
 
     override suspend fun addIceCandidate(candidate: String) {
-        return rtcPeerConnection.addIceCandidate(JSON.parse(candidate)!!).await()
+        rtcPeerConnection.addIceCandidate(JSON.parse(candidate)!!).await()
     }
 
     override val localDescription: String?
