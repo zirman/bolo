@@ -117,7 +117,7 @@ tasks.named<Copy>("jvmProcessResources") {
     from("build/compileSync/wasmJs/main/productionExecutable/optimized/Bolo-client.wasm.map")
     from("src") { into("src") }
 }
-val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
+configurations.register("distribution") {
     isCanBeConsumed = true
     isCanBeResolved = false
 }

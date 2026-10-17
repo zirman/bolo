@@ -18,7 +18,7 @@ kotlin {
 application {
     mainClass.set("server.MainKt")
 }
-val generatedOutput: Configuration by configurations.creating {
+val generatedOutput: Configuration = configurations.create("generatedOutput") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
@@ -32,7 +32,8 @@ dependencies {
         targetConfiguration = "distribution"
     }
 }
-val copyGeneratedOutput: TaskProvider<Copy> by tasks.registering(Copy::class) {
+val copyGeneratedOutput: TaskProvider<Copy> = tasks.register("jvmAppOutput", Copy::class) {
+    description = "Copy generated output"
     from(generatedOutput)
     into(project.layout.buildDirectory.dir("generatedOutput"))
 }

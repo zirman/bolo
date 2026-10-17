@@ -46,7 +46,7 @@ kotlin {
         }
     }
 }
-val distribution: NamedDomainObjectProvider<Configuration> by configurations.registering {
+val distribution: NamedDomainObjectProvider<Configuration> = configurations.register("distribution") {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
