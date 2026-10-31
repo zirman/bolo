@@ -18,7 +18,7 @@ kotlin {
 application {
     mainClass.set("server.MainKt")
 }
-val generatedOutput: Configuration = configurations.create("generatedOutput") {
+val generatedOutput: NamedDomainObjectProvider<Configuration> = configurations.register("generatedOutput") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
